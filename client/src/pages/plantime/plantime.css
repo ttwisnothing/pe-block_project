@@ -1,0 +1,17 @@
+/* plantime.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px; /* เว้นระยะห่างระหว่าง elements */
+    padding: 20px;
+  }
+  
+  .form-control {
+    width: 300px; /* กำหนดความกว้างของ dropdown */
+  }
+  
+  .button {
+    margin-top: 10px; /* ให้ปุ่มเว้นระยะห่างจาก dropdown */
+  }
+  

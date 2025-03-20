@@ -1,0 +1,24 @@
+/* .app-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    /* ความกว้างของ sidebar 
+    background: white;
+    min-height: 100vh;
+    position: fixed;
+    /* ทำให้ sidebar อยู่ติดซ้าย 
+}
+
+.content {
+    margin-left: 250px;
+    /* กำหนดระยะห่างจาก sidebar 
+    flex-grow: 1;
+    /* ให้ content ขยายเต็มพื้นที่ที่เหลือ 
+    background: #222;
+    color: white;
+    padding: 20px;
+    overflow: auto;
+} */
