@@ -4,7 +4,7 @@ import cors from 'cors';
 import db from './config/db.js';
 import { createRecipeTable } from './models/recipeModel.js';
 import { createConfigTimeTable } from './models/configModel.js';
-import { createPlanTimeTable } from './models/plantimeModel.js';
+import { createPlanTimeTable, createTempPlanTimeTable } from './models/plantimeModel.js';
 import { createMachineTable } from './models/machineModel.js';
 import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
@@ -29,6 +29,7 @@ const connectDB = async () => {
         createConfigTimeTable();
         createPlanTimeTable();
         createMachineTable();
+        createTempPlanTimeTable();
     } catch (error) {
         console.log("❌ Error in connecting database : ", error);
     }
@@ -38,8 +39,8 @@ const connectDB = async () => {
 connectDB();
 
 // กำหนด Route สำหรับการทำงานกับ Recipe
-app.use('/api', postRoutes);
-app.use('/api', getRoutes);
+app.use('/api/post', postRoutes);
+app.use('/api/get', getRoutes);
 
 // กำหนด Port ให้ Express App ทำงาน
 app.listen(PORT, () => {
