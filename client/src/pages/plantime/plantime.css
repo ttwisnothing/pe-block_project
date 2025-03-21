@@ -1,17 +1,69 @@
-/* plantime.css */
+/* จัดตำแหน่งให้กล่องแสดงผลอยู่ตรงกลาง */
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px; /* เว้นระยะห่างระหว่าง elements */
-    padding: 20px;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #ffffff;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* หัวข้อหลัก */
+h1 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* จัดระเบียบ Select Box */
+.form-control {
+  margin-bottom: 20px; /* เพิ่มระยะห่างจากปุ่ม */
+}
+
+/* ปรับระยะห่างของ Select เอง (สำหรับ Material-UI) */
+.MuiInputBase-root {
+  margin-bottom: 15px !important; /* บังคับให้มีระยะห่าง */
+}
+
+/* ปุ่มค้นหา */
+.button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 15px; /* เพิ่มระยะห่างจาก Select */
+  margin-bottom: 15px; /* เพิ่มระยะห่างจาก Select */
+  background-color: #1976d2;
+  color: white;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+/* เอฟเฟกต์ Hover และ Active */
+.button:hover {
+  background-color: #1565c0;
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+.show-button {
+  margin-top: 15px; /* เพิ่มช่องว่างด้านบนของปุ่ม Show Plantime */
+  background-color: #388e3c;
+}
+
+.show-button:hover {
+  background-color: #2e7d32;
+}
+
+/* กล่องแสดง Error */
+.MuiAlert-root {
+  margin-top: 15px;
+}
+
+/* Responsive: สำหรับจอเล็ก */
+@media (max-width: 600px) {
+  .container {
+    max-width: 90%;
   }
-  
-  .form-control {
-    width: 300px; /* กำหนดความกว้างของ dropdown */
-  }
-  
-  .button {
-    margin-top: 10px; /* ให้ปุ่มเว้นระยะห่างจาก dropdown */
-  }
-  
+}

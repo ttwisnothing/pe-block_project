@@ -7,54 +7,59 @@ import {
   FormControl,
   Alert,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom"; // ใช้ Navigate สำหรับเปลี่ยนหน้า
 import axios from "axios";
-import "./plantime.css"; // ✅ นำเข้าไฟล์ CSS
+import "./plantime.css";
 
 const Plantime = ({ url }) => {
   const [recipeName, setRecipeName] = useState("");
   const [planTimes, setPlanTimes] = useState([]);
-  const [plantimeName, setPlantimeName] = useState(""); // ✅ เพิ่มตัวแปรนี้
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [searchDone, setSearchDone] = useState(false); // ตรวจสอบว่าเคยค้นหาหรือไม่
+  const navigate = useNavigate();
 
   // โหลดรายการ Plan Time จาก API
   const fetchPlanTimes = async () => {
-    if (!recipeName) return; // ✅ ตรวจสอบว่ามีชื่อ Recipe ก่อนโหลด
+    if (!recipeName) return;
     setLoading(true);
     try {
       const response = await axios.get(`${url}/api/plantime/${recipeName}`);
       setPlanTimes(response.data.planTimes || []);
+      setError(false);
     } catch (error) {
       console.error("❌ ERROR fetching PlanTime:", error);
       setPlanTimes([]);
+      setError(true);
     } finally {
       setLoading(false);
+      setSearchDone(true); // เมื่อเสร็จการค้นหาก็จะตั้งค่าเป็น `true`
     }
   };
 
   useEffect(() => {
-    fetchPlanTimes();
-  }, [recipeName]); // ✅ โหลดข้อมูลเมื่อ recipeName เปลี่ยน
+    if (searchDone) {
+      fetchPlanTimes(); // โหลดข้อมูลเมื่อ `searchDone` เป็น true
+    }
+  }, [searchDone]);
 
-  const handleSearch = async () => {
-    if (!plantimeName) {
+  const handleSearch = () => {
+    if (!recipeName) {
       setError(true);
     } else {
       setError(false);
-      try {
-        const response = await axios.get(`${url}/api/recipe/${plantimeName}`);
-        console.log("📌 ผลลัพธ์ที่ได้:", response.data);
-      } catch (error) {
-        console.error("❌ Error fetching data:", error);
-      }
+      setSearchDone(true); // กดค้นหาจะตั้ง `searchDone` เป็น true
     }
+  };
+
+  // ฟังก์ชันเปลี่ยนหน้าไปยัง `PlantimeTable.jsx`
+  const handleShowPlanTime = () => {
+    navigate("/plantime-table", { state: { recipeName, planTimes } });
   };
 
   return (
     <div className="container">
       <h1>Plan Time</h1>
-
-      {error && <Alert severity="error">กรุณาเลือก Plan Time</Alert>}
 
       <FormControl fullWidth className="form-control">
         <InputLabel id="recipe-label">เลือก Recipe</InputLabel>
@@ -63,24 +68,9 @@ const Plantime = ({ url }) => {
           value={recipeName}
           onChange={(e) => setRecipeName(e.target.value)}
         >
-          <MenuItem value="Recipe1">Recipe1</MenuItem>
-          <MenuItem value="Recipe2">Recipe2</MenuItem>
-          <MenuItem value="Recipe3">Recipe3</MenuItem>
-        </Select>
-      </FormControl>
-
-      <FormControl fullWidth className="form-control" disabled={loading}>
-        <InputLabel id="plantime-label">เลือก Plan Time</InputLabel>
-        <Select
-          labelId="plantime-label"
-          value={plantimeName}
-          onChange={(e) => setPlantimeName(e.target.value)}
-        >
-          {planTimes.map((plantime, index) => (
-            <MenuItem key={index} value={plantime}>
-              {plantime}
-            </MenuItem>
-          ))}
+          <MenuItem value="RP300S">RP300S</MenuItem>
+          <MenuItem value="RP300S-DB">RP300S-DB</MenuItem>
+          <MenuItem value="RP300S-50">RP300S-50</MenuItem>
         </Select>
       </FormControl>
 
@@ -93,6 +83,26 @@ const Plantime = ({ url }) => {
       >
         ค้นหา
       </Button>
+
+      {/* ปุ่ม Show Plantime จะแสดงเมื่อมีข้อมูลหลังจากค้นหา */}
+      {searchDone && planTimes.length > 0 && (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleShowPlanTime}
+          className="button show-button"
+        >
+          Show Plantime
+        </Button>
+      )}
+
+      {/* ถ้าไม่พบข้อมูล */}
+      {searchDone && planTimes.length === 0 && !error && (
+        <Alert severity="info">ไม่พบข้อมูล Plan Time</Alert>
+      )}
+
+      {/* ถ้าเกิด error */}
+      {error && <Alert severity="error">เกิดข้อผิดพลาดในการค้นหา</Alert>}
     </div>
   );
 };

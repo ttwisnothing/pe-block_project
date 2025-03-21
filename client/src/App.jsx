@@ -16,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/plantime" element={<Plantime url={url} />} />
+            <Route path="/plantime-table" element={<PlanTimeTable url={url} />} />
           </Routes>
         </div>
       </div>
