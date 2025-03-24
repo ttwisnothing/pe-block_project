@@ -4,10 +4,12 @@ import cors from 'cors';
 import db from './config/db.js';
 import { createRecipeTable } from './models/recipeModel.js';
 import { createConfigTimeTable } from './models/configModel.js';
-import { createPlanTimeTable, createTempPlanTimeTable } from './models/plantimeModel.js';
+import { createPlanTimeTable } from './models/plantimeModel.js';
 import { createMachineTable } from './models/machineModel.js';
+import { createTempPlanTimeTable } from './models/tempplanModel.js';
 import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
+import putRoutes from './routes/putRoute.js';
 
 // กำหนดค่า Environment จากไฟล์ .env
 dotenv.config();
@@ -41,6 +43,7 @@ connectDB();
 // กำหนด Route สำหรับการทำงานกับ Recipe
 app.use('/api/post', postRoutes);
 app.use('/api/get', getRoutes);
+app.use('/api/put', putRoutes);
 
 // กำหนด Port ให้ Express App ทำงาน
 app.listen(PORT, () => {

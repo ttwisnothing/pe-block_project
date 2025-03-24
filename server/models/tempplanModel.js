@@ -1,12 +1,12 @@
-import db from "../config/db.js";
+import db from '../config/db.js';
 
-// สร้าง PlanTime_Table เพื่อเก็บข้อมูล
-export const createPlanTimeTable = async () => {
+// สร้าง TempPlanTime_Table เพื่อเก็บข้อมูล
+export const createTempPlanTimeTable = async () => {
     try {
         await db.query(
             `
-            CREATE TABLE IF NOT EXISTS plan_times_table (
-                plant_id INT PRIMARY KEY AUTO_INCREMENT,
+            CREATE TABLE IF NOT EXISTS temp_plan_time_table (
+                temp_id INT PRIMARY KEY AUTO_INCREMENT,
                 recipe_id INT NOT NULL,
                 run_no INT NOT NULL,
                 machine VARCHAR(255),
@@ -29,10 +29,10 @@ export const createPlanTimeTable = async () => {
                 curr_block INT,
                 next_block INT,
                 FOREIGN KEY (recipe_id) REFERENCES recipes_table(recipe_id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
             `
         )
     } catch (error) {
-        console.log("❌ Error in creating table 'plan_times_table' : ", error);
+        console.log("❌ Error in creating table 'temp_plan_times_table' : ", error);
     }
 }
