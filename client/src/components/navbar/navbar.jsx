@@ -39,12 +39,12 @@ const Navbar = () => {
           {isDropdownOpen && (
             <ul className="navbar-dropdown-menu">
               <li>
-                <Link to="/" className="navbar-dropdown-item">
+                <Link to="/recipe" className="navbar-dropdown-item">
                   บันทึก Recipe
                 </Link>
               </li>
               <li>
-                <Link to="/" className="navbar-dropdown-item">
+                <Link to="/config-time" className="navbar-dropdown-item">
                   บันทึก Config Time
                 </Link>
               </li>

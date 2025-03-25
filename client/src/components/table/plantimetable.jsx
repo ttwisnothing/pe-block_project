@@ -10,34 +10,50 @@ import {
   Paper,
   Button,
 } from "@mui/material";
-import "./plantimetable.css"; // Import CSS
+import "./plantimetable.css";
 
-const PlanTimeTable = () => {
-  const location = useLocation(); // รับข้อมูลจาก navigate
+const PlanTimeTable = ({ url }) => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { recipeName, planTimes } = location.state || {}; // ดึงข้อมูล recipeName และ planTimes
+  const { recipeName, planTimes } = location.state || {};
 
-  // หากไม่มีข้อมูล ให้ redirect กลับไปหน้า PlanTime
   if (!recipeName || !planTimes) {
     navigate("/plantime");
     return null;
   }
 
-  // ฟังก์ชันสำหรับแปลงเวลาให้เหลือแค่ชั่วโมงและนาที
+  // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
     if (!time) return "";
     const [hours, minutes] = time.split(":");
     return `${hours}:${minutes}`;
   };
 
+  // ฟังก์ชันสำหรับเรียก API addTempPlanTime
+  const handleMachineBreakdown = async () => {
+    try {
+      const response = await fetch(`${url}/api/post/plantime/temp/add/${recipeName}`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("❌ Failed to add Temp Plan Time");
+      }
+
+      const data = await response.json();
+      alert(data.message || "✅ Temp Plan Time added successfully");
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  };
+
   return (
     <div className="table-container">
-      {/* Recipe Title */}
       <div className="table-header">
         <h2>Recipe: {recipeName}</h2>
       </div>
 
-      {/* Table */}
       <TableContainer component={Paper} className="custom-table-container">
         <Table className="custom-table">
           <TableHead>
@@ -87,12 +103,11 @@ const PlanTimeTable = () => {
         </Table>
       </TableContainer>
 
-      {/* Machine Breakdown Button */}
       <div className="footer-button">
         <Button
           variant="contained"
           color="primary"
-          onClick={() => alert("Machine Breakdown clicked!")}
+          onClick={handleMachineBreakdown}
         >
           Machine Breakdown
         </Button>
