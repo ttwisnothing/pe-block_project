@@ -10,27 +10,18 @@ export const addRecipe = async (req, res) => {
     } catch (error) {
         res.status(500).send("❌ Error in adding recipe");
         console.log(error);
-        
     }
-}
+};
 
-// ดึงข้อมูล Recipes จากฐานข้อมูล
+// ดึงข้อมูล Recipes ทั้งหมดจากฐานข้อมูล
 export const getRecipes = async (req, res) => {
-    const { recipe_name } = req.params; // รับค่า recipe_name จาก params
-
-    const query = `SELECT * FROM recipes_table WHERE recipe_name = '${recipe_name}'`;
+    const query = `SELECT recipe_id AS id, recipe_name AS name FROM recipes_table`; // ใช้ alias "name" ให้ตรงกับฝั่ง plantime.jsx
 
     try {
-        const result = await db.query(query);
-        
-        // ส่งข้อมูลจากฐานข้อมูลในรูปแบบ JSON
-        if (result.rows.length > 0) {
-            return res.status(200).json(result.rows); // ส่งข้อมูล recipe ที่ตรงกับ query
-        } else {
-            return res.status(404).send("❌ Recipe not found");
-        }
+        const [recipes] = await db.query(query);
+        res.status(200).json({ recipes }); // ส่งข้อมูล recipes กลับในรูปแบบ JSON
     } catch (error) {
         res.status(500).send("❌ Error in fetching recipes");
         console.log(error);
     }
-}
+};

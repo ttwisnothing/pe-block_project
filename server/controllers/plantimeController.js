@@ -11,6 +11,7 @@ export const getPlanTime = async (req, res) => {
             FROM plan_times_table pt
             INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
             WHERE rt.recipe_name = ?
+            ORDER BY pt.run_no ASC, pt.batch_no ASC
         `, [recipe_name]);
 
         if (planTimes.length === 0) {
