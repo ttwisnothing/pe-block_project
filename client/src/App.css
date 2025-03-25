@@ -1,26 +1,58 @@
-.app-container {
-    display: flex;
-    height: 100vh;
-    background: #222;
+/* App Container */
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* ให้ความสูงของ App ครอบคลุมทั้งหน้าจอ */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.sidebar {
-    width: 250px;
-    /* ความกว้างของ sidebar  */
-    background: white;
-    min-height: 100vh;
-    position: fixed;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* ให้มีเงานิดหน่อย */
-}
-
+/* Content Section */
 .content {
-    margin-left: 250px;
-    /* กำหนดระยะห่างจาก sidebar */
-    flex-grow: 1;
-    /* ให้ content ขยายเต็มพื้นที่ที่เหลือ  */
-    background: #222;
-    color: white;
-    padding: 20px;
-    overflow: auto;
+  flex: 1; /* ดันเนื้อหาให้ขยายเต็มพื้นที่ที่เหลือ */
+  margin-top: 80px; /* เพิ่มระยะห่างจาก Navbar */
+  padding: 20px;
+}
+
+/* Header Styling */
+h1 {
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+/* Paragraph Styling */
+p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Button Styling */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Footer Styling */
+.home-footer {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  text-align: center;
+  padding: 10px 0;
+  border-top: 1px solid #e9ecef;
+  position: relative;
+  bottom: 0;
+  width: 100%;
 }

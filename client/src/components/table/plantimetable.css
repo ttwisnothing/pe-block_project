@@ -1,0 +1,102 @@
+/* Container for the table */
+.table-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  position: relative;
+  width: 100%; /* ขยายตารางให้เต็มพื้นที่ */
+  max-width: none; /* ยกเลิกความกว้างสูงสุด */
+  margin: 0; /* ลบระยะขอบ */
+  border-radius: 0; /* ลบมุมโค้ง */
+  box-shadow: none; /* ลบเงา */
+  display: flex;
+  flex-direction: column; /* จัดเรียงเนื้อหาในแนวตั้ง */
+  gap: 20px; /* เพิ่มระยะห่างระหว่างตารางและปุ่ม */
+}
+
+/* Title for the table */
+.table-title {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Header for Recipe */
+.table-header {
+  display: flex;
+  justify-content: flex-start; /* Align to the left */
+  margin-bottom: 20px;
+  padding-left: 20px; /* เพิ่มระยะห่างจากขอบซ้าย */
+}
+
+.table-header h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+}
+
+/* Custom table container */
+.custom-table-container {
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+}
+
+/* Custom table */
+.custom-table {
+  width: 100%;
+  table-layout: fixed; /* Fix column widths */
+  border-collapse: collapse;
+  font-size: 0.9rem; /* ลดขนาดตัวอักษร */
+}
+
+/* Table header */
+.custom-table thead th {
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  border: 1px solid #ddd; /* เพิ่มเส้นขอบ */
+}
+
+/* Table body rows */
+.custom-table tbody tr {
+  text-align: center;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2; /* Alternate row color */
+}
+
+.custom-table tbody tr:hover {
+  background-color: #e6f7ff; /* Highlight row on hover */
+}
+
+/* Table cells */
+.custom-table td {
+  padding: 10px;
+  word-wrap: break-word; /* Wrap long text */
+  text-align: center;
+  border: 1px solid #ddd; /* เพิ่มเส้นขอบ */
+}
+
+/* Footer button */
+.footer-button {
+  align-self: flex-start; /* จัดปุ่มให้อยู่ด้านซ้าย */
+}
+
+.footer-button button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px; /* เพิ่มขนาดปุ่ม */
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.footer-button button:hover {
+  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
+  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+}

@@ -1,0 +1,94 @@
+/* Navbar Container */
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff; /* สีพื้นหลัง Navbar เป็นสีขาว */
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Logo Section */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #000000; /* สีข้อความโลโก้เป็นสีดำ */
+}
+
+.navbar-logo img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+/* Navbar Menu */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-item {
+  color: #000000; /* สีข้อความเมนูเป็นสีดำ */
+  text-decoration: none;
+  padding: 10px 15px;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+}
+
+.navbar-item:hover {
+  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+  border-radius: 5px;
+}
+
+/* Dropdown Menu */
+.navbar-dropdown {
+  position: relative;
+}
+
+.navbar-dropdown-button {
+  color: #000000; /* สีข้อความปุ่ม Dropdown เป็นสีดำ */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 15px;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.navbar-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff; /* สีพื้นหลัง Dropdown เป็นสีขาว */
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: none;
+  z-index: 1000;
+}
+
+.navbar-dropdown:hover .navbar-dropdown-menu {
+  display: block;
+}
+
+.navbar-dropdown-item {
+  color: #000000; /* สีข้อความใน Dropdown เป็นสีดำ */
+  text-decoration: none;
+  padding: 10px 15px;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-dropdown-item:hover {
+  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+}
