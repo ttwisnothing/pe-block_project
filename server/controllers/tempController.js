@@ -4,6 +4,12 @@ export const addTempPlanTime = async (req, res) => {
     const { recipe_name } = req.params;
 
     try {
+        // ลบข้อมูลทั้งหมดใน temp_plan_time_table
+        await db.query(`DELETE FROM temp_plan_time_table`);
+
+        // รีเซ็ตค่า AUTO_INCREMENT
+        await db.query(`ALTER TABLE temp_plan_time_table AUTO_INCREMENT = 1`)
+
         const [planTimes] = await db.query(`
             SELECT pt.*
             FROM plan_times_table pt
@@ -43,8 +49,67 @@ export const addTempPlanTime = async (req, res) => {
             await db.query(query, values);
         }
 
-        return res.json({
+        return res.status(200).json({
             message: '✅ Plan Times inserted into temp_plan_times_table successfully',
+        });
+    } catch (error) {
+        console.error('❌ ERROR:', error);
+        res.status(500).json({ message: "❌ Error in inserting Temp Plan Time" });
+    }
+}
+
+export const addTempMB = async (req, res) => {
+    const { recipe_name } = req.params;
+
+    try {
+        const [tempTimes] = await db.query(`
+            SELECT tpt.*
+            FROM temp_plan_time_table tpt
+            INNER JOIN recipes_table rt ON tpt.recipe_id = rt.recipe_id
+            WHERE rt.recipe_name = ?
+        `, [recipe_name]);
+
+        if (tempTimes.length === 0) {
+            return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
+        }
+
+        // ลบข้อมูลทั้งหมดใน temp_plan_time_table
+        await db.query(`DELETE FROM temp_plan_time_table`);
+
+        // รีเซ็ตค่า AUTO_INCREMENT
+        await db.query(`ALTER TABLE temp_plan_time_table AUTO_INCREMENT = 1`)
+
+        // INSERT ข้อมูลลงใน TempPlanTime
+        for (const plantime of tempTimes) {
+            const query = `
+                INSERT INTO temp_plan_time_table (
+                    recipe_id, run_no,
+                    machine, batch_no, program_no,
+                    start_time, mixing, extruder_exit,
+                    pre_press_exit, primary_press_start, stream_in,
+                    primary_press_exit, secondary_press_1_start, temp_check_1,
+                    secondary_press_2_start, temp_check_2, cooling,
+                    secondary_press_exit, block, curr_block, next_block
+                ) VALUES (
+                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+                )
+            `;
+            const values = [
+                plantime.recipe_id, plantime.run_no,
+                plantime.machine, plantime.batch_no, plantime.program_no,
+                plantime.start_time, plantime.mixing, plantime.extruder_exit,
+                plantime.pre_press_exit, plantime.primary_press_start, plantime.stream_in,
+                plantime.primary_press_exit, plantime.secondary_press_1_start, plantime.temp_check_1,
+                plantime.secondary_press_2_start, plantime.temp_check_2, plantime.cooling,
+                plantime.secondary_press_exit, plantime.block, plantime.curr_block, plantime.next_block
+            ]
+
+            await db.query(query, values);
+        }
+
+        return res.status(200).json({
+            message: '✅ New Tepm Plan Times add to Temp Plan Time Table success',
+            tempTimes
         });
     } catch (error) {
         console.error('❌ ERROR:', error);
@@ -62,7 +127,34 @@ export const getTempPlanTime = async (req, res) => {
             FROM temp_plan_time_table pt
             INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
             WHERE rt.recipe_name = ?
-            ORDER BY pt.batch_no ASC
+        `, [recipe_name]);
+
+        if (tempPlanTimes.length === 0) {
+            return res.status(404).json({ message: '❌ No Temp Plan Times found for this recipe' });
+        }
+
+        return res.json({
+            recipe_name,
+            recipeId: tempPlanTimes[0].recipe_id,
+            tempPlanTimes
+        })
+    } catch (error) {
+        console.error('❌ ERROR:', error);
+        res.status(500).json({ message: "❌ Error in fetching Temp Plan Times" });
+    }
+}
+
+// ดึงข้อมูล TempPlanTime ทั้งหมด และเรียงตาม run_no, batch_no
+export const getTempPlanTimeASC = async (req, res) => {
+    const { recipe_name } = req.params;
+
+    try {
+        const [tempPlanTimes] = await db.query(`
+            SELECT pt.*
+            FROM temp_plan_time_table pt
+            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
+            WHERE rt.recipe_name = ?
+            ORDER BY pt.run_no, pt.batch_no;
         `, [recipe_name]);
 
         if (tempPlanTimes.length === 0) {
