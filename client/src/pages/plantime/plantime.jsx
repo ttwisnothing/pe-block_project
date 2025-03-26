@@ -29,12 +29,30 @@ const Plantime = ({ url }) => {
       setPlanTimes(response.data.planTimes || []);
       setError(false);
     } catch (error) {
-      console.error("❌ ERROR fetching PlanTime:", error);
-      setPlanTimes([]);
-      setError(true);
+      if (error.response && error.response.status === 404) {
+        console.warn("⚠️ No Plan Time found for this recipe.");
+        setPlanTimes([]); // กำหนดให้ไม่มีข้อมูล
+        setError(false); // ไม่ถือว่าเป็นข้อผิดพลาดร้ายแรง
+      } else {
+        console.error("❌ ERROR fetching PlanTime:", error);
+        setPlanTimes([]);
+        setError(true); // ข้อผิดพลาดอื่น ๆ
+      }
     } finally {
       setLoading(false);
       setSearchDone(true);
+    }
+  };
+
+  const addPlanTime = async () => {
+    if (!recipeName) return;
+    try {
+      const response = await axios.post(`${url}/api/post/plantime/add/${recipeName}`);
+      alert(response.data.message || "✅ Plan Time created successfully");
+      fetchPlanTimes(); // โหลดข้อมูลใหม่หลังจากสร้าง
+    } catch (error) {
+      console.error("❌ ERROR adding Plan Time:", error);
+      alert(error.response?.data?.message || "❌ Failed to create Plan Time");
     }
   };
 
@@ -56,10 +74,10 @@ const Plantime = ({ url }) => {
   };
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Plan Time</h1>
+    <div className="container">
+      <h1 className="title">Plan Time</h1>
 
-      <div className="mb-3">
+      <div className="form-group">
         <label htmlFor="recipe-select" className="form-label">
           เลือก Recipe
         </label>
@@ -81,7 +99,7 @@ const Plantime = ({ url }) => {
       </div>
 
       <button
-        className="btn btn-primary w-100 mb-3"
+        className="button primary"
         onClick={handleSearch}
         disabled={loading}
       >
@@ -89,21 +107,21 @@ const Plantime = ({ url }) => {
       </button>
 
       {searchDone && planTimes.length > 0 && (
-        <button
-          className="btn btn-success w-100 mb-3"
-          onClick={handleShowPlanTime}
-        >
+        <button className="button success" onClick={handleShowPlanTime}>
           Show Plantime
         </button>
       )}
 
       {searchDone && planTimes.length === 0 && !error && (
-        <div className="alert alert-info">ไม่พบข้อมูล Plan Time</div>
+        <div>
+          <div className="alert info">ไม่พบข้อมูล Plan Time</div>
+          <button className="button warning" onClick={addPlanTime}>
+            สร้าง Plan Time
+          </button>
+        </div>
       )}
 
-      {error && (
-        <div className="alert alert-danger">เกิดข้อผิดพลาดในการค้นหา</div>
-      )}
+      {error && <div className="alert danger">เกิดข้อผิดพลาดในการค้นหา</div>}
     </div>
   );
 };

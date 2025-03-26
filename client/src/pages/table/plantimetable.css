@@ -100,3 +100,23 @@
   background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
   transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
 }
+
+/* ปุ่ม Back */
+.top-buttons button {
+  background-color: #007bff; /* สีพื้นหลัง */
+  color: white; /* สีตัวอักษร */
+  padding: 12px 24px; /* ขนาดปุ่ม */
+  border: none;
+  border-radius: 5px; /* มุมโค้ง */
+  font-size: 1rem; /* ขนาดตัวอักษร */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 200px; /* กำหนดความกว้างให้เท่ากัน */
+  height: 50px; /* กำหนดความสูงให้เท่ากัน */
+  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+}
+
+.top-buttons button:hover {
+  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
+  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+}

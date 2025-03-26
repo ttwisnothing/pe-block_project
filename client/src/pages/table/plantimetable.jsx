@@ -10,6 +10,7 @@ import {
   Paper,
   Button,
 } from "@mui/material";
+import axios from "axios"; // ใช้ axios แทน fetch
 import "./plantimetable.css";
 
 const PlanTimeTable = ({ url }) => {
@@ -29,27 +30,42 @@ const PlanTimeTable = ({ url }) => {
     return `${hours}:${minutes}`;
   };
 
-  // ฟังก์ชันสำหรับเรียก API addTempPlanTime
+  // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
   const handleMachineBreakdown = async () => {
     try {
-      const response = await fetch(`${url}/api/post/plantime/temp/add/${recipeName}`, {
-        method: "POST",
-      });
+      const response = await axios.post(
+        `${url}/api/post/plantime/temp/add/${recipeName}`
+      );
 
-      if (!response.ok) {
+      if (response.status === 200) {
+        alert(response.data.message || "✅ Temp Plan Time added successfully");
+
+        // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
+        navigate("/edit-temp", {
+          state: { recipeName },
+        });
+      } else {
         throw new Error("❌ Failed to add Temp Plan Time");
       }
-
-      const data = await response.json();
-      alert(data.message || "✅ Temp Plan Time added successfully");
     } catch (error) {
       console.error(error);
-      alert(error.message);
+      alert(error.response?.data?.message || "❌ Failed to add Temp Plan Time");
     }
   };
 
   return (
     <div className="table-container">
+      {/* ปุ่มย้อนกลับ */}
+      <div className="top-buttons">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/plantime")}
+        >
+          Back
+        </Button>
+      </div>
+
       <div className="table-header">
         <h2>Recipe: {recipeName}</h2>
       </div>

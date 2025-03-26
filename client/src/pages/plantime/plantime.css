@@ -1,50 +1,37 @@
 /* Container */
 .container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 1200px; /* เพิ่มความกว้าง */
+  margin: 50px 300px 50px 300px; /* จัดตำแหน่งกลาง */
+  padding: 30px; /* เพิ่ม padding */
+  text-align: center;
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
 }
 
-/* Header */
-.container h1 {
+/* Title */
+.title {
   font-size: 2rem;
-  color: #333;
   margin-bottom: 20px;
 }
 
-/* Form Control */
-.form-control {
+/* Form Group */
+.form-group {
   margin-bottom: 20px;
   text-align: left;
 }
 
-.form-control label {
+.form-label {
   display: block;
+  margin-bottom: 8px;
   font-size: 1rem;
-  color: #555;
-  margin-bottom: 5px;
+  font-weight: bold;
 }
 
-.form-control select {
+.form-select {
   width: 100%;
   padding: 10px;
   font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  outline: none;
-  transition: border-color 0.3s ease;
-}
-
-.form-control select:focus {
-  border-color: #007bff;
-}
-
-/* Form Select */
-.form-select {
   border: 1px solid #ccc;
   border-radius: 5px;
   transition: border-color 0.3s ease;
@@ -55,75 +42,68 @@
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-/* Buttons */
+/* ปุ่ม */
 .button {
-  width: 100%;
-  padding: 10px 15px;
-  font-size: 1rem;
+  display: block;
+  width: 90%; /* เพิ่มความกว้าง */
+  padding: 15px; /* เพิ่ม padding */
+  font-size: 1.2rem; /* เพิ่มขนาดตัวอักษร */
+  border: none;
   border-radius: 5px;
-  margin-top: 10px;
   cursor: pointer;
+  margin: 15px auto; /* เพิ่มระยะห่างระหว่างปุ่ม */
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.search-button {
+.button.primary {
   background-color: #007bff;
   color: white;
-  border: none;
-  transition: background-color 0.3s ease;
 }
 
-.search-button:hover {
+.button.primary:hover {
   background-color: #0056b3;
 }
 
-.search-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.show-button {
-  background-color: #6f42c1;
-  color: white;
-  border: none;
-  transition: background-color 0.3s ease;
-}
-
-.show-button:hover {
-  background-color: #5a32a3;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-success {
+.button.success {
   background-color: #28a745;
-  border: none;
+  color: white;
 }
 
-.btn-success:hover {
+.button.success:hover {
   background-color: #218838;
 }
 
-/* Alerts */
+.button.warning {
+  background-color: #ffc107;
+  color: black;
+}
+
+.button.warning:hover {
+  background-color: #e0a800;
+}
+
+.button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ข้อความแจ้งเตือน */
 .alert {
-  margin-top: 20px;
-  padding: 10px;
+  padding: 15px; /* เพิ่ม padding */
   border-radius: 5px;
-  font-size: 1rem;
+  margin: 20px auto; /* เพิ่มระยะห่าง */
+  font-size: 1.1rem; /* เพิ่มขนาดตัวอักษร */
+  width: 90%; /* เพิ่มความกว้าง */
 }
 
-.alert-info {
-  background-color: #e7f3fe;
-  color: #3178c6;
+.alert.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 
-.alert-error {
+.alert.danger {
   background-color: #f8d7da;
-  color: #842029;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }

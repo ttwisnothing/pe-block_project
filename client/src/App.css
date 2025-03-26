@@ -6,6 +6,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  padding-top: 80px; /* เว้นระยะห่างจาก Navbar */
 }
 
 /* Content Section */
@@ -13,11 +14,12 @@
   flex: 1; /* ดันเนื้อหาให้ขยายเต็มพื้นที่ที่เหลือ */
   margin-top: 80px; /* เพิ่มระยะห่างจาก Navbar */
   padding: 20px;
+  box-sizing: border-box;
 }
 
 /* Header Styling */
 h1 {
-  color: #333;
+  color: #ffffff;
   font-size: 2rem;
   margin-bottom: 20px;
 }

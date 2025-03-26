@@ -53,6 +53,7 @@
   position: relative;
 }
 
+/* Dropdown Button */
 .navbar-dropdown-button {
   color: #000000; /* สีข้อความปุ่ม Dropdown เป็นสีดำ */
   background: none;
@@ -61,6 +62,13 @@
   padding: 10px 15px;
   font-size: 1rem;
   text-align: left;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-dropdown-button:hover {
+  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+  border-radius: 5px; /* เพิ่มมุมโค้ง */
+  color: #000000; /* คงสีข้อความเป็นสีดำ */
 }
 
 .navbar-dropdown-menu {

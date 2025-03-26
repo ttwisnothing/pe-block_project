@@ -1,0 +1,77 @@
+/* Container */
+.temp-plan-table-container {
+  max-width: 900px;
+  margin: 20px auto; /* จัดให้อยู่ตรงกลาง */
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+/* Title */
+.temp-plan-table-container h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* Table */
+.MuiTable-root {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.MuiTableCell-head {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+.MuiTableCell-body {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.MuiTableRow-root:nth-of-type(even) {
+  background-color: #f9f9f9;
+}
+
+.MuiTableRow-root:hover {
+  background-color: #f1f1f1;
+}
+
+/* Buttons */
+.edit-button-group button {
+  margin-right: 8px;
+}
+
+.MuiButton-containedPrimary {
+  background-color: #007bff;
+  color: white;
+}
+
+.MuiButton-containedPrimary:hover {
+  background-color: #0056b3;
+}
+
+.MuiButton-containedSuccess {
+  background-color: #28a745;
+  color: white;
+}
+
+.MuiButton-containedSuccess:hover {
+  background-color: #218838;
+}
+
+.MuiButton-outlinedSecondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.MuiButton-outlinedSecondary:hover {
+  background-color: rgba(108, 117, 125, 0.1);
+}
