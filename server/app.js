@@ -7,6 +7,8 @@ import { createConfigTimeTable } from './models/configModel.js';
 import { createPlanTimeTable } from './models/plantimeModel.js';
 import { createMachineTable } from './models/machineModel.js';
 import { createTempPlanTimeTable } from './models/tempplanModel.js';
+import { createProductTable } from './models/productModel.js';
+import { createChemicalTable } from './models/chemicalModel.js';
 import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
 import putRoutes from './routes/putRoute.js';
@@ -32,6 +34,8 @@ const connectDB = async () => {
         createPlanTimeTable();
         createMachineTable();
         createTempPlanTimeTable();
+        createProductTable();
+        createChemicalTable();
     } catch (error) {
         console.log("❌ Error in connecting database : ", error);
     }
