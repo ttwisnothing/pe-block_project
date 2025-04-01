@@ -35,7 +35,7 @@ const connectDB = async () => {
         createMachineTable();
         createTempPlanTimeTable();
         createProductTable();
-        createChemicalTable();
+        createChemicalTable();       
     } catch (error) {
         console.log("❌ Error in connecting database : ", error);
     }
