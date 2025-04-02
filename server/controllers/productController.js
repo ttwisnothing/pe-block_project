@@ -27,3 +27,29 @@ export const addChemical = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
+
+// ดึงชื่อ Product ทั้งหมดจากฐานข้อมูล
+export const getProducts = async (req, res) => {
+    const query = `SELECT product_name AS name FROM product_master`;
+
+    try {
+        const [products] = await db.query(query);
+        return res.status(200).json({ products });
+    } catch (error) {
+        res.status(500).json({ message: "❌ Error in fetching products" });
+        console.log(error);
+    }
+}
+
+// ดึงชื่อ Chemical ทั้งหมดจากฐานข้อมูล
+export const getChemicals = async (req, res) => {
+    const query = `SELECT chemical_name AS name FROM chemical_mastr`;
+
+    try {
+        const [chemicals] = await db.query(query);
+        return res.status(200).json({ chemicals });
+    } catch (error) {
+        res.status(500).json({ message: "❌ Error in fetching chemicals" });
+        console.log(error);
+    }
+}
