@@ -30,7 +30,8 @@ export const createChemicalTable = async () => {
             `
             CREATE TABLE IF NOT EXISTS chemical_master (
                 chemical_id INT PRIMARY KEY AUTO_INCREMENT,
-                chemical_name VARCHAR(255) NOT NULL
+                chemical_name VARCHAR(255) NOT NULL,
+                type VARCHAR(255)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
             `
         )

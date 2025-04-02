@@ -13,9 +13,9 @@ router.post('/config/add', addConfig);
 router.post('/machine/add', addMachine);
 router.post('/product/add', addProduct);
 router.post('/chemical/add', addChemical);
-router.post('/plantime/add/:recipe_name', addPlantime);
-router.post('/plantime/temp/add/:recipe_name', addTempPlanTime);
-router.post('/plantime/temp-mb/add/:recipe_name', addTempMB);
+router.post('/plantime/add/:product_name', addPlantime);
+router.post('/plantime/temp/add/:product_name', addTempPlanTime);
+router.post('/plantime/temp-mb/add/:product_name', addTempMB);
 
 
 export default router;

@@ -1,15 +1,25 @@
 import db from "../config/db.js";
 
-// บันทึกข้อมูลลง product_master
 export const addProduct = async (req, res) => {
-    const { product_name, status, resin, foaming, color, chemical_1, chemical_2, chemical_3, chemical_4, chemical_5, chemical_6, chemical_7, chemical_8, chemical_9, chemical_10, chemical_11, chemical_12, chemical_13, chemical_14, chemical_15 } = req.body;
-    const query = `INSERT INTO product_master (product_name, status, resin, foaming, color, chemical_1, chemical_2, chemical_3, chemical_4, chemical_5, chemical_6, chemical_7, chemical_8, chemical_9, chemical_10, chemical_11, chemical_12, chemical_13, chemical_14, chemical_15) VALUES ('${product_name}', '${status}', '${resin}', '${foaming}', '${color}', '${chemical_1}', '${chemical_2}', '${chemical_3}', '${chemical_4}', '${chemical_5}', '${chemical_6}', '${chemical_7}', '${chemical_8}', '${chemical_9}', '${chemical_10}', '${chemical_11}', '${chemical_12}', '${chemical_13}', '${chemical_14}', '${chemical_15}')`;
+    const { product_name, status, resin, foaming, color, chemicals } = req.body;
+
+    // ตรวจสอบจำนวน chemicals ที่ส่งมา
+    const maxChemicals = 15; // จำนวนสูงสุดของ chemical ที่รองรับ
+    const chemicalColumns = Array.from({ length: maxChemicals }, (_, i) => `chemical_${i + 1}`);
+    const chemicalValues = Array.from({ length: maxChemicals }, (_, i) => chemicals[i] || null);
+
+    const query = `
+        INSERT INTO product_master (
+            product_name, status, resin, foaming, color, ${chemicalColumns.join(", ")}
+        ) VALUES (?, ?, ?, ?, ?, ${chemicalColumns.map(() => "?").join(", ")})
+    `;
 
     try {
-        await db.query(query);
+        // บันทึกข้อมูลลงฐานข้อมูล
+        await db.query(query, [product_name, status, resin, foaming, color, ...chemicalValues]);
         res.status(201).json({ message: "✅ Product added successfully" });
     } catch (error) {
-        console.log("❌ Error in adding product: ", error);
+        console.error("❌ Error in adding product: ", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -43,13 +53,19 @@ export const getProducts = async (req, res) => {
 
 // ดึงชื่อ Chemical ทั้งหมดจากฐานข้อมูล
 export const getChemicals = async (req, res) => {
-    const query = `SELECT chemical_name AS name FROM chemical_mastr`;
-
     try {
-        const [chemicals] = await db.query(query);
-        return res.status(200).json({ chemicals });
+        // ดึงข้อมูล chemicals ทั้งหมด
+        const [chemicals] = await db.query(`SELECT chemical_name AS name, type FROM chemical_master`);
+
+        // แยก chemicals ตาม type
+        const resin = chemicals.filter((chemical) => chemical.type === 'Resin');
+        const foaming = chemicals.filter((chemical) => chemical.type === 'Foaming');
+        const color = chemicals.filter((chemical) => chemical.type === 'Color');
+
+        // ส่งข้อมูล chemicals ทั้งหมด พร้อมกับ resin, foaming, และ color
+        return res.status(200).json({ chemicals, resin, foaming, color });
     } catch (error) {
         res.status(500).json({ message: "❌ Error in fetching chemicals" });
         console.log(error);
     }
-}
+};

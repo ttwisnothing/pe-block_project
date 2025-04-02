@@ -1,21 +1,21 @@
 import db from '../config/db.js';
 
 export const addTempPlanTime = async (req, res) => {
-    const { recipe_name } = req.params;
+    const { product_name } = req.params;
 
     try {
         // ลบข้อมูลทั้งหมดใน temp_plan_time_table
-        await db.query(`DELETE FROM temp_plan_time_table`);
+        await db.query(`DELETE FROM temp_plan_table`);
 
         // รีเซ็ตค่า AUTO_INCREMENT
-        await db.query(`ALTER TABLE temp_plan_time_table AUTO_INCREMENT = 1`)
+        await db.query(`ALTER TABLE temp_plan_table AUTO_INCREMENT = 1`)
 
         const [planTimes] = await db.query(`
             SELECT pt.*
-            FROM plan_times_table pt
-            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
-        `, [recipe_name]);
+            FROM plan_time_table pt
+            INNER JOIN product_master pm ON pt.product_id = pm.product_id
+            WHERE pm.product_name = ?
+        `, [product_name]);
 
         if (planTimes.length === 0) {
             return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
@@ -24,26 +24,26 @@ export const addTempPlanTime = async (req, res) => {
         // INSERT ข้อมูลลงใน TempPlanTime
         for (const plantime of planTimes) {
             const query = `
-                INSERT INTO temp_plan_time_table (
-                    recipe_id, run_no,
+                INSERT INTO temp_plan_table (
+                    product_id, run_no,
                     machine, batch_no, program_no,
                     start_time, mixing, extruder_exit,
                     pre_press_exit, primary_press_start, stream_in,
                     primary_press_exit, secondary_press_1_start, temp_check_1,
                     secondary_press_2_start, temp_check_2, cooling,
-                    secondary_press_exit, block, curr_block, next_block
+                    secondary_press_exit, block
                 ) VALUES (
-                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
                 )
             `;
             const values = [
-                plantime.recipe_id, plantime.run_no,
+                plantime.product_id, plantime.run_no,
                 plantime.machine, plantime.batch_no, plantime.program_no,
                 plantime.start_time, plantime.mixing, plantime.extruder_exit,
                 plantime.pre_press_exit, plantime.primary_press_start, plantime.stream_in,
                 plantime.primary_press_exit, plantime.secondary_press_1_start, plantime.temp_check_1,
                 plantime.secondary_press_2_start, plantime.temp_check_2, plantime.cooling,
-                plantime.secondary_press_exit, plantime.block, plantime.curr_block, plantime.next_block
+                plantime.secondary_press_exit, plantime.block
             ]
 
             await db.query(query, values);
@@ -59,49 +59,49 @@ export const addTempPlanTime = async (req, res) => {
 }
 
 export const addTempMB = async (req, res) => {
-    const { recipe_name } = req.params;
+    const { product_name } = req.params;
 
     try {
         const [tempTimes] = await db.query(`
             SELECT tpt.*
-            FROM temp_plan_time_table tpt
-            INNER JOIN recipes_table rt ON tpt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
-        `, [recipe_name]);
+            FROM temp_plan_table tpt
+            INNER JOIN product_master rt ON tpt.product_id = rt.product_id
+            WHERE rt.product_name = ?
+        `, [ product_name]);
 
         if (tempTimes.length === 0) {
             return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
         }
 
         // ลบข้อมูลทั้งหมดใน temp_plan_time_table
-        await db.query(`DELETE FROM temp_plan_time_table`);
+        await db.query(`DELETE FROM temp_plan_table`);
 
         // รีเซ็ตค่า AUTO_INCREMENT
-        await db.query(`ALTER TABLE temp_plan_time_table AUTO_INCREMENT = 1`)
+        await db.query(`ALTER TABLE temp_plan_table AUTO_INCREMENT = 1`)
 
         // INSERT ข้อมูลลงใน TempPlanTime
         for (const plantime of tempTimes) {
             const query = `
-                INSERT INTO temp_plan_time_table (
-                    recipe_id, run_no,
+                INSERT INTO temp_plan_table (
+                    product_id, run_no,
                     machine, batch_no, program_no,
                     start_time, mixing, extruder_exit,
                     pre_press_exit, primary_press_start, stream_in,
                     primary_press_exit, secondary_press_1_start, temp_check_1,
                     secondary_press_2_start, temp_check_2, cooling,
-                    secondary_press_exit, block, curr_block, next_block
+                    secondary_press_exit, block
                 ) VALUES (
-                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
                 )
             `;
             const values = [
-                plantime.recipe_id, plantime.run_no,
+                plantime.product_id, plantime.run_no,
                 plantime.machine, plantime.batch_no, plantime.program_no,
                 plantime.start_time, plantime.mixing, plantime.extruder_exit,
                 plantime.pre_press_exit, plantime.primary_press_start, plantime.stream_in,
                 plantime.primary_press_exit, plantime.secondary_press_1_start, plantime.temp_check_1,
                 plantime.secondary_press_2_start, plantime.temp_check_2, plantime.cooling,
-                plantime.secondary_press_exit, plantime.block, plantime.curr_block, plantime.next_block
+                plantime.secondary_press_exit, plantime.block
             ]
 
             await db.query(query, values);
@@ -119,23 +119,23 @@ export const addTempMB = async (req, res) => {
 
 // ดึงข้อมูล TempPlanTime ทั้งหมด
 export const getTempPlanTime = async (req, res) => {
-    const { recipe_name } = req.params;
+    const { product_name } = req.params;
 
     try {
         const [tempPlanTimes] = await db.query(`
             SELECT pt.*
-            FROM temp_plan_time_table pt
-            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
-        `, [recipe_name]);
+            FROM temp_plan_table pt
+            INNER JOIN product_master rt ON pt.product_id = rt.product_id
+            WHERE rt.product_name = ?
+        `, [product_name]);
 
         if (tempPlanTimes.length === 0) {
             return res.status(404).json({ message: '❌ No Temp Plan Times found for this recipe' });
         }
 
-        return res.json({
-            recipe_name,
-            recipeId: tempPlanTimes[0].recipe_id,
+        return res.status(200).json({
+            product_name,
+            productId: tempPlanTimes[0].product_id,
             tempPlanTimes
         })
     } catch (error) {
@@ -146,24 +146,24 @@ export const getTempPlanTime = async (req, res) => {
 
 // ดึงข้อมูล TempPlanTime ทั้งหมด และเรียงตาม run_no, batch_no
 export const getTempPlanTimeASC = async (req, res) => {
-    const { recipe_name } = req.params;
+    const { product_name } = req.params;
 
     try {
         const [tempPlanTimes] = await db.query(`
             SELECT pt.*
-            FROM temp_plan_time_table pt
-            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
+            FROM temp_plan_table pt
+            INNER JOIN product_master rt ON pt.product_id = rt.product_id
+            WHERE rt.product_name = ?
             ORDER BY pt.run_no, pt.batch_no;
-        `, [recipe_name]);
+        `, [product_name]);
 
         if (tempPlanTimes.length === 0) {
             return res.status(404).json({ message: '❌ No Temp Plan Times found for this recipe' });
         }
 
-        return res.json({
-            recipe_name,
-            recipeId: tempPlanTimes[0].recipe_id,
+        return res.status(200).json({
+            product_name,
+            productId: tempPlanTimes[0].product_id,
             tempPlanTimes
         })
     } catch (error) {
@@ -174,17 +174,17 @@ export const getTempPlanTimeASC = async (req, res) => {
 
 // อัพเดท start_time ของ TempPlanTime ที่เลือกโดย temp_id
 export const updateNewStartTime = async (req, res) => {
-    const { recipe_name, temp_id } = req.params;
+    const { product_name, temp_id } = req.params;
     const { new_start_time } = req.body;
 
     try {
         // ดึงข้อมูลจาก TempPlanTime ที่เลือก
         const [tempPlanTimes] = await db.query(`
             SELECT pt.*
-            FROM temp_plan_time_table pt
-            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
-        `, [recipe_name]);
+            FROM temp_plan_table pt
+            INNER JOIN product_master rt ON pt.product_id = rt.product_id
+            WHERE rt.product_name = ?
+        `, [product_name]);
         if (tempPlanTimes.length === 0) {
             return res.status(404).json({ message: '❌ Temp Plan Time not found' });
         }
@@ -200,7 +200,7 @@ export const updateNewStartTime = async (req, res) => {
 
         // อัพเดทเวลา start_time ใหม่ของ temp_id ที่เลือก
         await db.query(`
-            UPDATE temp_plan_time_table
+            UPDATE temp_plan_table
             SET start_time = ?
             WHERE temp_id = ?
         `, [new_start_time, temp_id]); // new_start_time: 14:26:00, temp_id: 2
@@ -344,7 +344,7 @@ export const updateNewStartTime = async (req, res) => {
         // อัพเดท temp_plan_time_table ด้วย updateTempList
         for (let i = 0; i < updateTempList.length; i++) {
             await db.query(`
-                UPDATE temp_plan_time_table
+                UPDATE temp_plan_table
                 SET start_time = ?, mixing = ?, extruder_exit = ?, pre_press_exit = ?,
                     primary_press_start = ?, stream_in = ?, primary_press_exit = ?,
                     secondary_press_1_start = ?, temp_check_1 = ?, secondary_press_2_start = ?,

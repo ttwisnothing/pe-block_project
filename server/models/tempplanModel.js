@@ -5,9 +5,9 @@ export const createTempPlanTimeTable = async () => {
     try {
         await db.query(
             `
-            CREATE TABLE IF NOT EXISTS temp_plan_time_table (
+            CREATE TABLE IF NOT EXISTS temp_plan_table (
                 temp_id INT PRIMARY KEY AUTO_INCREMENT,
-                recipe_id INT NOT NULL,
+                product_id INT NOT NULL,
                 run_no INT NOT NULL,
                 machine VARCHAR(255),
                 batch_no INT,
@@ -26,9 +26,7 @@ export const createTempPlanTimeTable = async () => {
                 cooling TIME,
                 secondary_press_exit TIME,
                 block INT,
-                curr_block INT,
-                next_block INT,
-                FOREIGN KEY (recipe_id) REFERENCES recipes_table(recipe_id)
+                FOREIGN KEY (product_id) REFERENCES product_master(product_id)
                 ) ENGINE = InnoDB DEFAULT CHARSET = utf8;
             `
         )
