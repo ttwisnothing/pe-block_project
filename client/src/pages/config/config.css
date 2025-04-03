@@ -1,0 +1,71 @@
+.config-container {
+    width: 95%;
+    /* ขยายคอนเทนเนอร์ให้เต็มจอ */
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    /* เปลี่ยนพื้นหลังเป็นสีขาว */
+    border-radius: 0;
+    /* เอาความโค้งของกรอบออก */
+    box-shadow: none;
+    /* เอาเงาของกรอบออก */
+}
+
+.config-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.config-form {
+    width: 95%; /* ขยายฟอร์มให้เต็มจอ */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.config-form-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    /* เพิ่มระยะห่างระหว่างช่อง */
+    justify-content: space-between;
+    /* กระจายช่องให้เต็มพื้นที่ */
+}
+
+.config-form-group div {
+    flex: 1 1 calc(20% - 30px);
+    /* แบ่งเป็น 5 ช่องต่อแถว พร้อมระยะห่าง */
+    min-width: 150px;
+}
+
+.config-form label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.input-config {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-config {
+    padding: 10px 15px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: center;
+    width: 200px;
+    /* กำหนดความกว้างปุ่ม */
+}
+
+.btn-config:hover {
+    background-color: #0056b3;
+}

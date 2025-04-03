@@ -3,6 +3,7 @@ import db from "../config/db.js";
 // บันทึก Config time ลงในฐานข้อมูล
 export const addConfig = async (req, res) => {
     const {
+        config_group,
         mixing_time,
         extruder_exit_time,
         pre_press_exit_time,
@@ -19,6 +20,7 @@ export const addConfig = async (req, res) => {
     } = req.body;
     const query = `
         INSERT INTO Config_Time (
+            config_group
             mixing_time,
             extruder_exit_time,
             pre_press_exit_time,
@@ -33,6 +35,7 @@ export const addConfig = async (req, res) => {
             secondary_press_exit,
             adj_next_start
         ) VALUES (
+            ${config_group},
             ${mixing_time},
             ${extruder_exit_time},
             ${pre_press_exit_time},

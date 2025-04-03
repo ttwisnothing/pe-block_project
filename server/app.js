@@ -2,10 +2,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import db from './config/db.js';
-import { createRecipeTable } from './models/recipeModel.js';
 import { createConfigTimeTable } from './models/configModel.js';
-import { createPlanTimeTable } from './models/plantimeModel.js';
-import { createMachineTable } from './models/machineModel.js';
+import { createPlanTimeTable, createSummaryTable } from './models/plantimeModel.js';
 import { createTempPlanTimeTable } from './models/tempplanModel.js';
 import { createProductTable, createChemicalTable } from './models/productModel.js';
 import postRoutes from './routes/postRoute.js';
@@ -28,13 +26,12 @@ const connectDB = async () => {
     try {
         await db.getConnection();
         console.log("✅ Database connected successfully");
-        createRecipeTable();
+        createProductTable();
+        createChemicalTable(); 
         createConfigTimeTable();
         createPlanTimeTable();
-        createMachineTable();
         createTempPlanTimeTable();
-        createProductTable();
-        createChemicalTable();       
+        createSummaryTable();      
     } catch (error) {
         console.log("❌ Error in connecting database : ", error);
     }

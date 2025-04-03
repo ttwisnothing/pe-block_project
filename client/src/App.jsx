@@ -8,6 +8,7 @@ import EditTemp from "./pages/edittemp/temptime"
 import TempTable from "./pages/temptable/temptable";
 import "./App.css";
 import Products from "./pages/product/product";
+import Config from './pages/config/config';
 
 const url = "http://localhost:6090";
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" element={ <> <Navbar /> <Home url={url} /> </>}/>
           <Route path="/plantime" element={ <> <Navbar /> <PlanTime url={url} /> </> } />
           <Route path="/product" element={ <> <Navbar /> <Products url={url} /> </> } />
+          <Route path="/config-time" element={ <> <Navbar /> <Config url={url} /> </> } />
 
           {/* เส้นทางที่ไม่มี Navbar */}
           <Route path="/plantime-table" element={<PlanTimeTable url={url} />} />

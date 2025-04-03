@@ -35,7 +35,21 @@ export const createPlanTimeTable = async () => {
     }
 }
 
-// // สร้าง summary_table เพื่อเก็บข้อมูล
-// export const createSummaryTable = async () => {
-
-// }
+// สร้าง summary_table เพื่อเก็บข้อมูล
+export const createSummaryTable = async () => {
+    try {
+        await db.query(
+            `
+            CREATE TABLE IF NOT EXISTS summary_time (
+                summary_id INT PRIMARY KEY AUTO_INCREMENT,
+                create_time DATE DEFAULT CURRENT_DATE,
+                start_time TIME NOT NULL,
+                end_time TIME NOT NULL,
+                sum_time TIME NOT NULL
+            )
+            `
+        )
+    } catch (error) {
+        console.log("❌ Error in creating table 'summary_table' : ", error);
+    }
+}

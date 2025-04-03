@@ -31,9 +31,8 @@ export const getPlanTime = async (req, res) => {
 
 // คำนวณเวลาของ PlanTime จาก Recipe ที่เลือก และเพิ่มข้อมูลลงในฐานข้อมูล
 export const addPlantime = async (req, res) => {
-    const { product_name } = req.params;
-    const { fristStart, runRound, bUse } = req.body;
-
+    const { product_name, configG } = req.params;
+    const { fristStart, runRound, bUse, bRound, machine_name } = req.body;
     try {
         // ดึงข้อมูล Product จาก product_master
         const [products] = await db.query(
@@ -44,15 +43,9 @@ export const addPlantime = async (req, res) => {
         }
 
         // ดึงข้อมูล ConfigTime จาก Config_Time_Table
-        const [config] = await db.query(`SELECT * FROM config_time`);
+        const [config] = await db.query(`SELECT * FROM config_time WHERE config_group = ?`, [configG]);
         if (config.length === 0) {
             return res.status(404).json({ message: '❌ Config Times not found' });
-        }
-
-        // ดึงข้อมูล Machine จาก Machine_Table
-        const [machines] = await db.query(`SELECT * FROM machine_table`);
-        if (machines.length === 0) {
-            return res.status(404).json({ message: '❌ Machines not found' });
         }
 
         // ลบข้อมูลทั้งหมดใน temp_plan_time_table
@@ -61,10 +54,13 @@ export const addPlantime = async (req, res) => {
         // รีเซ็ตค่า AUTO_INCREMENT
         await db.query(`ALTER TABLE plan_time_table AUTO_INCREMENT = 1`)
 
+        // กำหนดค่า mac จาก machine_name
+        let mac = Array.isArray(machine_name) ? machine_name : [machine_name];// รองรับทั้ง array และ string
+
         // คำนวณเวลาที่ต้องใช้ในแต่ละขั้นตอน
         let startTimes = fristStart;
         let round = runRound;
-        let blockPerRound = 9;
+        let blockPerRound = bRound;
         let blockUse = bUse;
         let currentBlock = 0;
         let prevBlock = 0;
@@ -74,7 +70,7 @@ export const addPlantime = async (req, res) => {
             console.log("Waiting Algorithm 4 Blocks");
         } else if (bUse === 6) {
             for (let i = 0; i < round; i++) {
-                const machineIndex = i % machines.length;
+                const machineIndex = i % mac.length;
                 const planTime = {};
 
                 if (prevBlock !== 0 && prevBlock <= blockUse) {
@@ -82,7 +78,7 @@ export const addPlantime = async (req, res) => {
                         currentBlock = prevBlock + currentBlock;
                         planTime.product_id = products[0].product_id;
                         planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
-                        planTime.machine = machines[machineIndex].machine_name;
+                        planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                         planTime.program_no = null;
                         planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
@@ -133,7 +129,7 @@ export const addPlantime = async (req, res) => {
                         currentBlock = prevBlock
                         planTime.product_id = products[0].product_id;
                         planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
-                        planTime.machine = machines[machineIndex].machine_name;
+                        planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 2].batch_no;
                         planTime.program_no = null
                         planTime.start_time = null;
@@ -159,7 +155,7 @@ export const addPlantime = async (req, res) => {
                         currentBlock = blockPerRound;
                         planTime.product_id = products[0].product_id;
                         planTime.run_no = planTimeList.length + 1;
-                        planTime.machine = machines[i].machine_name;
+                        planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList.length + 1;
                         planTime.program_no = null
                         planTime.start_time = startTimes;
@@ -183,7 +179,7 @@ export const addPlantime = async (req, res) => {
                         currentBlock = blockPerRound;
                         planTime.product_id = products[0].product_id;
                         planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
-                        planTime.machine = machines[machineIndex].machine_name;
+                        planTime.machine = machines[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                         planTime.program_no = null
                         planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);

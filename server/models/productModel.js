@@ -11,7 +11,7 @@ export const createProductTable = async () => {
                 status VARCHAR(255) NOT NULL,
                 resin VARCHAR(255),
                 foaming VARCHAR(255),
-                color VARCHAR(255),
+                color VARCHAR(255), bPerRound INT NOT NULL, bUse INT NOT NULL,
                 chemical_1 VARCHAR(255), chemical_2 VARCHAR(255), chemical_3 VARCHAR(255), chemical_4 VARCHAR(255), chemical_5 VARCHAR(255),
                 chemical_6 VARCHAR(255), chemical_7 VARCHAR(255), chemical_8 VARCHAR(255), chemical_9 VARCHAR(255), chemical_10 VARCHAR(255),
                 chemical_11 VARCHAR(255), chemical_12 VARCHAR(255), chemical_13 VARCHAR(255), chemical_14 VARCHAR(255), chemical_15 VARCHAR(255)
