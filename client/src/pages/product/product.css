@@ -1,0 +1,105 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f9f9fc;
+  margin: 0;
+  padding: 0;
+}
+
+form {
+  max-width: 1000px; /* เพิ่มความกว้างของฟอร์ม */
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
+  grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
+}
+
+form h1 {
+  grid-column: span 5; /* หัวข้อกินพื้นที่เต็มแถว */
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+form div {
+  margin-bottom: 20px;
+}
+
+form div.full-width {
+  grid-column: span 5; /* ช่องที่กินพื้นที่เต็มแถว */
+}
+
+form div.chemicals-grid {
+  grid-column: span 5; /* Chemicals กินพื้นที่เต็มแถว */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
+  grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+input[type="text"],
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #fdfdfd;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+select:focus {
+  border-color: #4caf50;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+  transform: scale(1.02);
+}
+
+button[type="button"] {
+  background-color: #007bff;
+  margin-top: 10px;
+}
+
+button[type="button"]:hover {
+  background-color: #0056b3;
+}
+
+.alert {
+  text-align: center;
+  color: red;
+  font-size: 14px;
+}
+
+p {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}

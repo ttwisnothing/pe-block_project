@@ -13,6 +13,7 @@
 .title {
   font-size: 2rem;
   margin-bottom: 20px;
+  color: black;
 }
 
 /* Form Group */
@@ -40,6 +41,21 @@
 .form-select:focus {
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* CSS สำหรับ input ทั่วไป */
+.form-input {
+  width: 100%; /* ให้ช่องกรอกข้อมูลเต็มความกว้าง */
+  padding: 10px; /* เพิ่ม padding */
+  font-size: 1rem; /* ขนาดตัวอักษร */
+  border: 1px solid #ccc; /* สีขอบ */
+  border-radius: 5px; /* มุมโค้ง */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* เพิ่มเอฟเฟกต์ */
+}
+
+.form-input:focus {
+  border-color: #007bff; /* สีขอบเมื่อโฟกัส */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* เพิ่มเงาเมื่อโฟกัส */
 }
 
 /* ปุ่ม */

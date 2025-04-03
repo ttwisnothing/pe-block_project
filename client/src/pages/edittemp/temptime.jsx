@@ -17,7 +17,7 @@ import './temptime.css';
 const EditTemp = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate(); // ใช้ useNavigate
-  const { recipeName } = location.state || {};
+  const { productName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -31,7 +31,7 @@ const EditTemp = ({ url }) => {
   };
 
   useEffect(() => {
-    if (!recipeName) {
+    if (!productName) {
       console.error('❌ No recipeName provided');
       setError(true);
       setLoading(false);
@@ -40,7 +40,7 @@ const EditTemp = ({ url }) => {
 
     const fetchTempPlanTimes = async () => {
       try {
-        const response = await axios.get(`${url}/api/get/tempplantime/${recipeName}`);
+        const response = await axios.get(`${url}/api/get/tempplantime/${productName}`);
         setTempPlanTimes(response.data.tempPlanTimes || []);
         setError(false);
       } catch (err) {
@@ -52,7 +52,7 @@ const EditTemp = ({ url }) => {
     };
 
     fetchTempPlanTimes();
-  }, [url, recipeName]);
+  }, [url, productName]);
 
   const handleEditStartTime = (tempId, currentStartTime) => {
     setEditingRow(tempId);
@@ -61,13 +61,13 @@ const EditTemp = ({ url }) => {
 
   const handleSaveStartTime = async () => {
     try {
-      await axios.put(`${url}/api/put/tempplantime/update/${recipeName}/${editingRow}`, {
+      await axios.put(`${url}/api/put/tempplantime/update/${productName}/${editingRow}`, {
         new_start_time: newStartTime,
       });
       alert('✅ Start Time updated successfully');
       setEditingRow(null);
       setNewStartTime('');
-      const response = await axios.get(`${url}/api/get/tempplantime/${recipeName}`);
+      const response = await axios.get(`${url}/api/get/tempplantime/${productName}`);
       setTempPlanTimes(response.data.tempPlanTimes || []);
     } catch (err) {
       console.error('❌ ERROR updating Start Time:', err);
@@ -85,7 +85,7 @@ const EditTemp = ({ url }) => {
 
   return (
     <div className="temp-plan-table-container">
-      <h1>Temp Plan Table for Recipe: {recipeName}</h1>
+      <h1>Edit Temp Time fot Product: {productName}</h1>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -152,7 +152,7 @@ const EditTemp = ({ url }) => {
       <Button
         variant="contained"
         color="secondary"
-        onClick={() => navigate('/temp-table', { state: { recipeName } })} // ใช้ navigate
+        onClick={() => navigate('/temp-table', { state: { productName } })} // ใช้ navigate
         style={{ marginTop: '20px' }}
       >
         Go to TempTable

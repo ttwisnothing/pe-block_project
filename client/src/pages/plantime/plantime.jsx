@@ -4,124 +4,179 @@ import axios from "axios";
 import "./plantime.css";
 
 const Plantime = ({ url }) => {
-  const [recipeName, setRecipeName] = useState("");
-  const [recipes, setRecipes] = useState([]);
+  const [productName, setProductName] = useState("");
+  const [fristStart, setFristStart] = useState("");
+  const [runRound, setRunRound] = useState("");
+  const [bUse, setBUse] = useState("");
+  const [products, setProducts] = useState([]);
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [searchDone, setSearchDone] = useState(false);
+  const [calculated, setCalculated] = useState(false); // ใช้ตัวแปรนี้ควบคุมการแสดงปุ่ม
   const navigate = useNavigate();
 
-  const fetchRecipes = async () => {
+  // ดึงข้อมูล Product จาก API
+  const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${url}/api/get/recipes`);
-      setRecipes(response.data.recipes || []);
+      const response = await axios.get(`${url}/api/get/products`);
+      setProducts(response.data.products || []);
     } catch (error) {
-      console.error("❌ ERROR fetching Recipes:", error);
+      console.error("❌ ERROR fetching Products:", error);
     }
   };
 
-  const fetchPlanTimes = async () => {
-    if (!recipeName) return;
+  // คำนวณ Plan Time
+  const calculatePlanTime = async () => {
+    if (!productName || !fristStart || !runRound || !bUse) {
+      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.get(`${url}/api/get/plantime/${recipeName}`);
-      setPlanTimes(response.data.planTimes || []);
+      const payload = {
+        fristStart,
+        runRound: parseInt(runRound, 10),
+        bUse: parseInt(bUse, 10),
+      };
+      const response = await axios.post(
+        `${url}/api/post/plantime/add/${productName}`,
+        payload
+      );
+      alert(response.data.message || "✅ Plan Time calculated successfully");
+      setPlanTimes(response.data.planTimeList || []);
+      setCalculated(true); // ตั้งค่า calculated เป็น true เมื่อคำนวณสำเร็จ
       setError(false);
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        console.warn("⚠️ No Plan Time found for this recipe.");
-        setPlanTimes([]); // กำหนดให้ไม่มีข้อมูล
-        setError(false); // ไม่ถือว่าเป็นข้อผิดพลาดร้ายแรง
-      } else {
-        console.error("❌ ERROR fetching PlanTime:", error);
-        setPlanTimes([]);
-        setError(true); // ข้อผิดพลาดอื่น ๆ
-      }
+      console.error("❌ ERROR calculating Plan Time:", error);
+      alert(error.response?.data?.message || "❌ Failed to calculate Plan Time");
+      setPlanTimes([]);
+      setCalculated(false); // ตั้งค่า calculated เป็น false เมื่อเกิดข้อผิดพลาด
+      setError(true);
     } finally {
       setLoading(false);
-      setSearchDone(true);
     }
   };
 
-  const addPlanTime = async () => {
-    if (!recipeName) return;
+  // แสดง Plan Time
+  const handleShowPlanTime = async () => {
+    if (!productName) {
+      alert("กรุณาเลือก Product ก่อน");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await axios.post(`${url}/api/post/plantime/add/${recipeName}`);
-      alert(response.data.message || "✅ Plan Time created successfully");
-      fetchPlanTimes(); // โหลดข้อมูลใหม่หลังจากสร้าง
+      // เรียก API เพื่อดึงข้อมูล Plan Time
+      const response = await axios.get(`${url}/api/get/plantime/${productName}`);
+      const fetchedPlanTimes = response.data.planTimes || [];
+
+      if (fetchedPlanTimes.length === 0) {
+        alert("ไม่มีข้อมูล Plan Time สำหรับ Product นี้");
+        return;
+      }
+
+      // นำทางไปยังหน้า PlanTimeTable พร้อมส่งข้อมูล
+      navigate("/plantime-table", {
+        state: { productName, planTimes: fetchedPlanTimes },
+      });
     } catch (error) {
-      console.error("❌ ERROR adding Plan Time:", error);
-      alert(error.response?.data?.message || "❌ Failed to create Plan Time");
+      console.error("❌ ERROR fetching Plan Time:", error);
+      alert(error.response?.data?.message || "❌ Failed to fetch Plan Time");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRecipes();
+    fetchProducts();
   }, []);
-
-  const handleSearch = () => {
-    if (!recipeName) {
-      setError(true);
-    } else {
-      setError(false);
-      fetchPlanTimes();
-    }
-  };
-
-  const handleShowPlanTime = () => {
-    navigate("/plantime-table", { state: { recipeName, planTimes } });
-  };
 
   return (
     <div className="container">
       <h1 className="title">Plan Time</h1>
 
       <div className="form-group">
-        <label htmlFor="recipe-select" className="form-label">
-          เลือก Recipe
+        <label htmlFor="product-select" className="form-label">
+          เลือก Product
         </label>
         <select
-          id="recipe-select"
+          id="product-select"
           className="form-select"
-          value={recipeName}
-          onChange={(e) => setRecipeName(e.target.value)}
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
         >
           <option value="" disabled>
-            -- เลือก Recipe --
+            -- เลือก Product --
           </option>
-          {recipes.map((recipe) => (
-            <option key={recipe.id} value={recipe.name}>
-              {recipe.name}
+          {products.map((product, index) => (
+            <option key={product.id || index} value={product.name}>
+              {product.name}
             </option>
           ))}
         </select>
       </div>
 
+      <div className="form-group">
+        <label htmlFor="frist-start" className="form-label">
+          เวลาเริ่มต้น (Frist Start Time)
+        </label>
+        <input
+          id="frist-start"
+          type="text"
+          className="form-input"
+          placeholder="กรอกเวลาเริ่มต้น เช่น 08:00"
+          value={fristStart}
+          onChange={(e) => setFristStart(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="run-round" className="form-label">
+          จำนวนรอบ (Run Round)
+        </label>
+        <input
+          id="run-round"
+          type="number"
+          className="form-input"
+          value={runRound}
+          onChange={(e) => setRunRound(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="b-use" className="form-label">
+          จำนวน Block (Block)
+        </label>
+        <input
+          id="b-use"
+          type="number"
+          className="form-input"
+          value={bUse}
+          onChange={(e) => setBUse(e.target.value)}
+        />
+      </div>
+
       <button
         className="button primary"
-        onClick={handleSearch}
+        onClick={calculatePlanTime}
         disabled={loading}
       >
-        ค้นหา
+        คำนวณเวลา
       </button>
 
-      {searchDone && planTimes.length > 0 && (
-        <button className="button success" onClick={handleShowPlanTime}>
-          Show Plantime
+      {/* แสดงปุ่ม "แสดง Plan Time" เฉพาะเมื่อการคำนวณสำเร็จ */}
+      {calculated && (
+        <button
+          className="button success"
+          onClick={handleShowPlanTime}
+          disabled={loading}
+        >
+          แสดง Plan Time
         </button>
       )}
 
-      {searchDone && planTimes.length === 0 && !error && (
-        <div>
-          <div className="alert info">ไม่พบข้อมูล Plan Time</div>
-          <button className="button warning" onClick={addPlanTime}>
-            สร้าง Plan Time
-          </button>
-        </div>
-      )}
-
-      {error && <div className="alert danger">เกิดข้อผิดพลาดในการค้นหา</div>}
+      {error && <div className="alert danger">เกิดข้อผิดพลาดในการคำนวณ</div>}
     </div>
   );
 };

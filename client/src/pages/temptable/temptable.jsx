@@ -16,7 +16,7 @@ import "./temptable.css";
 const TempTable = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { recipeName } = location.state || {};
+  const { productName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -29,7 +29,7 @@ const TempTable = ({ url }) => {
   };
 
   useEffect(() => {
-    if (!recipeName) {
+    if (!productName) {
       console.error("❌ No recipeName provided");
       setError(true);
       setLoading(false);
@@ -38,7 +38,7 @@ const TempTable = ({ url }) => {
 
     const fetchTempPlanTimes = async () => {
       try {
-        const response = await axios.get(`${url}/api/get/temp-time-asc/${recipeName}`);
+        const response = await axios.get(`${url}/api/get/temp-time-asc/${productName}`);
         setTempPlanTimes(response.data.tempPlanTimes || []);
         setError(false);
       } catch (err) {
@@ -50,13 +50,13 @@ const TempTable = ({ url }) => {
     };
 
     fetchTempPlanTimes();
-  }, [url, recipeName]);
+  }, [url, productName]);
 
   // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
   const handleMachineBreakdown = async () => {
     try {
       const response = await axios.post(
-        `${url}/api/post/plantime/temp-mb/add/${recipeName}`
+        `${url}/api/post/plantime/temp-mb/add/${productName}`
       );
 
       if (response.status === 200) {
@@ -64,7 +64,7 @@ const TempTable = ({ url }) => {
 
         // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
         navigate("/edit-temp", {
-          state: { recipeName },
+          state: { productName },
         });
       } else {
         throw new Error("❌ Failed to add Temp Plan Time");
@@ -92,7 +92,7 @@ const TempTable = ({ url }) => {
           </div>
     
           <div className="table-header">
-            <h2>Recipe: {recipeName}</h2>
+            <h2>Temp Product: {productName} PlanTime</h2>
           </div>
     
           <TableContainer component={Paper} className="custom-table-container">

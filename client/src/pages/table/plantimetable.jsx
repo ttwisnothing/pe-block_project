@@ -16,12 +16,7 @@ import "./plantimetable.css";
 const PlanTimeTable = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { recipeName, planTimes } = location.state || {};
-
-  if (!recipeName || !planTimes) {
-    navigate("/plantime");
-    return null;
-  }
+  const { productName, planTimes } = location.state || {};
 
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
@@ -34,7 +29,7 @@ const PlanTimeTable = ({ url }) => {
   const handleMachineBreakdown = async () => {
     try {
       const response = await axios.post(
-        `${url}/api/post/plantime/temp/add/${recipeName}`
+        `${url}/api/post/plantime/temp/add/${productName}`
       );
 
       if (response.status === 200) {
@@ -42,7 +37,7 @@ const PlanTimeTable = ({ url }) => {
 
         // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
         navigate("/edit-temp", {
-          state: { recipeName },
+          state: { productName },
         });
       } else {
         throw new Error("❌ Failed to add Temp Plan Time");
@@ -67,7 +62,7 @@ const PlanTimeTable = ({ url }) => {
       </div>
 
       <div className="table-header">
-        <h2>Recipe: {recipeName}</h2>
+        <h2>Product: {productName} Plan Time</h2>
       </div>
 
       <TableContainer component={Paper} className="custom-table-container">

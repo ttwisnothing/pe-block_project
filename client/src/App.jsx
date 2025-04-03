@@ -6,8 +6,8 @@ import PlanTime from "./pages/plantime/plantime";
 import PlanTimeTable from "./pages/table/plantimetable";
 import EditTemp from "./pages/edittemp/temptime"
 import TempTable from "./pages/temptable/temptable";
-import Recipe from "./pages/recipe/recipe";
 import "./App.css";
+import Products from "./pages/product/product";
 
 const url = "http://localhost:6090";
 
@@ -17,33 +17,9 @@ function App() {
       <div className="App">
         <Routes>
           {/* เส้นทางที่มี Navbar */}
-          <Route
-            path="/"
-            element={
-              <>
-                <Navbar />
-                <Home url={url} />
-              </>
-            }
-          />
-          <Route
-            path="/plantime"
-            element={
-              <>
-                <Navbar />
-                <PlanTime url={url} />
-              </>
-            }
-          />
-          <Route
-            path="/recipe"
-            element={
-              <>
-                <Navbar />
-                <Recipe url={url} />
-              </>
-            }
-          />
+          <Route path="/" element={ <> <Navbar /> <Home url={url} /> </>}/>
+          <Route path="/plantime" element={ <> <Navbar /> <PlanTime url={url} /> </> } />
+          <Route path="/product" element={ <> <Navbar /> <Products url={url} /> </> } />
 
           {/* เส้นทางที่ไม่มี Navbar */}
           <Route path="/plantime-table" element={<PlanTimeTable url={url} />} />
