@@ -19,8 +19,8 @@ export const addConfig = async (req, res) => {
         adj_next_start
     } = req.body;
     const query = `
-        INSERT INTO Config_Time (
-            config_group
+        INSERT INTO config_time (
+            config_group,
             mixing_time,
             extruder_exit_time,
             pre_press_exit_time,
