@@ -16,6 +16,8 @@ const Products = ({ url }) => {
   const [selectedChemicals, setSelectedChemicals] = useState(['']);
   const [isLoading, setIsLoading] = useState(true);
   const [chemicals, setChemicals] = useState([]);
+  const [kneaderBlock, setKneaderBlock] = useState('');
+  const [foamingBlock, setFoamingBlock] = useState('');
 
   useEffect(() => {
     const fetchChemicals = async () => {
@@ -54,6 +56,8 @@ const Products = ({ url }) => {
         resin,
         foaming,
         color,
+        bPerRound: kneaderBlock,
+        bUse: foamingBlock,
         chemicals: selectedChemicals.filter((chemical) => chemical !== ''),
       };
       await axios.post(`${url}/api/post/product/add`, payload);
@@ -63,6 +67,8 @@ const Products = ({ url }) => {
       setResin('');
       setFoaming('');
       setColor('');
+      setKneaderBlock('');
+      setFoamingBlock('');
       setSelectedChemicals(['']);
     } catch (error) {
       console.error('❌ Error adding product:', error);
@@ -71,87 +77,119 @@ const Products = ({ url }) => {
   };
 
   return (
-    <div>
+    <div className="product-container">
       <ToastContainer />
-      <form onSubmit={handleSubmit}>
-        <h1>Add Product</h1>
+      <form className="product-form" onSubmit={handleSubmit}>
+        <h1 className="product-title">Add Product</h1>
         {/* แถวแรก */}
-        <div>
-          <label>Product Name:</label>
-          <input
-            type="text"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Status:</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            required
-          >
-            <option value="">-- Select Status --</option>
-            <option value="Mass">Mass</option>
-            <option value="R&D">R&D</option>
-          </select>
-        </div>
-        <div>
-          <label>Resin:</label>
-          <select
-            value={resin}
-            onChange={(e) => setResin(e.target.value)}
-            required
-          >
-            <option value="">-- Select Resin --</option>
-            {resinOptions.map((resin, index) => (
-              <option key={index} value={resin.name}>
-                {resin.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Foaming:</label>
-          <select
-            value={foaming}
-            onChange={(e) => setFoaming(e.target.value)}
-            required
-          >
-            <option value="">-- Select Foaming --</option>
-            {foamingOptions.map((foaming, index) => (
-              <option key={index} value={foaming.name}>
-                {foaming.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Color:</label>
-          <select
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            required
-          >
-            <option value="">-- Select Color --</option>
-            {colorOptions.map((color, index) => (
-              <option key={index} value={color.name}>
-                {color.name}
-              </option>
-            ))}
-          </select>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Product Name:</label>
+            <input
+              className="form-input"
+              type="text"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Status:</label>
+            <select
+              className="form-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              required
+            >
+              <option value="">-- Select Status --</option>
+              <option value="Mass">Mass</option>
+              <option value="R&D">R&D</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Resin:</label>
+            <select
+              className="form-select"
+              value={resin}
+              onChange={(e) => setResin(e.target.value)}
+              required
+            >
+              <option value="">-- Select Resin --</option>
+              {resinOptions.map((resin, index) => (
+                <option key={index} value={resin.name}>
+                  {resin.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Foaming:</label>
+            <select
+              className="form-select"
+              value={foaming}
+              onChange={(e) => setFoaming(e.target.value)}
+              required
+            >
+              <option value="">-- Select Foaming --</option>
+              {foamingOptions.map((foaming, index) => (
+                <option key={index} value={foaming.name}>
+                  {foaming.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Color:</label>
+            <select
+              className="form-select"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+            >
+              <option value="">-- Select Color --</option>
+              {colorOptions.map((color, index) => (
+                <option key={index} value={color.name}>
+                  {color.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* แถวที่สอง */}
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Kneader Block:</label>
+            <input
+              className="form-input"
+              type="number"
+              value={kneaderBlock}
+              onChange={(e) => setKneaderBlock(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Foaming Block:</label>
+            <input
+              className="form-input"
+              type="number"
+              value={foamingBlock}
+              onChange={(e) => setFoamingBlock(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+
+        {/* แถวที่สาม */}
         <div className="chemicals-grid">
           {selectedChemicals.map((selectedChemical, index) => (
-            <div key={index}>
-              <label>Chemical {index + 1}:</label>
+            <div key={index} className="form-group">
+              <label className="form-label">Chemical {index + 1}:</label>
               {isLoading ? (
-                <p>Loading chemicals...</p>
+                <p className="loading-text">Loading chemicals...</p>
               ) : (
                 <select
+                  className="form-select"
                   value={selectedChemical}
                   onChange={(e) => handleChemicalChange(index, e.target.value)}
                   required
@@ -167,15 +205,21 @@ const Products = ({ url }) => {
             </div>
           ))}
         </div>
-        <div className="full-width">
-          <button type="button" onClick={addChemicalField}>
+        <div className="form-actions">
+          <button
+            className="add-chemical-button"
+            type="button"
+            onClick={addChemicalField}
+          >
             Add Another Chemical
           </button>
         </div>
 
         {/* ปุ่ม Save */}
-        <div className="full-width">
-          <button type="submit">Save Product</button>
+        <div className="form-actions">
+          <button className="save-button" type="submit">
+            Save Product
+          </button>
         </div>
       </form>
     </div>

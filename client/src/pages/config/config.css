@@ -1,71 +1,53 @@
 .config-container {
-    width: 95%;
-    /* ขยายคอนเทนเนอร์ให้เต็มจอ */
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    /* เปลี่ยนพื้นหลังเป็นสีขาว */
-    border-radius: 0;
-    /* เอาความโค้งของกรอบออก */
-    box-shadow: none;
-    /* เอาเงาของกรอบออก */
+  padding: 20px;
+  background-color: #f9f9f9;
 }
 
-.config-container h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
+.config-title {
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
 .config-form {
-    width: 95%; /* ขยายฟอร์มให้เต็มจอ */
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-wrap: wrap; /* ทำให้ฟอร์มสามารถจัดเรียงหลายแถวได้ */
+  gap: 15px; /* ระยะห่างระหว่างช่อง */
 }
 
-.config-form-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    /* เพิ่มระยะห่างระหว่างช่อง */
-    justify-content: space-between;
-    /* กระจายช่องให้เต็มพื้นที่ */
+.form-group {
+  flex: 1 1 calc(25% - 15px); /* ช่องแต่ละช่องจะมีขนาด 25% ของแถว (5 ช่องต่อแถว) */
+  min-width: 150px; /* กำหนดขนาดขั้นต่ำ */
+  display: flex;
+  flex-direction: column; /* จัด label และ input ให้อยู่ในคอลัมน์เดียวกัน */
 }
 
-.config-form-group div {
-    flex: 1 1 calc(20% - 30px);
-    /* แบ่งเป็น 5 ช่องต่อแถว พร้อมระยะห่าง */
-    min-width: 150px;
+.form-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+  text-align: left; /* จัด label ให้อยู่ชิดซ้าย */
 }
 
-.config-form label {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #555;
+.form-input {
+  padding: 8px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาดของ input */
+  height: 40px; /* กำหนดความสูงให้เท่ากัน */
 }
 
-.input-config {
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.form-submit-button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%; /* ปุ่ม Submit จะเต็มความกว้าง */
 }
 
-.btn-config {
-    padding: 10px 15px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    align-self: center;
-    width: 200px;
-    /* กำหนดความกว้างปุ่ม */
-}
-
-.btn-config:hover {
-    background-color: #0056b3;
+.form-submit-button:hover {
+  background-color: #0056b3;
 }

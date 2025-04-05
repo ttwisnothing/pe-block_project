@@ -5,90 +5,115 @@ body {
   padding: 0;
 }
 
-form {
-  max-width: 1000px; /* เพิ่มความกว้างของฟอร์ม */
+.product-container {
+  max-width: 1000px;
   margin: 30px auto;
   background: #fff;
   padding: 25px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
-  grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
 }
 
-form h1 {
-  grid-column: span 5; /* หัวข้อกินพื้นที่เต็มแถว */
+.product-title {
   text-align: center;
   color: #333;
   margin-bottom: 20px;
   font-size: 24px;
 }
 
-form div {
-  margin-bottom: 20px;
-}
-
-form div.full-width {
-  grid-column: span 5; /* ช่องที่กินพื้นที่เต็มแถว */
-}
-
-form div.chemicals-grid {
-  grid-column: span 5; /* Chemicals กินพื้นที่เต็มแถว */
+.product-form {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
+  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
   grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
 }
 
-label {
-  display: block;
+.form-row {
+  grid-column: span 5; /* ใช้สำหรับจัดกลุ่มแถว */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
   font-weight: bold;
   margin-bottom: 8px;
   color: #555;
   font-size: 14px;
 }
 
-input[type="text"],
-select {
+.form-input,
+.form-select {
   width: 100%;
-  padding: 12px;
+  padding: 10px; /* ปรับ padding ให้เหมือนกัน */
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
   background-color: #fdfdfd;
   transition: border-color 0.3s ease;
+  height: 40px; /* กำหนดความสูงให้เท่ากัน */
+  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาด */
 }
 
-input[type="text"]:focus,
-select:focus {
+.form-input:focus,
+.form-select:focus {
   border-color: #4caf50;
   outline: none;
 }
 
-button {
-  width: 100%;
-  padding: 12px;
+.chemicals-grid {
+  grid-column: span 5; /* Chemicals กินพื้นที่เต็มแถว */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
+  grid-gap: 20px;
+}
+
+.loading-text {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.form-actions {
+  grid-column: span 5; /* ปุ่มอยู่เต็มแถว */
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.add-chemical-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-chemical-button:hover {
+  background-color: #0056b3;
+}
+
+.save-button {
   background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 16px;
+  padding: 10px 15px;
+  font-size: 14px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button:hover {
+.save-button:hover {
   background-color: #45a049;
   transform: scale(1.02);
-}
-
-button[type="button"] {
-  background-color: #007bff;
-  margin-top: 10px;
-}
-
-button[type="button"]:hover {
-  background-color: #0056b3;
 }
 
 .alert {

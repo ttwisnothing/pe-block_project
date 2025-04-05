@@ -28,50 +28,41 @@ const Config = ({ url }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${url}post/api/config/add`, formData);
+      const response = await axios.post(`${url}/api/post/config/add`, formData);
       alert("Config added successfully!");
     } catch (error) {
-      console.error("Error adding config:", error);
+      console.error("Error in adding config:", error);
       alert("Failed to add config.");
     }
   };
 
+  const formatLabel = (key) => {
+    return key
+      .replace(/_/g, " ") // แทนที่ "_" ด้วยช่องว่าง
+      .replace(/\b\w/g, (char) => char.toUpperCase()); // ทำให้ตัวอักษรตัวแรกของแต่ละคำเป็นตัวใหญ่
+  };
+
   return (
     <div className="config-container">
+      <h1 className="config-title">Config</h1>
       <form className="config-form" onSubmit={handleSubmit}>
-        <h1>Config</h1>
-        {/* Config Group แถวบนสุด */}
-        <div>
-          <label>Config Group:</label>
-          <input
-            type="number"
-            name="config_group"
-            className="input-config"
-            value={formData.config_group}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        {/* ส่วนที่เหลือเรียงเป็นแถวละ 5 ช่อง */}
-        <div className="config-form-group">
-          {Object.keys(formData)
-            .filter((key) => key !== "config_group")
-            .map((key) => (
-              <div key={key}>
-                <label>{key.replace(/_/g, " ")}:</label>
-                <input
-                  type="number"
-                  name={key}
-                  className="input-config"
-                  value={formData[key]}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            ))}
-        </div>
-        <button className="btn-config" type="submit">
+        {Object.keys(formData).map((key) => (
+          <div key={key} className="form-group">
+            <label className="form-label" htmlFor={key}>
+              {formatLabel(key)}
+            </label>
+            <input
+              className="form-input"
+              type="text"
+              id={key}
+              name={key}
+              value={formData[key]}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        ))}
+        <button className="form-submit-button" type="submit">
           Submit
         </button>
       </form>

@@ -9,6 +9,7 @@ const Plantime = ({ url }) => {
   const [runRound, setRunRound] = useState("");
   const [bUse, setBUse] = useState("");
   const [products, setProducts] = useState([]);
+  const [machineNames, setMachineNames] = useState([""]);
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -38,6 +39,7 @@ const Plantime = ({ url }) => {
         fristStart,
         runRound: parseInt(runRound, 10),
         bUse: parseInt(bUse, 10),
+        machine_name: machineNames.filter((name) => name !== ""), // ส่งเฉพาะช่องที่ไม่ว่าง
       };
       const response = await axios.post(
         `${url}/api/post/plantime/add/${productName}`,
@@ -45,17 +47,34 @@ const Plantime = ({ url }) => {
       );
       alert(response.data.message || "✅ Plan Time calculated successfully");
       setPlanTimes(response.data.planTimeList || []);
-      setCalculated(true); // ตั้งค่า calculated เป็น true เมื่อคำนวณสำเร็จ
+      setCalculated(true);
       setError(false);
     } catch (error) {
       console.error("❌ ERROR calculating Plan Time:", error);
-      alert(error.response?.data?.message || "❌ Failed to calculate Plan Time");
+      alert(
+        error.response?.data?.message || "❌ Failed to calculate Plan Time"
+      );
       setPlanTimes([]);
-      setCalculated(false); // ตั้งค่า calculated เป็น false เมื่อเกิดข้อผิดพลาด
+      setCalculated(false);
       setError(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMachineNameChange = (index, value) => {
+    const updateNames = [...machineNames];
+    updateNames[index] = value;
+    setMachineNames(updateNames);
+  };
+
+  const addMachineField = () => {
+    setMachineNames([...machineNames, ""]);
+  };
+
+  const removeMachineField = (index) => {
+    const updatedNames = machineNames.filter((_, i) => i !== index);
+    setMachineNames(updatedNames);
   };
 
   // แสดง Plan Time
@@ -68,7 +87,9 @@ const Plantime = ({ url }) => {
     setLoading(true);
     try {
       // เรียก API เพื่อดึงข้อมูล Plan Time
-      const response = await axios.get(`${url}/api/get/plantime/${productName}`);
+      const response = await axios.get(
+        `${url}/api/get/plantime/${productName}`
+      );
       const fetchedPlanTimes = response.data.planTimes || [];
 
       if (fetchedPlanTimes.length === 0) {
@@ -155,6 +176,35 @@ const Plantime = ({ url }) => {
           value={bUse}
           onChange={(e) => setBUse(e.target.value)}
         />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Machine Names:</label>
+        <div className="machine-names-container">
+          {machineNames.map((name, index) => (
+            <div key={index} className="machine-input-group">
+              <input
+                type="text"
+                className="form-input"
+                value={name}
+                onChange={(e) => handleMachineNameChange(index, e.target.value)}
+                placeholder={`Machine ${index + 1}`}
+                required
+              />
+              <button
+                type="button"
+                className="button remove-button"
+                onClick={() => removeMachineField(index)}
+                disabled={machineNames.length === 1} // ป้องกันการลบช่องสุดท้าย
+              >
+                X
+              </button>
+            </div>
+          ))}
+          <button type="button" className="button add-button" onClick={addMachineField}>
+            +
+          </button>
+        </div>
       </div>
 
       <button
