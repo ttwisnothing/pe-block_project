@@ -25,7 +25,7 @@ const EditTemp = ({ url }) => {
   const [newStartTime, setNewStartTime] = useState('');
 
   const formatTime = (time) => {
-    if (!time) return 'N/A';
+    if (!time) return '';
     const [hours, minutes] = time.split(':');
     return `${hours}:${minutes}`;
   };

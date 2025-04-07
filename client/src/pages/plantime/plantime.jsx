@@ -7,7 +7,6 @@ const Plantime = ({ url }) => {
   const [productName, setProductName] = useState("");
   const [fristStart, setFristStart] = useState("");
   const [runRound, setRunRound] = useState("");
-  const [bUse, setBUse] = useState("");
   const [products, setProducts] = useState([]);
   const [machineNames, setMachineNames] = useState([""]);
   const [planTimes, setPlanTimes] = useState([]);
@@ -28,7 +27,7 @@ const Plantime = ({ url }) => {
 
   // คำนวณ Plan Time
   const calculatePlanTime = async () => {
-    if (!productName || !fristStart || !runRound || !bUse) {
+    if (!productName || !fristStart || !runRound || machineNames.length === 0) {
       alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
@@ -38,8 +37,7 @@ const Plantime = ({ url }) => {
       const payload = {
         fristStart,
         runRound: parseInt(runRound, 10),
-        bUse: parseInt(bUse, 10),
-        machine_name: machineNames.filter((name) => name !== ""), // ส่งเฉพาะช่องที่ไม่ว่าง
+        mcNames: machineNames.filter((name) => name !== ""), // ส่งเฉพาะช่องที่ไม่ว่าง
       };
       const response = await axios.post(
         `${url}/api/post/plantime/add/${productName}`,
@@ -166,19 +164,6 @@ const Plantime = ({ url }) => {
       </div>
 
       <div className="form-group">
-        <label htmlFor="b-use" className="form-label">
-          จำนวน Block (Block)
-        </label>
-        <input
-          id="b-use"
-          type="number"
-          className="form-input"
-          value={bUse}
-          onChange={(e) => setBUse(e.target.value)}
-        />
-      </div>
-
-      <div className="form-group">
         <label className="form-label">Machine Names:</label>
         <div className="machine-names-container">
           {machineNames.map((name, index) => (
@@ -189,7 +174,6 @@ const Plantime = ({ url }) => {
                 value={name}
                 onChange={(e) => handleMachineNameChange(index, e.target.value)}
                 placeholder={`Machine ${index + 1}`}
-                required
               />
               <button
                 type="button"

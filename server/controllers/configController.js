@@ -35,7 +35,7 @@ export const addConfig = async (req, res) => {
             secondary_press_exit,
             adj_next_start
         ) VALUES (
-            ${config_group},
+            '${config_group}',
             ${mixing_time},
             ${extruder_exit_time},
             ${pre_press_exit_time},
