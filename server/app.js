@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import db from './config/db.js';
 import { createConfigTimeTable } from './models/configModel.js';
-import { createPlanTimeTable, createSummaryTable } from './models/plantimeModel.js';
+import { createPlanTimeTable, createRemoveSolidPlanTimeTable, createSummaryTable } from './models/plantimeModel.js';
 import { createTempPlanTimeTable } from './models/tempplanModel.js';
 import { createProductTable, createChemicalTable } from './models/productModel.js';
 import postRoutes from './routes/postRoute.js';
@@ -27,11 +27,12 @@ const connectDB = async () => {
         await db.getConnection();
         console.log("✅ Database connected successfully");
         createProductTable();
-        createChemicalTable(); 
+        createChemicalTable();
         createConfigTimeTable();
         createPlanTimeTable();
         createTempPlanTimeTable();
-        createSummaryTable();      
+        createRemoveSolidPlanTimeTable();
+        createSummaryTable();
     } catch (error) {
         console.log("❌ Error in connecting database : ", error);
     }

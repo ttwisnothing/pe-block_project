@@ -7,7 +7,7 @@ export const createConfigTimeTable = async () => {
             `
             CREATE TABLE IF NOT EXISTS config_time (
                 config_id INT PRIMARY KEY AUTO_INCREMENT,
-                config_group INT NOT NULL,
+                config_group VARCHAR(255) NOT NULL,
                 mixing_time INT NOT NULL,
                 extruder_exit_time INT NOT NULL,
                 pre_press_exit_time INT NOT NULL,
@@ -20,7 +20,9 @@ export const createConfigTimeTable = async () => {
                 temp_check_2 INT NOT NULL,
                 cooling_time INT NOT NULL,
                 secondary_press_exit INT NOT NULL,
-                adj_next_start INT NOT NULL
+                adj_next_start INT NOT NULL,
+                solid_block INT,
+                remove_work INT
             )
             `
         )

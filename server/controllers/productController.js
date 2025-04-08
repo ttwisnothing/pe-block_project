@@ -1,7 +1,7 @@
 import db from "../config/db.js";
 
 export const addProduct = async (req, res) => {
-    const { product_name, status, resin, foaming, color, bPerRound, bUse, chemicals } = req.body;
+    const { product_name, color_name, status, resin, foaming, color, bPerRound, bUse, chemicals } = req.body;
 
     // ตรวจสอบจำนวน chemicals ที่ส่งมา
     const maxChemicals = 15; // จำนวนสูงสุดของ chemical ที่รองรับ
@@ -10,13 +10,13 @@ export const addProduct = async (req, res) => {
 
     const query = `
         INSERT INTO product_master (
-            product_name, status, resin, foaming, color, bPerRound, bUse, ${chemicalColumns.join(", ")}
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ${chemicalColumns.map(() => "?").join(", ")})
+            product_name, color_name, status, resin, foaming, color, bPerRound, bUse, ${chemicalColumns.join(", ")}
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ${chemicalColumns.map(() => "?").join(", ")})
     `;
 
     try {
         // บันทึกข้อมูลลงฐานข้อมูล
-        await db.query(query, [product_name, status, resin, foaming, color, bPerRound, bUse, ...chemicalValues]);
+        await db.query(query, [product_name, color_name, status, resin, foaming, color, bPerRound, bUse, ...chemicalValues]);
         res.status(201).json({ message: "✅ Product added successfully" });
     } catch (error) {
         console.error("❌ Error in adding product: ", error);

@@ -8,6 +8,7 @@ export const createProductTable = async () => {
             CREATE TABLE IF NOT EXISTS product_master (
                 product_id INT PRIMARY KEY AUTO_INCREMENT,
                 product_name VARCHAR(255) NOT NULL,
+                color_name VARCHAR(50),
                 status VARCHAR(255) NOT NULL,
                 resin VARCHAR(255),
                 foaming VARCHAR(255),
