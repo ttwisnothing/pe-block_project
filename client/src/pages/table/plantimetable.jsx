@@ -16,7 +16,7 @@ import "./plantimetable.css";
 const PlanTimeTable = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { productName, planTimes } = location.state || {};
+  const { productName, planTimes, colorName } = location.state || {};
 
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
@@ -37,7 +37,7 @@ const PlanTimeTable = ({ url }) => {
 
         // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
         navigate("/edit-temp", {
-          state: { productName },
+          state: { productName, colorName },
         });
       } else {
         throw new Error("❌ Failed to add Temp Plan Time");
@@ -62,7 +62,7 @@ const PlanTimeTable = ({ url }) => {
       </div>
 
       <div className="table-header">
-        <h2>Product: {productName} Plan Time</h2>
+        <h2>Product: {productName}({colorName}) Plan Time</h2>
       </div>
 
       <TableContainer component={Paper} className="custom-table-container">
@@ -120,7 +120,7 @@ const PlanTimeTable = ({ url }) => {
           color="primary"
           onClick={handleMachineBreakdown}
         >
-          Machine Breakdown
+          Machine Inspection
         </Button>
       </div>
     </div>

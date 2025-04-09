@@ -6,6 +6,7 @@ import './product.css';
 
 const Products = ({ url }) => {
   const [productName, setProductName] = useState('');
+  const [productColor, setProductColor] = useState('');
   const [status, setStatus] = useState('');
   const [resin, setResin] = useState('');
   const [foaming, setFoaming] = useState('');
@@ -52,6 +53,7 @@ const Products = ({ url }) => {
     try {
       const payload = {
         product_name: productName,
+        color_name: productColor,
         status,
         resin,
         foaming,
@@ -63,6 +65,7 @@ const Products = ({ url }) => {
       await axios.post(`${url}/api/post/product/add`, payload);
       toast.success('✅ Product added successfully');
       setProductName('');
+      setProductColor('');
       setStatus('');
       setResin('');
       setFoaming('');
@@ -157,6 +160,16 @@ const Products = ({ url }) => {
 
         {/* แถวที่สอง */}
         <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Product Color:</label>
+            <input
+              className="form-input"
+              type="text"
+              value={productColor}
+              onChange={(e) => setProductColor(e.target.value)}
+              required
+            />
+          </div>
           <div className="form-group">
             <label className="form-label">Kneader Block:</label>
             <input

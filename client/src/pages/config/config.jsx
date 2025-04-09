@@ -18,6 +18,8 @@ const Config = ({ url }) => {
     cooling_time: "",
     secondary_press_exit: "",
     adj_next_start: "",
+    solid_block: "",
+    remove_workpiece: "",
   });
 
   const handleChange = (e) => {

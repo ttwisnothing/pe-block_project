@@ -8,6 +8,7 @@ const Plantime = ({ url }) => {
   const [fristStart, setFristStart] = useState("");
   const [runRound, setRunRound] = useState("");
   const [products, setProducts] = useState([]);
+  const [colorName, setColorName] = useState("");
   const [machineNames, setMachineNames] = useState([""]);
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,17 +28,18 @@ const Plantime = ({ url }) => {
 
   // คำนวณ Plan Time
   const calculatePlanTime = async () => {
-    if (!productName || !fristStart || !runRound || machineNames.length === 0) {
+    if (!productName || !fristStart || !runRound || !colorName || machineNames.length === 0) {
       alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
 
     setLoading(true);
     try {
-      const payload = {
+      const payload = { 
         fristStart,
         runRound: parseInt(runRound, 10),
-        mcNames: machineNames.filter((name) => name !== ""), // ส่งเฉพาะช่องที่ไม่ว่าง
+        mcNames: machineNames.filter((name) => name !== ""),
+        color_name: colorName,
       };
       const response = await axios.post(
         `${url}/api/post/plantime/add/${productName}`,
@@ -97,7 +99,7 @@ const Plantime = ({ url }) => {
 
       // นำทางไปยังหน้า PlanTimeTable พร้อมส่งข้อมูล
       navigate("/plantime-table", {
-        state: { productName, planTimes: fetchedPlanTimes },
+        state: { productName, colorName, planTimes: fetchedPlanTimes }
       });
     } catch (error) {
       console.error("❌ ERROR fetching Plan Time:", error);
@@ -160,6 +162,20 @@ const Plantime = ({ url }) => {
           className="form-input"
           value={runRound}
           onChange={(e) => setRunRound(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="color-name" className="form-label">
+          ชื่อสี (Color Name)
+        </label>
+        <input
+          id="color-name"
+          type="text"
+          className="form-input"
+          placeholder="กรอกชื่อสี"
+          value={colorName}
+          onChange={(e) => setColorName(e.target.value)}
         />
       </div>
 

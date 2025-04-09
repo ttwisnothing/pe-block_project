@@ -16,7 +16,7 @@ import "./temptable.css";
 const TempTable = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { productName } = location.state || {};
+  const { productName, colorName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -64,7 +64,7 @@ const TempTable = ({ url }) => {
 
         // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
         navigate("/edit-temp", {
-          state: { productName },
+          state: { productName, colorName },
         });
       } else {
         throw new Error("❌ Failed to add Temp Plan Time");
@@ -92,7 +92,7 @@ const TempTable = ({ url }) => {
           </div>
     
           <div className="table-header">
-            <h2>Temp Product: {productName} PlanTime</h2>
+            <h2>Temp Product: {productName}({colorName}) PlanTime</h2>
           </div>
     
           <TableContainer component={Paper} className="custom-table-container">
@@ -150,7 +150,7 @@ const TempTable = ({ url }) => {
               color="primary"
               onClick={handleMachineBreakdown}
             >
-              Machine Breakdown
+              Machine Inspection
             </Button>
           </div>
         </div>
