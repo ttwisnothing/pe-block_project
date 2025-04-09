@@ -22,7 +22,7 @@ export const createConfigTimeTable = async () => {
                 secondary_press_exit INT NOT NULL,
                 adj_next_start INT NOT NULL,
                 solid_block INT,
-                remove_work INT
+                remove_workpiece INT
             )
             `
         )

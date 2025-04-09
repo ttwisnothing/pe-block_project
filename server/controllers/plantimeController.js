@@ -7,7 +7,7 @@ export const getPlanTime = async (req, res) => {
     try {
         // ✅ JOIN Recipe_Table กับ Plan_Time_Table
         const [planTimes] = await db.query(`
-            SELECT pt.*
+            SELECT pt.*, rt.product_name, rt.color_name
             FROM plan_time_table pt
             INNER JOIN product_master rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = ?
@@ -19,7 +19,7 @@ export const getPlanTime = async (req, res) => {
         }
 
         return res.json({
-            planTimes,
+            productName,
             recipeId: planTimes[0].product_id,
             planTimes
         })
@@ -32,12 +32,11 @@ export const getPlanTime = async (req, res) => {
 // คำนวณเวลาของ PlanTime จาก Recipe ที่เลือก และเพิ่มข้อมูลลงในฐานข้อมูล
 export const addPlantime = async (req, res) => {
     const { product_name } = req.params;
-    const { fristStart, runRound, mcNames } = req.body;
+    const { fristStart, runRound, mcNames, color_name } = req.body;
     try {
         // ดึงข้อมูล Product จาก product_master
         const [products] = await db.query(
-            `SELECT * FROM product_master WHERE product_name = ?`, [product_name]
-        )
+            `SELECT * FROM product_master WHERE product_name = ? AND color_name = ?`, [product_name, color_name]);
         if (products.length === 0) {
             return res.status(404).json({ message: '❌ Product not found' });
         }
@@ -52,6 +51,8 @@ export const addPlantime = async (req, res) => {
 
         // ลบข้อมูลทั้งหมดใน temp_plan_time_table
         await db.query(`DELETE FROM plan_time_table WHERE product_id = ?`, [products[0].product_id]);
+
+        await db.query(`ALTER TABLE plan_time_table AUTO_INCREMENT = 1`);
 
         // กำหนดค่า mac จาก machine_name
         let mac = Array.isArray(mcNames) ? mcNames : [];// รองรับทั้ง array และ string
@@ -74,35 +75,17 @@ export const addPlantime = async (req, res) => {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
-                if (prevBlock !== 0 && prevBlock <= blockUse) {
-                    currentBlock = prevBlock;
-                } else {
-                    currentBlock = blockPerRound;
-                    planTime.product_id = products[0].product_id;
-                    planTime.run_no = planTimeList.length + 1;
-                    planTime.machine = mac[machineIndex];
-                    planTime.batch_no = planTimeList.length + 1;
-                    planTime.program_no = null
-                    planTime.start_time = startTimes;
-                    planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                    planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
-                    planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                    planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                    planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                    planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                    planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                    planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                    planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                    planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                    planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                    planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                    planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                    planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workp);
-                    planTime.block = currentBlock;
-                    prevBlock = currentBlock;
+                planTime.product_id = products[0].product_id;
+                planTime.run_no = planTimeList.length + 1;
+                planTime.machine = mac[machineIndex];
+                planTime.batch_no = planTimeList.length + 1;
+                planTime.program_no = null
+                planTime.start_time = startTimes;
+                planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
+                planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
 
-                    planTimeList.push({ ...planTime });
-                }
+                planTimeList.push({ ...planTime });
             }
         } else if (cGroup === 'RP-300S') {
             for (let i = 0; i < round; i++) {
@@ -242,38 +225,38 @@ export const addPlantime = async (req, res) => {
             console.log("Waiting Algorithm 3 Blocks");
         }
 
-        // if (cGroup === 'B-150') {
-        //     // รอไปก่อน
-        // } else {
-        //     // เพิ่มข้อมูลลงในฐานข้อมูล
-        //     for (const plan of planTimeList) {
-        //         const query = `
-        //         INSERT INTO plan_time_table (
-        //             product_id, run_no, machine,
-        //             batch_no, program_no, start_time,
-        //             mixing, extruder_exit, pre_press_exit,
-        //             primary_press_start, stream_in, primary_press_exit,
-        //             secondary_press_1_start, temp_check_1, secondary_press_2_start,
-        //             temp_check_2, cooling, secondary_press_exit, block
-        //         ) VALUES (
-        //             ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
-        //         )
-        //     `;
-        //         const values = [
-        //             plan.product_id, plan.run_no, plan.machine, plan.batch_no, plan.program_no,
-        //             plan.start_time, plan.mixing, plan.extruder_exit, plan.pre_press_exit,
-        //             plan.primary_press_start, plan.stream_in, plan.primary_press_exit,
-        //             plan.secondary_press_1_start, plan.temp_check_1, plan.secondary_press_2_start,
-        //             plan.temp_check_2, plan.cooling, plan.secondary_press_exit, plan.block
-        //         ]
+        if (cGroup === 'B-150') {
+            // รอไปก่อน
+        } else {
+            // เพิ่มข้อมูลลงในฐานข้อมูล
+            for (const plan of planTimeList) {
+                const query = `
+                INSERT INTO plan_time_table (
+                    product_id, run_no, machine,
+                    batch_no, program_no, start_time,
+                    mixing, extruder_exit, pre_press_exit,
+                    primary_press_start, stream_in, primary_press_exit,
+                    secondary_press_1_start, temp_check_1, secondary_press_2_start,
+                    temp_check_2, cooling, secondary_press_exit, block
+                ) VALUES (
+                    ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+                )
+            `;
+                const values = [
+                    plan.product_id, plan.run_no, plan.machine, plan.batch_no, plan.program_no,
+                    plan.start_time, plan.mixing, plan.extruder_exit, plan.pre_press_exit,
+                    plan.primary_press_start, plan.stream_in, plan.primary_press_exit,
+                    plan.secondary_press_1_start, plan.temp_check_1, plan.secondary_press_2_start,
+                    plan.temp_check_2, plan.cooling, plan.secondary_press_exit, plan.block
+                ]
 
-        //         await db.query(query, values);
-        //     }
-        // }
+                await db.query(query, values);
+            }
+        }
 
         return res.json({
             message: "Plan Time Data successfully added",
-            productName: product_name,
+            productName: `${product_name} (${color_name})`,
             mac,
             blockPerRound,
             blockUse,

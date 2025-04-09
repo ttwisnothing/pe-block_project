@@ -40,7 +40,7 @@ export const addChemical = async (req, res) => {
 
 // ดึงชื่อ Product ทั้งหมดจากฐานข้อมูล
 export const getProducts = async (req, res) => {
-    const query = `SELECT product_name AS name FROM product_master`;
+    const query = `SELECT DISTINCT product_name AS name FROM product_master`;
 
     try {
         const [products] = await db.query(query);

@@ -384,73 +384,45 @@ const reduceMinutes = (time, minutes) => {
     return date.toTimeString().slice(0, 8);
 }
 
-export const updateMachine = async (req, res) => {
-    const { recipe_name,temp_id } = req.params;
-    const { newMachine } = req.body;
+export const updateMac = async (req, res) => {
+    const { product_name } = req.params; // รับ product_name จาก params
+    const { machines } = req.body; // รับ machines (อาร์เรย์ของ temp_id และ new_machine_name) จาก body
+
+    if (!machines || !Array.isArray(machines) || machines.length === 0) {
+        return res.status(400).json({ message: "❌ Invalid input: machines array is required" });
+    }
 
     try {
-        // ดึงข้อมูล machine จาก TempPlanTime ที่เลือก
-        const [machineTemp] = await db.query(`
-            SELECT pt.temp_id, pt.machine, pt.recipe_id, pt.run_no, pt.batch_no, pt.start_time
-            FROM temp_plan_time_table pt
-            INNER JOIN recipes_table rt ON pt.recipe_id = rt.recipe_id
-            WHERE rt.recipe_name = ?
-        `, [recipe_name]);
-        if (machineTemp.length === 0) {
-            return res.status(404).json({ message: '❌ Temp Plan Time not found' });
+        // ตรวจสอบว่า temp_id ทั้งหมดมีอยู่ในฐานข้อมูล
+        const tempIds = machines.map((machine) => machine.temp_id);
+        const [existingTempPlanTimes] = await db.query(`
+            SELECT pt.temp_id
+            FROM temp_plan_table pt
+            INNER JOIN product_master pm ON pt.product_id = pm.product_id
+            WHERE pm.product_name = ? AND pt.temp_id IN (?)
+        `, [product_name, tempIds]);
+
+        if (existingTempPlanTimes.length !== machines.length) {
+            return res.status(404).json({ message: "❌ Some Temp Plan Times not found for the given temp_ids" });
         }
 
-        //ดึง machine_id จาก machine_table
-        const [machine] = await db.query(`
-            SELECT *
-            FROM machine_table
-        `);
-        if (machine.length === 0) {
-            return res.status(404).json({ message: '❌ Machine not found' });
-        }
-
-        const machineNames = machine.map(m => m.machine_name);
-
-        // อัพเดท machine ใหม่ของ temp_id ที่เลือก
-        await db.query(`
-            UPDATE temp_plan_time_table
-            SET machine = ?
-            WHERE temp_id = ?
-        `, [newMachine, temp_id]); // newMachine: M2, temp_id: 2
-
-        // อัปเดท machine_temp ใหม่ทั้งหมด
-        const updateMachineTemp = machineTemp.map(item => {
-            if (item.temp_id === parseInt(temp_id)) {
-                return { ...item, machine: newMachine };
-            }
-            return item;
-        })
-
-        let newMachineIndex = machineNames.indexOf(newMachine);
-
-        for (let i = 0; i < updateMachineTemp.length; i++) {
-            if (updateMachineTemp[i].temp_id !== temp_id) {
-                newMachineIndex = (newMachineIndex + 1) % machineNames.length; // เปลี่ยนไปใช้ machine ถัดไปในลิสต์
-                updateMachineTemp[i].machine = machineNames[newMachineIndex]; // อัปเดท machine_temp ใหม่ทั้งหมด
-            }
-        }
-
-        // อัปเดท temp_plan_time_table ด้วย updateMachineTemp
-        for (const item of updateMachineTemp) {
-            await db.query(`
-                UPDATE temp_plan_time_table
+        // อัปเดต machine สำหรับ temp_id ทั้งหมด
+        const updatePromises = machines.map((machine) => {
+            return db.query(`
+                UPDATE temp_plan_table
                 SET machine = ?
                 WHERE temp_id = ?
-            `,[item.machine, item.temp_id]);
-        }
+            `, [machine.new_machine_name, machine.temp_id]);
+        });
 
-        return res.json({
-            recipe_name,
-            recipeId: machineTemp[0].recipe_id,
-            machineTemp
-        })
+        await Promise.all(updatePromises); // รันคำสั่ง SQL ทั้งหมดพร้อมกัน
+
+        return res.status(200).json({
+            message: "✅ Machines updated successfully",
+            updatedMachines: machines,
+        });
     } catch (error) {
-        console.error('❌ ERROR:', error);
-        res.status(500).json({ message: "❌ Error in updating Machine" });
+        console.error("❌ ERROR:", error);
+        res.status(500).json({ message: "❌ Error in updating Machines" });
     }
-}
+};

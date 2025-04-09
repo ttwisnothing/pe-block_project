@@ -16,7 +16,9 @@ export const addConfig = async (req, res) => {
         temp_check_2,
         cooling_time,
         secondary_press_exit,
-        adj_next_start
+        adj_next_start,
+        solid_block,
+        remove_workpiece,
     } = req.body;
     const query = `
         INSERT INTO config_time (
@@ -33,7 +35,9 @@ export const addConfig = async (req, res) => {
             temp_check_2,
             cooling_time,
             secondary_press_exit,
-            adj_next_start
+            adj_next_start,
+            solid_block,
+            remove_workpiece
         ) VALUES (
             '${config_group}',
             ${mixing_time},
@@ -48,7 +52,9 @@ export const addConfig = async (req, res) => {
             ${temp_check_2},
             ${cooling_time},
             ${secondary_press_exit},
-            ${adj_next_start}
+            ${adj_next_start},
+            ${solid_block},
+            ${remove_workpiece}
         )
     `;
     try {
