@@ -1,8 +1,8 @@
 import express from 'express';
-import { addConfig } from '../controllers/configController.js';
-import { addPlantime } from '../controllers/plantimeController.js';
-import { addTempMB, addTempPlanTime } from '../controllers/tempController.js';
-import { addProduct, addChemical } from '../controllers/productController.js';
+import { addConfig } from '../models/configModel.js';
+import { addPlantime } from '../models/plantimeModel.js';
+import { addTempMB, addTempPlanTime } from '../models/tempplanModel.js';
+import { addProduct, addChemical } from '../models/productModel.js';
 
 const router = express.Router();
 

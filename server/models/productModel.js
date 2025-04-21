@@ -1,42 +1,62 @@
-import db from "../config/db.js";
+import { getPool } from '../config/db.js'; // Assuming app.js exports getPool
+import sql from 'mssql';
 
-// สร้าง Product_Table เพื่อเก็บข้อมูล
-export const createProductTable = async () => {
-    try {
-        await db.query(
-            `
-            CREATE TABLE IF NOT EXISTS product_master (
-                product_id INT PRIMARY KEY AUTO_INCREMENT,
-                product_name VARCHAR(255) NOT NULL,
-                color_name VARCHAR(50),
-                status VARCHAR(255) NOT NULL,
-                resin VARCHAR(255),
-                foaming VARCHAR(255),
-                color VARCHAR(255), bPerRound INT NOT NULL, bUse INT NOT NULL,
-                chemical_1 VARCHAR(255), chemical_2 VARCHAR(255), chemical_3 VARCHAR(255), chemical_4 VARCHAR(255), chemical_5 VARCHAR(255),
-                chemical_6 VARCHAR(255), chemical_7 VARCHAR(255), chemical_8 VARCHAR(255), chemical_9 VARCHAR(255), chemical_10 VARCHAR(255),
-                chemical_11 VARCHAR(255), chemical_12 VARCHAR(255), chemical_13 VARCHAR(255), chemical_14 VARCHAR(255), chemical_15 VARCHAR(255)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-            `
+export const addProduct = async (req, res) => {
+    const { product_name, color_name, status, resin, foaming, color, bPerRound, bUse, chemicals } = req.body;
+
+    const maxChemicals = 15; // จำนวนสูงสุดของ chemical ที่รองรับ
+    const chemicalColumns = Array.from({ length: maxChemicals }, (_, i) => `chemical_${i + 1}`);
+
+    const query = `
+        INSERT INTO product_mst (
+            product_name, color_name, status, resin, foaming, color, bPerRound, bUse, ${chemicalColumns.join(", ")}
+        ) VALUES (
+            @product_name, @color_name, @status, @resin, @foaming, @color, @bPerRound, @bUse, ${chemicalColumns.map(col => `@${col}`).join(", ")}
         )
+    `;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        // กำหนด Parameters
+        request.input('product_name', sql.VarChar, product_name);
+        request.input('color_name', sql.VarChar, color_name);
+        request.input('status', sql.VarChar, status);
+        request.input('resin', sql.VarChar, resin);
+        request.input('foaming', sql.VarChar, foaming);
+        request.input('color', sql.VarChar, color);
+        request.input('bPerRound', sql.Int, bPerRound);
+        request.input('bUse', sql.Int, bUse);
+
+        // กำหนด Chemical Parameters
+        for (let i = 0; i < maxChemicals; i++) {
+            request.input(`chemical_${i + 1}`, sql.VarChar, chemicals[i] || null);
+        }
+
+        await request.query(query);
+        res.status(201).json({ message: "✅ Product added successfully" });
     } catch (error) {
-        console.log("❌ Error in creating table 'product_table' : ", error);
+        console.error("❌ Error in adding product: ", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 }
 
-// สร้าง Chemical_Table เพื่อเก็บข้อมูล
-export const createChemicalTable = async () => {
+export const addChemical = async (req, res) => {
+    const { chemical_name } = req.body;
+    const query = `INSERT INTO chemical_mst (chemical_name) VALUES (@chemical_name)`;
+
     try {
-        await db.query(
-            `
-            CREATE TABLE IF NOT EXISTS chemical_master (
-                chemical_id INT PRIMARY KEY AUTO_INCREMENT,
-                chemical_name VARCHAR(255) NOT NULL,
-                type VARCHAR(255)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-            `
-        )
+        const pool = await getPool();
+        const request = pool.request();
+
+        // กำหนด Parameter
+        request.input('chemical_name', sql.VarChar, chemical_name);
+
+        await request.query(query);
+        res.status(201).json({ message: `✅ ${chemical_name} Chemical added successfully` });
     } catch (error) {
-        console.log("❌ Error in creating table 'chemical_table' : ", error);
+        console.error("❌ Error in adding chemical: ", error);
+        res.status(500).json({ message: "Internal server error" });
     }
 }
