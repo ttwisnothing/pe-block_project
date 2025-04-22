@@ -11,5 +11,6 @@ router.get('/plantime/:productName', getPlanTime);
 router.get('/tempplantime/:product_name', getTempPlanTime);
 router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
 // router.get('/machine/:product_name', updateMac);
+// router.get('/test/update/temp/:product_name/:temp_id', updateNewStartTime)
 
 export default router;

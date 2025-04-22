@@ -43,8 +43,6 @@ export const addPlantime = async (req, res) => {
         const deleteQuery = `DELETE FROM plan_time_table WHERE product_id = @product_id`;
         await request.input('product_id', sql.Int, products[0].product_id).query(deleteQuery);
 
-        const dbccheck = await request.query(`DBCC CHECKIDENT('plan_time_table', RESEED, 0)`);
-
         // กำหนดค่า mac จาก machine_name
         let mac = Array.isArray(mcNames) ? mcNames : [];// รองรับทั้ง array และ string
 

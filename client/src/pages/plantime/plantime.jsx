@@ -33,10 +33,18 @@ const Plantime = ({ url }) => {
       return;
     }
 
+    // ตรวจสอบและแปลงเวลาให้เป็น HH:mm:ss
+    const timeParts = fristStart.split(":");
+    if (timeParts.length < 2 || timeParts.length > 3) {
+      alert("กรุณากรอกเวลาในรูปแบบ HH:mm หรือ HH:mm:ss");
+      return;
+    }
+    const formattedTime = `${timeParts[0].padStart(2, "0")}:${timeParts[1].padStart(2, "0")}:${timeParts[2] || "00"}`;
+
     setLoading(true);
     try {
       const payload = { 
-        fristStart,
+        fristStart: formattedTime, // ใช้เวลาในรูปแบบ HH:mm:ss
         runRound: parseInt(runRound, 10),
         mcNames: machineNames.filter((name) => name !== ""),
         color_name: colorName,
