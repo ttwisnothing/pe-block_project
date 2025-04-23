@@ -66,10 +66,15 @@ const EditTemp = ({ url }) => {
 
   const handleSaveStartTime = async () => {
     try {
+      // ตรวจสอบว่าค่าที่กรอกมีวินาทีหรือไม่ ถ้าไม่มีให้เพิ่ม ":00"
+      const formattedTime = newStartTime.includes(":")
+        ? `${newStartTime}:00`
+        : newStartTime;
+
       await axios.put(
         `${url}/api/put/tempplantime/update/${productName}/${editingRow}`,
         {
-          new_start_time: newStartTime,
+          new_start_time: formattedTime, // ใช้เวลาที่ปรับรูปแบบแล้ว
         }
       );
       alert("✅ Start Time updated successfully");

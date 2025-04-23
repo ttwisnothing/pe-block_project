@@ -72,12 +72,6 @@ export const addTempMB = async (req, res) => {
         const pool = await getPool();
         const request = pool.request();
 
-        // ลบข้อมูลทั้งหมดใน temp_plan_table
-        await request.query(`DELETE FROM temp_plan_table`);
-
-        // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
-        await request.query(`DBCC CHECKIDENT ('temp_plan_table', RESEED, 0)`);
-
         const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
             SELECT tpt.*
             FROM temp_plan_table tpt
@@ -89,6 +83,12 @@ export const addTempMB = async (req, res) => {
         if (planTimes.length === 0) {
             return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
         }
+
+        // ลบข้อมูลทั้งหมดใน temp_plan_table
+        await request.query(`DELETE FROM temp_plan_table`);
+
+        // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
+        await request.query(`DBCC CHECKIDENT ('temp_plan_table', RESEED, 0)`);
 
         // INSERT ข้อมูลลงใน temp_plan_table
         for (const plan of planTimes) {
@@ -113,8 +113,11 @@ export const addTempMB = async (req, res) => {
                 )
             `;
 
-            await request.query(query);
-            request.reset(); // รีเซ็ต parameters หลังจากการ execute query แต่ละครั้ง
+            try {
+                await pool.request().query(query);
+            } catch (err) {
+                console.error(`❌ Insert error for item`, err);
+            }
         }
 
         return res.status(200).json({
@@ -348,19 +351,19 @@ export const updateNewStartTime = async (req, res) => {
             const sqlValue = (val) =>
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
-            await request.input('start_time', sql.NVarChar, sqlValue(updateTempList[i].start_time))
-                .input('mixing', sql.NVarChar, sqlValue(updateTempList[i].mixing))
-                .input('extruder_exit', sql.NVarChar, sqlValue(updateTempList[i].extruder_exit))
-                .input('pre_press_exit', sql.NVarChar, sqlValue(updateTempList[i].pre_press_exit))
-                .input('primary_press_start', sql.NVarChar, sqlValue(updateTempList[i].primary_press_start))
-                .input('stream_in', sql.NVarChar, sqlValue(updateTempList[i].stream_in))
-                .input('primary_press_exit', sql.NVarChar, sqlValue(updateTempList[i].primary_press_exit))
-                .input('secondary_press_1_start', sql.NVarChar, sqlValue(updateTempList[i].secondary_press_1_start))
-                .input('temp_check_1', sql.NVarChar, sqlValue(updateTempList[i].temp_check_1))
-                .input('secondary_press_2_start', sql.NVarChar, sqlValue(updateTempList[i].secondary_press_2_start))
-                .input('temp_check_2', sql.NVarChar, sqlValue(updateTempList[i].temp_check_2))
-                .input('cooling', sql.NVarChar, sqlValue(updateTempList[i].cooling))
-                .input('secondary_press_exit', sql.NVarChar, sqlValue(updateTempList[i].secondary_press_exit))
+            await request.input('start_time', sql.NVarChar, updateTempList[i].start_time)
+                .input('mixing', sql.NVarChar, updateTempList[i].mixing)
+                .input('extruder_exit', sql.NVarChar, updateTempList[i].extruder_exit)
+                .input('pre_press_exit', sql.NVarChar, updateTempList[i].pre_press_exit)
+                .input('primary_press_start', sql.NVarChar, updateTempList[i].primary_press_start)
+                .input('stream_in', sql.NVarChar, updateTempList[i].stream_in)
+                .input('primary_press_exit', sql.NVarChar, updateTempList[i].primary_press_exit)
+                .input('secondary_press_1_start', sql.NVarChar, updateTempList[i].secondary_press_1_start)
+                .input('temp_check_1', sql.NVarChar, updateTempList[i].temp_check_1)
+                .input('secondary_press_2_start', sql.NVarChar, updateTempList[i].secondary_press_2_start)
+                .input('temp_check_2', sql.NVarChar, updateTempList[i].temp_check_2)
+                .input('cooling', sql.NVarChar, updateTempList[i].cooling)
+                .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
                 .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
                 .query(`
                     UPDATE temp_plan_table
@@ -379,7 +382,6 @@ export const updateNewStartTime = async (req, res) => {
                         secondary_press_exit = @secondary_press_exit
                     WHERE temp_id = @temp_id
                 `);
-          pool.close(); // ปิด pool connection หลังจากใช้งานเสร็จแต่ละครั้ง
         }
 
         return res.json({
@@ -427,7 +429,7 @@ export const updateMac = async (req, res) => {
         const existingTempPlanTimesResult = await request.query(`
             SELECT pt.temp_id
             FROM temp_plan_table pt
-            INNER JOIN product_master pm ON pt.product_id = pm.product_id
+            INNER JOIN product_mst pm ON pt.product_id = pm.product_id
             WHERE pm.product_name = @product_name AND pt.temp_id IN (${tempIdsString})
         `);
         const existingTempPlanTimes = existingTempPlanTimesResult.recordset;
