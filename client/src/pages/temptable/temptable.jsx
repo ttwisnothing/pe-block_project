@@ -92,7 +92,7 @@ const TempTable = ({ url }) => {
           </div>
     
           <div className="table-header">
-            <h2>Temp Product: {productName}({colorName}) PlanTime</h2>
+            <h2>Product: {productName}({colorName}) PlanTime</h2>
           </div>
     
           <TableContainer component={Paper} className="custom-table-container">

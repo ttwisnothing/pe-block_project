@@ -268,7 +268,7 @@ const EditTemp = ({ url }) => {
         onClick={() => navigate("/temp-table", { state: { productName, colorName } })} // ใช้ navigate
         style={{ marginTop: "20px" }}
       >
-        Go to TempTable
+        Show time table
       </Button>
     </div>
   );

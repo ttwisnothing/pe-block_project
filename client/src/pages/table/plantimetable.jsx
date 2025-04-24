@@ -62,7 +62,9 @@ const PlanTimeTable = ({ url }) => {
       </div>
 
       <div className="table-header">
-        <h2>Product: {productName}({colorName}) Plan Time</h2>
+        <h2>
+          Product: {productName}({colorName}) Plan Time
+        </h2>
       </div>
 
       <TableContainer component={Paper} className="custom-table-container">
@@ -89,27 +91,46 @@ const PlanTimeTable = ({ url }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {planTimes.map((plan, index) => (
-              <TableRow key={index}>
-                <TableCell>{plan.run_no}</TableCell>
-                <TableCell>{plan.machine}</TableCell>
-                <TableCell>{plan.batch_no}</TableCell>
-                <TableCell>{formatTime(plan.start_time)}</TableCell>
-                <TableCell>{formatTime(plan.mixing)}</TableCell>
-                <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
-                <TableCell>{formatTime(plan.pre_press_exit)}</TableCell>
-                <TableCell>{formatTime(plan.primary_press_start)}</TableCell>
-                <TableCell>{formatTime(plan.stream_in)}</TableCell>
-                <TableCell>{formatTime(plan.primary_press_exit)}</TableCell>
-                <TableCell>{formatTime(plan.secondary_press_1_start)}</TableCell>
-                <TableCell>{formatTime(plan.temp_check_1)}</TableCell>
-                <TableCell>{formatTime(plan.secondary_press_2_start)}</TableCell>
-                <TableCell>{formatTime(plan.temp_check_2)}</TableCell>
-                <TableCell>{formatTime(plan.cooling)}</TableCell>
-                <TableCell>{formatTime(plan.secondary_press_exit)}</TableCell>
-                <TableCell>{plan.block}</TableCell>
-              </TableRow>
-            ))}
+            {planTimes.map((plan, index) => {
+              const isFirstRowForRun =
+                index === 0 || plan.run_no !== planTimes[index - 1].run_no;
+
+              return (
+                <TableRow key={index}>
+                  {/* Merge Cell สำหรับ Run No */}
+                  {isFirstRowForRun && (
+                    <TableCell
+                      rowSpan={
+                        planTimes.filter((p) => p.run_no === plan.run_no).length
+                      }
+                    >
+                      {plan.run_no}
+                    </TableCell>
+                  )}
+
+                  <TableCell>{plan.machine}</TableCell>
+                  <TableCell>{plan.batch_no}</TableCell>
+                  <TableCell>{formatTime(plan.start_time)}</TableCell>
+                  <TableCell>{formatTime(plan.mixing)}</TableCell>
+                  <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
+                  <TableCell>{formatTime(plan.pre_press_exit)}</TableCell>
+                  <TableCell>{formatTime(plan.primary_press_start)}</TableCell>
+                  <TableCell>{formatTime(plan.stream_in)}</TableCell>
+                  <TableCell>{formatTime(plan.primary_press_exit)}</TableCell>
+                  <TableCell>
+                    {formatTime(plan.secondary_press_1_start)}
+                  </TableCell>
+                  <TableCell>{formatTime(plan.temp_check_1)}</TableCell>
+                  <TableCell>
+                    {formatTime(plan.secondary_press_2_start)}
+                  </TableCell>
+                  <TableCell>{formatTime(plan.temp_check_2)}</TableCell>
+                  <TableCell>{formatTime(plan.cooling)}</TableCell>
+                  <TableCell>{formatTime(plan.secondary_press_exit)}</TableCell>
+                  <TableCell>{plan.block}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
