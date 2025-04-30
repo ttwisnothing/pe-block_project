@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify"; // เพิ่มการนำเข้า
+import "react-toastify/dist/ReactToastify.css"; // เพิ่ม CSS ของ react-toastify
 import "./plantime.css";
 
 const Plantime = ({ url }) => {
@@ -13,30 +15,28 @@ const Plantime = ({ url }) => {
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [calculated, setCalculated] = useState(false); // ใช้ตัวแปรนี้ควบคุมการแสดงปุ่ม
+  const [calculated, setCalculated] = useState(false);
   const navigate = useNavigate();
 
-  // ดึงข้อมูล Product จาก API
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${url}/api/get/products`);
       setProducts(response.data.products || []);
     } catch (error) {
       console.error("❌ ERROR fetching Products:", error);
+      toast.error("❌ Failed to fetch products");
     }
   };
 
-  // คำนวณ Plan Time
   const calculatePlanTime = async () => {
     if (!productName || !fristStart || !runRound || !colorName || machineNames.length === 0) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      toast.warn("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
 
-    // ตรวจสอบและแปลงเวลาให้เป็น HH:mm:ss
     const timeParts = fristStart.split(":");
     if (timeParts.length < 2 || timeParts.length > 3) {
-      alert("กรุณากรอกเวลาในรูปแบบ HH:mm หรือ HH:mm:ss");
+      toast.warn("⚠️ กรุณากรอกเวลาในรูปแบบ HH:mm หรือ HH:mm:ss");
       return;
     }
     const formattedTime = `${timeParts[0].padStart(2, "0")}:${timeParts[1].padStart(2, "0")}:${timeParts[2] || "00"}`;
@@ -44,7 +44,7 @@ const Plantime = ({ url }) => {
     setLoading(true);
     try {
       const payload = { 
-        fristStart: formattedTime, // ใช้เวลาในรูปแบบ HH:mm:ss
+        fristStart: formattedTime,
         runRound: parseInt(runRound, 10),
         mcNames: machineNames.filter((name) => name !== ""),
         color_name: colorName,
@@ -53,15 +53,13 @@ const Plantime = ({ url }) => {
         `${url}/api/post/plantime/add/${productName}`,
         payload
       );
-      alert(response.data.message || "✅ Plan Time calculated successfully");
+      toast.success(response.data.message || "✅ Plan Time calculated successfully");
       setPlanTimes(response.data.planTimeList || []);
       setCalculated(true);
       setError(false);
     } catch (error) {
       console.error("❌ ERROR calculating Plan Time:", error);
-      alert(
-        error.response?.data?.message || "❌ Failed to calculate Plan Time"
-      );
+      toast.error(error.response?.data?.message || "❌ เกิดข้อผิดพลาดในการคำนวณ");
       setPlanTimes([]);
       setCalculated(false);
       setError(true);
@@ -85,33 +83,30 @@ const Plantime = ({ url }) => {
     setMachineNames(updatedNames);
   };
 
-  // แสดง Plan Time
   const handleShowPlanTime = async () => {
     if (!productName) {
-      alert("กรุณาเลือก Product ก่อน");
+      toast.warn("⚠️ กรุณาเลือก Product ก่อน");
       return;
     }
 
     setLoading(true);
     try {
-      // เรียก API เพื่อดึงข้อมูล Plan Time
       const response = await axios.get(
         `${url}/api/get/plantime/${productName}`
       );
       const fetchedPlanTimes = response.data.planTimes || [];
 
       if (fetchedPlanTimes.length === 0) {
-        alert("ไม่มีข้อมูล Plan Time สำหรับ Product นี้");
+        toast.info("ℹ️ ไม่มีข้อมูล Plan Time สำหรับ Product นี้");
         return;
       }
 
-      // นำทางไปยังหน้า PlanTimeTable พร้อมส่งข้อมูล
       navigate("/plantime-table", {
         state: { productName, colorName, planTimes: fetchedPlanTimes }
       });
     } catch (error) {
       console.error("❌ ERROR fetching Plan Time:", error);
-      alert(error.response?.data?.message || "❌ Failed to fetch Plan Time");
+      toast.error(error.response?.data?.message || "❌ Failed to fetch Plan Time");
     } finally {
       setLoading(false);
     }
@@ -203,14 +198,14 @@ const Plantime = ({ url }) => {
                 type="button"
                 className="button remove-button"
                 onClick={() => removeMachineField(index)}
-                disabled={machineNames.length === 1} // ป้องกันการลบช่องสุดท้าย
+                disabled={machineNames.length === 1}
               >
                 X
               </button>
             </div>
           ))}
           <button type="button" className="button add-button" onClick={addMachineField}>
-            +
+            เพิ่มเครื่องจักร
           </button>
         </div>
       </div>
@@ -220,10 +215,9 @@ const Plantime = ({ url }) => {
         onClick={calculatePlanTime}
         disabled={loading}
       >
-        คำนวณเวลา
+        สร้าง Plan Time
       </button>
 
-      {/* แสดงปุ่ม "แสดง Plan Time" เฉพาะเมื่อการคำนวณสำเร็จ */}
       {calculated && (
         <button
           className="button success"
@@ -234,7 +228,8 @@ const Plantime = ({ url }) => {
         </button>
       )}
 
-      {error && <div className="alert danger">เกิดข้อผิดพลาดในการคำนวณ</div>}
+      {/* เพิ่ม ToastContainer */}
+      <ToastContainer />
     </div>
   );
 };

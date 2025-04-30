@@ -4,7 +4,7 @@ import cors from 'cors';
 import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
 import putRoutes from './routes/putRoute.js';
-import connectDB from './config/db.js';
+import connectDB from './config/db.js'; 
 
 // กำหนดค่า Environment จากไฟล์ .env
 dotenv.config();
