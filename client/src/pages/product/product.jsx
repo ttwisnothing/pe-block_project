@@ -57,7 +57,7 @@ const Products = ({ url }) => {
         status,
         resin,
         foaming,
-        color,
+        color: color.trim() === '' ? null : color,
         bPerRound: kneaderBlock,
         bUse: foamingBlock,
         chemicals: selectedChemicals.filter((chemical) => chemical !== ''),

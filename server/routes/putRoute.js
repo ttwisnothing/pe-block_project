@@ -1,5 +1,6 @@
 import express from 'express';
-import { updateMac, updateNewStartTime } from '../controllers/tempController.js';
+import { updateNewStartTime } from '../models/tempplanModel.js';
+import { updateMac } from '../models/tempplanModel.js';
 
 const router = express.Router();
 

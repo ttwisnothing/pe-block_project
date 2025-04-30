@@ -4,4 +4,4 @@ dist-ssr
 *.local
 
 # Environment Variables
-.env
+*.env

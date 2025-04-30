@@ -43,6 +43,20 @@ button {
   transition: background-color 0.3s ease;
 }
 
+/* ใช้ Cal Sans สำหรับข้อความภาษาอังกฤษ */
+:lang(en) {
+  font-family: "Cal Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* ใช้ Chakra Petch สำหรับข้อความภาษาไทย */
+:lang(th) {
+  font-family: "Chakra Petch", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
 button:hover {
   background-color: #0056b3;
 }
