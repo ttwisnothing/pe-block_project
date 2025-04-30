@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Table,
@@ -19,14 +19,42 @@ const PlanTimeTable = ({ url }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const intervalRef = useRef(null);
-  const { productName, planTimes, colorName } = location.state || {};
+  const [productName, setProductName] = useState("");
+  const [colorName, setColorName] = useState("");
+  const [planTimes, setPlanTimes] = useState([]);
 
   useEffect(() => {
-    if (!planTimes || planTimes.length === 0) {
-      toast.error("❌ ไม่มีข้อมูล Plan Time กรุณากลับไปเลือกใหม่");
-      navigate("/plantime");
+    let savedData = location.state;
+    if (!savedData) {
+      const fromStorage = localStorage.getItem("planTimeData");
+      if (fromStorage) {
+        savedData = JSON.parse(fromStorage);
+      }
     }
 
+    if (
+      !savedData ||
+      !savedData.planTimes ||
+      savedData.planTimes.length === 0
+    ) {
+      toast.error("❌ ไม่มีข้อมูล Plan Time กรุณากลับไปเลือกใหม่");
+      navigate("/plantime");
+      return;
+    }
+
+    // จัดเรียงข้อมูลตาม run_no และ batch_no
+    const sortedPlanTimes = [...savedData.planTimes].sort((a, b) => {
+      if (a.run_no !== b.run_no) {
+        return a.run_no - b.run_no; // จัดเรียงตาม run_no
+      }
+      return a.batch_no - b.batch_no; // ถ้า run_no เท่ากัน ให้จัดเรียงตาม batch_no
+    });
+
+    setProductName(savedData.productName);
+    setColorName(savedData.colorName);
+    setPlanTimes(sortedPlanTimes); // ใช้ข้อมูลที่จัดเรียงแล้ว
+
+    // เรียก setupAlertInterval หลังจากตั้งค่า planTimes
     const NOTICATION_INTERVAL = 60000; // 1 นาที
     const NOTIFY_BEFORE_MS = 5 * 60 * 1000;
     const NOTIFY_WITHIN_MS = 10 * 60 * 1000;
@@ -35,7 +63,7 @@ const PlanTimeTable = ({ url }) => {
     const alertNotification = () => {
       const currentTime = new Date();
 
-      planTimes.forEach((row) => {
+      savedData.planTimes.forEach((row) => {
         Object.entries(row).forEach(([key, timeValue]) => {
           if (!timeValue || typeof timeValue !== "string") return;
 
@@ -45,15 +73,23 @@ const PlanTimeTable = ({ url }) => {
 
           const diff = eventTime - currentTime;
 
-          if (diff > NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
+          if (diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
             toast.warn(
-              `⏰ ${key} for ${productName} is in 5-10 minutes (${eventTime.toLocaleTimeString()})`
+              `⏰ ${key} for ${
+                savedData.productName
+              } is in 5-10 minutes "${eventTime.toLocaleTimeString("en-GB", {
+                hour12: false,
+              })}"`
             );
           }
 
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
-            toast.success(
-              `🚨 ${key} for ${productName} is happening now! (${eventTime.toLocaleTimeString()})`
+            toast.error(
+              `🚨 ${key} for ${
+                savedData.productName
+              } is happening now! "${eventTime.toLocaleTimeString("en-GB", {
+                hour12: false,
+              })}"`
             );
           }
         });
@@ -85,11 +121,11 @@ const PlanTimeTable = ({ url }) => {
     };
 
     return setupAlertInterval();
-  }, [productName, planTimes]);
+  }, [navigate]);
 
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
-    if (!time) return "";
+    if (!time || typeof time !== "string") return "";
     const [hours, minutes] = time.split(":");
     return `${hours}:${minutes}`;
   };
@@ -128,9 +164,9 @@ const PlanTimeTable = ({ url }) => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/plantime")}
+          onClick={() => window.close()} // เปลี่ยนจาก navigate เป็น window.close
         >
-          Back
+          Close Tab
         </Button>
       </div>
 
@@ -154,9 +190,29 @@ const PlanTimeTable = ({ url }) => {
               <TableCell>Primary Press Start</TableCell>
               <TableCell>Stream In</TableCell>
               <TableCell>Primary Press Exit</TableCell>
-              <TableCell>Secondary Press 1 Start</TableCell>
+              <TableCell
+                style={{
+                  backgroundColor: "rgb(244, 176, 132)", // สีพื้นหลัง
+                  color: "#000000", // สีตัวอักษร (ดำ)
+                  fontWeight: "bold", // ตัวหนา
+                  textAlign: "center", // จัดข้อความให้อยู่ตรงกลาง
+                  border: "1px solid #000000", // เส้นขอบสีดำ
+                }}
+              >
+                Secondary Press 1
+              </TableCell>
               <TableCell>Temp Check 1</TableCell>
-              <TableCell>Secondary Press 2 Start</TableCell>
+              <TableCell
+                style={{
+                  backgroundColor: "rgb(244, 176, 132)", // สีพื้นหลัง
+                  color: "#000000", // สีตัวอักษร (ดำ)
+                  fontWeight: "bold", // ตัวหนา
+                  textAlign: "center", // จัดข้อความให้อยู่ตรงกลาง
+                  border: "1px solid #000000", // เส้นขอบสีดำ
+                }}
+              >
+                Secondary Press 2
+              </TableCell>
               <TableCell>Temp Check 2</TableCell>
               <TableCell>Cooling</TableCell>
               <TableCell>Secondary Press Exit</TableCell>
@@ -169,122 +225,199 @@ const PlanTimeTable = ({ url }) => {
                 index === 0 || plan.run_no !== planTimes[index - 1].run_no;
 
               return (
-                <TableRow key={index}>
-                  {/* Merge Cell สำหรับ Run No */}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {plan.run_no}
-                    </TableCell>
+                <React.Fragment key={index}>
+                  {/* เพิ่มแถวใหม่ก่อนแถวสุดท้ายของข้อมูล */}
+                  {index === planTimes.length - 1 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={16}
+                        style={{
+                          textAlign: "center",
+                          fontWeight: "bold",
+                          backgroundColor: "rgb(255, 238, 0)",
+                          color:"rgb(255, 0, 0)",
+                        }}
+                      >
+                        กด ADJ STOP
+                      </TableCell>
+                    </TableRow>
                   )}
-                  {isFirstRowForRun && (
+
+                  <TableRow>
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {plan.run_no}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {plan.machine}
+                      </TableCell>
+                    )}
+                    <TableCell>{plan.batch_no}</TableCell>
                     <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
+                      style={{
+                        backgroundColor: !plan.start_time
+                          ? "rgba(255, 17, 0, 1)"
+                          : "inherit",
+                        color: !plan.start_time ? "#FFFFFF" : "inherit",
+                      }}
                     >
-                      {plan.machine}
+                      {formatTime(plan.start_time) || ""}
                     </TableCell>
-                  )}
-                  <TableCell>{plan.batch_no}</TableCell>
-                  <TableCell>{formatTime(plan.start_time)}</TableCell>
-                  <TableCell>{formatTime(plan.mixing)}</TableCell>
-                  <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
-                  {isFirstRowForRun && (
                     <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
+                      style={{
+                        backgroundColor: !plan.mixing
+                          ? "rgba(255, 17, 0, 1)"
+                          : "inherit",
+                        color: !plan.mixing ? "#FFFFFF" : "inherit",
+                      }}
                     >
-                      {formatTime(plan.pre_press_exit)}
+                      {formatTime(plan.mixing) || ""}
                     </TableCell>
-                  )}
-                  {isFirstRowForRun && (
                     <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
+                      style={{
+                        backgroundColor: !plan.extruder_exit
+                          ? "rgba(255, 17, 0, 1)"
+                          : "inherit",
+                        color: !plan.extruder_exit ? "#FFFFFF" : "inherit",
+                      }}
                     >
-                      {formatTime(plan.primary_press_start)}
+                      {formatTime(plan.extruder_exit) || ""}
                     </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.stream_in)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.primary_press_exit)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.secondary_press_1_start)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.temp_check_1)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.secondary_press_2_start)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.temp_check_2)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.cooling)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        planTimes.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.secondary_press_exit)}
-                    </TableCell>
-                  )}
-                  <TableCell>{plan.block}</TableCell>
-                </TableRow>
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.pre_press_exit)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.primary_press_start)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                        style={{
+                          backgroundColor: "#FFCCCC",
+                          color: "#FF0000",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        {formatTime(plan.stream_in)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.primary_press_exit)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                        style={{
+                          backgroundColor: "#FFE4C4",
+                          color: "#000000",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          border: "1px solid orange",
+                        }}
+                      >
+                        {formatTime(plan.secondary_press_1_start)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.temp_check_1)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                        style={{
+                          backgroundColor: "#FFE4C4",
+                          color: "#000000",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          border: "1px solid orange",
+                        }}
+                      >
+                        {formatTime(plan.secondary_press_2_start)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.temp_check_2)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.cooling)}
+                      </TableCell>
+                    )}
+                    {isFirstRowForRun && (
+                      <TableCell
+                        rowSpan={
+                          planTimes.filter((p) => p.run_no === plan.run_no)
+                            .length
+                        }
+                      >
+                        {formatTime(plan.secondary_press_exit)}
+                      </TableCell>
+                    )}
+                    <TableCell>{plan.block}</TableCell>
+                  </TableRow>
+                </React.Fragment>
               );
             })}
           </TableBody>

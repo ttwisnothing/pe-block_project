@@ -39,6 +39,7 @@
 .custom-table-container {
   width: 100%;
   overflow-x: auto; /* Allow horizontal scrolling if needed */
+  border: 1px solid black; /* เส้นรอบตาราง */
 }
 
 /* Custom table */
@@ -78,6 +79,11 @@
   word-wrap: break-word; /* Wrap long text */
   text-align: center;
   border: 1px solid #ddd; /* เพิ่มเส้นขอบ */
+}
+
+.custom-table th,
+.custom-table td {
+  border: 1px solid black; /* เส้นรอบเซลล์ */
 }
 
 /* Footer button */

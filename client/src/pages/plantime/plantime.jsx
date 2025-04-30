@@ -101,15 +101,28 @@ const Plantime = ({ url }) => {
         return;
       }
 
-      navigate("/plantime-table", {
-        state: { productName, colorName, planTimes: fetchedPlanTimes }
-      });
+      handleOpenPlanTimeTable(); // เปิดแท็บใหม่ที่มีข้อมูล Plan Time
     } catch (error) {
       console.error("❌ ERROR fetching Plan Time:", error);
       toast.error(error.response?.data?.message || "❌ Failed to fetch Plan Time");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenPlanTimeTable = () => {
+    // เก็บข้อมูลไว้ใน localStorage
+    localStorage.setItem(
+      "planTimeData",
+      JSON.stringify({
+        productName,
+        colorName,
+        planTimes,
+      })
+    );
+
+    // เปิดแท็บใหม่
+    window.open("/plantime-table", "_blank");
   };
 
   useEffect(() => {
