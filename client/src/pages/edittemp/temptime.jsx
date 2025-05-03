@@ -14,6 +14,8 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import "./temptime.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const EditTemp = ({ url }) => {
   const location = useLocation();
@@ -77,7 +79,7 @@ const EditTemp = ({ url }) => {
           new_start_time: formattedTime, // ใช้เวลาที่ปรับรูปแบบแล้ว
         }
       );
-      alert("✅ Start Time updated successfully");
+      toast.success("✅ Start Time updated successfully");
       setEditingRow(null);
       setNewStartTime("");
       const response = await axios.get(
@@ -86,7 +88,7 @@ const EditTemp = ({ url }) => {
       setTempPlanTimes(response.data.tempPlanTimes || []);
     } catch (err) {
       console.error("❌ ERROR updating Start Time:", err);
-      alert("❌ Failed to update Start Time");
+      toast.error("❌ Failed to update Start Time");
     }
   };
 
@@ -117,13 +119,13 @@ const EditTemp = ({ url }) => {
         machines,
       });
 
-      alert("✅ Machines updated successfully");
+      toast.success("✅ Machines updated successfully");
       setEditingMachineRow(false);
       const response = await axios.get(`${url}/api/get/tempplantime/${productName}`);
       setTempPlanTimes(response.data.tempPlanTimes || []);
     } catch (err) {
       console.error("❌ ERROR updating Machines:", err);
-      alert("❌ Failed to update Machines");
+      toast.error("❌ Failed to update Machines");
     }
   };
 
@@ -270,6 +272,7 @@ const EditTemp = ({ url }) => {
       >
         Show time table
       </Button>
+      <ToastContainer limit={2} />
     </div>
   );
 };

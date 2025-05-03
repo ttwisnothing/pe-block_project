@@ -1,191 +1,23 @@
 /* Container */
 .container {
-  max-width: 1200px; /* เพิ่มความกว้าง */
-  margin: 50px 300px 50px 300px; /* จัดตำแหน่งกลาง */
-  padding: 30px; /* เพิ่ม padding */
-  text-align: center;
+  max-width: 800px; /* ลดความกว้าง */
+  margin: 0 auto; /* จัดตำแหน่งกลาง */
+  padding: 20px; /* ลด padding */
   background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px; /* ลดมุมโค้ง */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* ลดเงา */
 }
 
-/* Title */
-.title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: black;
-}
-
-/* Form Group */
-.form-group {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.form-select {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  transition: border-color 0.3s ease;
-}
-
-.form-select:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-/* CSS สำหรับ input ทั่วไป */
-.form-input {
-  width: 100%; /* ให้ช่องกรอกข้อมูลเต็มความกว้าง */
-  padding: 10px; /* เพิ่ม padding */
-  font-size: 1rem; /* ขนาดตัวอักษร */
-  border: 1px solid #ccc; /* สีขอบ */
-  border-radius: 5px; /* มุมโค้ง */
-  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* เพิ่มเอฟเฟกต์ */
-}
-
-.form-input:focus {
-  border-color: #007bff; /* สีขอบเมื่อโฟกัส */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* เพิ่มเงาเมื่อโฟกัส */
-}
-
-/* ปุ่ม */
-.button {
-  display: block;
-  width: 90%; /* เพิ่มความกว้าง */
-  padding: 15px; /* เพิ่ม padding */
-  font-size: 1.2rem; /* เพิ่มขนาดตัวอักษร */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin: 15px auto; /* เพิ่มระยะห่างระหว่างปุ่ม */
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.button.primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.button.primary:hover {
-  background-color: #0056b3;
-}
-
-.button.success {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.button.success:hover {
-  background-color: #45a049;
-}
-
-.button.warning {
-  background-color: #ffc107;
-  color: black;
-}
-
-.button.warning:hover {
-  background-color: #e0a800;
-}
-
-.button.danger {
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.button.danger:hover {
-  background-color: #ff1a1a;
-}
-
-.button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-/* ข้อความแจ้งเตือน */
-.alert {
-  padding: 15px; /* เพิ่ม padding */
-  border-radius: 5px;
-  margin: 20px auto; /* เพิ่มระยะห่าง */
-  font-size: 1.1rem; /* เพิ่มขนาดตัวอักษร */
-  width: 90%; /* เพิ่มความกว้าง */
-}
-
-.alert.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
-}
-
-.alert.danger {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
+/* Machine Input Group */
 .machine-input-group {
   display: flex;
   align-items: center;
-  gap: 5px; /* ระยะห่างระหว่าง Text Box และปุ่ม */
-}
-
-.machine-input-group .form-input {
-  width: 120px; /* ลดความกว้างของ Text Box */
-  padding: 5px; /* ลด padding */
-  font-size: 14px; /* ลดขนาดตัวอักษร */
+  gap: 10px; /* ระยะห่างระหว่าง TextField และปุ่ม */
 }
 
 .machine-names-container {
   display: flex;
-  flex-wrap: wrap; /* ทำให้ช่องและปุ่มจัดเรียงหลายแถวได้ถ้าพื้นที่ไม่พอ */
+  flex-wrap: wrap; /* จัดเรียงหลายแถวได้ถ้าพื้นที่ไม่พอ */
   gap: 10px; /* ระยะห่างระหว่างช่อง */
   align-items: center;
-}
-
-.button.remove-button {
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 5px 8px; /* ขนาดปุ่มเล็กลง */
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.button.remove-button:hover {
-  background-color: #ff1a1a;
-}
-
-.button.add-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 5px 10px; /* ขนาดปุ่มเล็กลง */
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 10px; /* เพิ่มระยะห่างด้านบน */
-  height: 36px; /* ให้ปุ่ม + มีความสูงเท่ากับช่อง input */
-}
-
-.button.add-button:hover {
-  background-color: #45a049;
 }

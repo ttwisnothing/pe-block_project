@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify"; // เพิ่มการนำเข้า
-import "react-toastify/dist/ReactToastify.css"; // เพิ่ม CSS ของ react-toastify
-import "./plantime.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Box,
+  Typography,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
+import { Add, Remove } from "@mui/icons-material";
 
 const Plantime = ({ url }) => {
   const [productName, setProductName] = useState("");
@@ -14,9 +25,7 @@ const Plantime = ({ url }) => {
   const [machineNames, setMachineNames] = useState([""]);
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [calculated, setCalculated] = useState(false);
-  const navigate = useNavigate();
 
   const fetchProducts = async () => {
     try {
@@ -43,7 +52,7 @@ const Plantime = ({ url }) => {
 
     setLoading(true);
     try {
-      const payload = { 
+      const payload = {
         fristStart: formattedTime,
         runRound: parseInt(runRound, 10),
         mcNames: machineNames.filter((name) => name !== ""),
@@ -56,13 +65,11 @@ const Plantime = ({ url }) => {
       toast.success(response.data.message || "✅ Plan Time calculated successfully");
       setPlanTimes(response.data.planTimeList || []);
       setCalculated(true);
-      setError(false);
     } catch (error) {
       console.error("❌ ERROR calculating Plan Time:", error);
       toast.error(error.response?.data?.message || "❌ เกิดข้อผิดพลาดในการคำนวณ");
       setPlanTimes([]);
       setCalculated(false);
-      setError(true);
     } finally {
       setLoading(false);
     }
@@ -91,9 +98,7 @@ const Plantime = ({ url }) => {
 
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${url}/api/get/plantime/${productName}`
-      );
+      const response = await axios.get(`${url}/api/get/plantime/${productName}`);
       const fetchedPlanTimes = response.data.planTimes || [];
 
       if (fetchedPlanTimes.length === 0) {
@@ -130,120 +135,107 @@ const Plantime = ({ url }) => {
   }, []);
 
   return (
-    <div className="container">
-      <h1 className="title">Plan Time</h1>
+    <Box sx={{ padding: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Plan Time
+      </Typography>
 
-      <div className="form-group">
-        <label htmlFor="product-select" className="form-label">
-          เลือก Product
-        </label>
-        <select
-          id="product-select"
-          className="form-select"
+      <FormControl fullWidth margin="normal">
+        <InputLabel id="product-select-label">เลือก Product</InputLabel>
+        <Select
+          labelId="product-select-label"
           value={productName}
           onChange={(e) => setProductName(e.target.value)}
         >
-          <option value="" disabled>
+          <MenuItem value="" disabled>
             -- เลือก Product --
-          </option>
+          </MenuItem>
           {products.map((product, index) => (
-            <option key={product.id || index} value={product.name}>
+            <MenuItem key={product.id || index} value={product.name}>
               {product.name}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </div>
+        </Select>
+      </FormControl>
 
-      <div className="form-group">
-        <label htmlFor="frist-start" className="form-label">
-          เวลาเริ่มต้น (Frist Start Time)
-        </label>
-        <input
-          id="frist-start"
-          type="text"
-          className="form-input"
-          placeholder="กรอกเวลาเริ่มต้น เช่น 08:00"
-          value={fristStart}
-          onChange={(e) => setFristStart(e.target.value)}
-        />
-      </div>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="เวลาเริ่มต้น (Frist Start Time)"
+        placeholder="กรอกเวลาเริ่มต้น เช่น 08:00"
+        value={fristStart}
+        onChange={(e) => setFristStart(e.target.value)}
+      />
 
-      <div className="form-group">
-        <label htmlFor="run-round" className="form-label">
-          จำนวนรอบ (Run Round)
-        </label>
-        <input
-          id="run-round"
-          type="number"
-          className="form-input"
-          value={runRound}
-          onChange={(e) => setRunRound(e.target.value)}
-        />
-      </div>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="จำนวนรอบ (Run Round)"
+        type="number"
+        value={runRound}
+        onChange={(e) => setRunRound(e.target.value)}
+      />
 
-      <div className="form-group">
-        <label htmlFor="color-name" className="form-label">
-          ชื่อสี (Color Name)
-        </label>
-        <input
-          id="color-name"
-          type="text"
-          className="form-input"
-          placeholder="กรอกชื่อสี"
-          value={colorName}
-          onChange={(e) => setColorName(e.target.value)}
-        />
-      </div>
+      <TextField
+        fullWidth
+        margin="normal"
+        label="ชื่อสี (Color Name)"
+        placeholder="กรอกชื่อสี"
+        value={colorName}
+        onChange={(e) => setColorName(e.target.value)}
+      />
 
-      <div className="form-group">
-        <label className="form-label">Machine Names:</label>
-        <div className="machine-names-container">
-          {machineNames.map((name, index) => (
-            <div key={index} className="machine-input-group">
-              <input
-                type="text"
-                className="form-input"
-                value={name}
-                onChange={(e) => handleMachineNameChange(index, e.target.value)}
-                placeholder={`Machine ${index + 1}`}
-              />
-              <button
-                type="button"
-                className="button remove-button"
-                onClick={() => removeMachineField(index)}
-                disabled={machineNames.length === 1}
-              >
-                X
-              </button>
-            </div>
-          ))}
-          <button type="button" className="button add-button" onClick={addMachineField}>
-            เพิ่มเครื่องจักร
-          </button>
-        </div>
-      </div>
+      <Box sx={{ marginY: 2 }}>
+        <Typography variant="h6">Machine Names:</Typography>
+        {machineNames.map((name, index) => (
+          <Box key={index} sx={{ display: "flex", alignItems: "center", marginBottom: 1 }}>
+            <TextField
+              fullWidth
+              label={`Machine ${index + 1}`}
+              value={name}
+              onChange={(e) => handleMachineNameChange(index, e.target.value)}
+            />
+            <IconButton
+              onClick={() => removeMachineField(index)}
+              disabled={machineNames.length === 1}
+            >
+              <Remove />
+            </IconButton>
+          </Box>
+        ))}
+        <Button
+          variant="outlined"
+          startIcon={<Add />}
+          onClick={addMachineField}
+        >
+          เพิ่มเครื่องจักร
+        </Button>
+      </Box>
 
-      <button
-        className="button primary"
-        onClick={calculatePlanTime}
-        disabled={loading}
-      >
-        สร้าง Plan Time
-      </button>
-
-      {calculated && (
-        <button
-          className="button success"
-          onClick={handleShowPlanTime}
+      <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={calculatePlanTime}
           disabled={loading}
         >
-          แสดง Plan Time
-        </button>
-      )}
+          {loading ? <CircularProgress size={24} /> : "สร้าง Plan Time"}
+        </Button>
 
-      {/* เพิ่ม ToastContainer */}
+        {calculated && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleShowPlanTime}
+            disabled={loading}
+          >
+            แสดง Plan Time
+          </Button>
+        )}
+      </Box>
+
       <ToastContainer />
-    </div>
+    </Box>
   );
 };
 

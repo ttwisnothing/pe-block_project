@@ -1,0 +1,126 @@
+/* Container for the table */
+.custom-table-container {
+    width: 100%;
+    overflow-x: auto;
+    /* Allow horizontal scrolling if needed */
+    border: 1px solid black;
+    /* เส้นรอบตาราง */
+}
+
+/* Custom table */
+.custom-table {
+    width: 100%;
+    table-layout: fixed;
+    /* Fix column widths */
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    /* ลดขนาดตัวอักษร */
+}
+
+/* Table header */
+.custom-table thead th {
+    background-color: rgb(155, 194, 230);
+    color: rgb(0, 0, 0);
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    border: 1px solid #000000;
+    /* เพิ่มเส้นขอบ */
+}
+
+/* Table body rows */
+.custom-table tbody tr {
+    text-align: center;
+}
+
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+    /* Alternate row color */
+}
+
+.custom-table tbody tr:hover {
+    background-color: #e6f7ff;
+    /* Highlight row on hover */
+}
+
+/* Table cells */
+.custom-table td {
+    padding: 10px;
+    word-wrap: break-word;
+    /* Wrap long text */
+    text-align: center;
+    border: 1px solid #ddd;
+    /* เพิ่มเส้นขอบ */
+}
+
+.custom-table th,
+.custom-table td {
+    border: 1px solid black;
+    /* เส้นรอบเซลล์ */
+}
+
+.start-time {
+    background-color: rgb(112, 173, 71) !important;
+    color: #000000 !important;
+    font-weight: bold;
+    text-align: center;
+    font-weight: bold !important;
+}
+
+/* Secondary Press 1 and 2 styles */
+.secondary-press {
+    background-color: rgb(244, 176, 132) !important; 
+    color: #000000 !important;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #000000;
+}
+
+/* Highlight for ADJ STOP row */
+.adj-stop-row {
+    text-align: center;
+    font-weight: bold;
+    background-color: rgb(255, 238, 0);
+    color: rgb(255, 0, 0);
+    font-weight: bold !important;
+}
+
+/* Highlight for missing time */
+.missing-time {
+    background-color: rgba(255, 17, 0, 1);
+    color: #ffffff;
+}
+
+/* Stream In highlight */
+.stream-in {
+    background-color: #ffcccc;
+    color: #ff0000 !important;
+    font-weight: bold;
+    text-align: center;
+    font-weight: bold !important;
+}
+
+/* Secondary Press 1 and 2 start styles */
+.secondary-press-start {
+    background-color: #ffe4c4;
+    color: #000000;
+    font-weight: bold;
+    text-align: center;
+    font-weight: bold !important;
+}
+
+/* Temp Check styles */
+.temp-check {
+    background-color: rgb(165, 165, 165) !important;
+    color: #000000 !important;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Temp Check styles for 2nd row */
+.temp-check-row {
+    background-color: rgb(208, 206, 206) !important;
+    color: #000000 !important;
+    font-weight: bold;
+    text-align: center;
+}
