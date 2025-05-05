@@ -13,8 +13,8 @@
     table-layout: fixed;
     /* Fix column widths */
     border-collapse: collapse;
-    font-size: 0.9rem;
-    /* ลดขนาดตัวอักษร */
+    font-size: 1.2rem;
+    /* เพิ่มขนาดตัวอักษร */
 }
 
 /* Table header */
@@ -25,7 +25,6 @@
     padding: 10px;
     font-weight: bold;
     border: 1px solid #000000;
-    /* เพิ่มเส้นขอบ */
 }
 
 /* Table body rows */
@@ -51,6 +50,8 @@
     text-align: center;
     border: 1px solid #ddd;
     /* เพิ่มเส้นขอบ */
+    font-size: 1.1rem;
+    /* เพิ่มขนาดตัวอักษรในเซลล์ */
 }
 
 .custom-table th,

@@ -7,6 +7,17 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../components/table/table.jsx";
 import CustomTable from "../../components/table/table"; // นำเข้า CustomTable
+import Swal from "sweetalert2"; // นำเข้า SweetAlert2
+
+const playAlertSound = (alertDuration) => {
+  const audio = new Audio("/sounds/warning-beeping.mp3") // เสียงเตือน
+  audio.play();
+
+  setTimeout(() => {
+    audio.pause(); // หยุดเสียงเตือนหลังจาก 5 วินาที
+    audio.currentTime = 0; // รีเซ็ตเวลาเสียง
+  }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
+}
 
 const PlanTimeTable = ({ url }) => {
   const location = useLocation();
@@ -85,13 +96,30 @@ const PlanTimeTable = ({ url }) => {
           }
 
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
-            toast.error(
-              `🚨 ${key} for ${
-                savedData.productName
-              } is happening now! "${eventTime.toLocaleTimeString("en-GB", {
-                hour12: false,
-              })}"`
-            );
+            let timeInterval;
+            const alertDuration = 10000; // 5 วินาที
+            Swal.fire({
+              title: "⏰ ",
+              text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
+                "en-GB",
+                { hour12: false }
+              )}"`,
+              timer: alertDuration,
+              timerProgressBar: true,
+              didOpen: () => {
+                playAlertSound(alertDuration); // เรียกใช้ฟังก์ชันเสียงเตือน
+                Swal.showLoading();
+                const timer = Swal.getHtmlContainer().querySelector("b")
+                timeInterval = setInterval(() => {
+                  if (timer) {
+                    timer.textContent = Swal.getTimerLeft();
+                  }
+                }, 100)
+              },
+              willClose: () => {
+                clearInterval(timeInterval);
+              }
+            })
           }
         });
       });
@@ -210,7 +238,7 @@ const PlanTimeTable = ({ url }) => {
           color="primary"
           onClick={handleMachineBreakdown}
         >
-          Machine Inspection
+          ตรวจสอบเครื่องจักร
         </Button>
       </div>
       <ToastContainer limit={2} />

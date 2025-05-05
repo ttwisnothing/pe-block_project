@@ -6,6 +6,17 @@ import "./temptable.css";
 import CustomTable from "../../components/table/table"; // นำเข้า CustomTable
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from "sweetalert2"; // นำเข้า SweetAlert2
+
+const playAlertSound = (alertDuration) => {
+  const audio = new Audio("/sounds/warning-beeping.mp3"); // เสียงเตือน
+  audio.play();
+
+  setTimeout(() => {
+    audio.pause(); // หยุดเสียงเตือนหลังจาก 5 วินาที
+    audio.currentTime = 0; // รีเซ็ตเวลาเสียง
+  }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
+};
 
 const TempTable = ({ url }) => {
   const location = useLocation();
@@ -64,7 +75,7 @@ const TempTable = ({ url }) => {
       }
 
       return response.data.message || "✅ Temp Plan Time added successfully";
-    }
+    };
 
     try {
       const pendingToastId = toast.loading("⏳ Adding Temp Plan Time...");
@@ -132,14 +143,30 @@ const TempTable = ({ url }) => {
           }
 
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
-            toast.error(
-              `🚨 ${key} for ${productName} is happening now! "${eventTime.toLocaleTimeString(
+            let timeInterval;
+            const alertDuration = 10000; // 5 วินาที
+            Swal.fire({
+              title: "🚨 Time Alert",
+              text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
                 "en-GB",
-                {
-                  hour12: false,
-                }
-              )}"`
-            );
+                { hour12: false }
+              )}"`,
+              timer: alertDuration,
+              timerProgressBar: true,
+              didOpen: () => {
+                playAlertSound(alertDuration); // เรียกใช้ฟังก์ชันเสียงเตือน
+                Swal.showLoading();
+                const timer = Swal.getHtmlContainer().querySelector("b");
+                timeInterval = setInterval(() => {
+                  if (timer) {
+                    timer.textContent = Swal.getTimerLeft();
+                  }
+                }, 100);
+              },
+              willClose: () => {
+                clearInterval(timeInterval);
+              },
+            });
           }
         });
       });
@@ -208,7 +235,7 @@ const TempTable = ({ url }) => {
           color="primary"
           onClick={handleMachineBreakdown}
         >
-          Machine Inspection
+          ตรวจสอบเครื่องจักร
         </Button>
       </div>
       <ToastContainer limit={2} />

@@ -29,8 +29,6 @@ export const getPlanTime = async (req, res) => {
             return res.status(404).json({ message: `❌ No Plan Times found for this Product: ${productName}` });
         }
 
-        // setupAlertInterval(productName, planTimes);
-
         return res.json({
             productName,
             recipeId: planTimes[0].product_id,
