@@ -33,6 +33,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease; /* เพิ่ม Transition */
 }
 
 .navbar-item {
@@ -99,4 +100,46 @@
 
 .navbar-dropdown-item:hover {
   background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+}
+
+/* Hamburger Button */
+.navbar-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #000000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: #ffffff;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transform: translateY(-20px); /* เริ่มต้นเลื่อนขึ้น */
+    opacity: 0; /* เริ่มต้นโปร่งใส */
+  }
+
+  .navbar-menu.open {
+    display: flex;
+    transform: translateY(0); /* เลื่อนลงมา */
+    opacity: 1; /* แสดงเมนู */
+  }
+
+  .navbar-item {
+    padding: 15px;
+    text-align: center;
+  }
+
+  .navbar-hamburger {
+    display: block;
+  }
 }

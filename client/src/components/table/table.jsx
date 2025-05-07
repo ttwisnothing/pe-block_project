@@ -11,6 +11,12 @@ import {
 import "./table.css";
 
 const CustomTable = ({ data , formatTime }) => {
+  // กรองข้อมูล: ลบแถวที่ solidBlock ไม่มีค่า
+  const filteredData = data.filter((plan) => plan.solidBlock !== null && plan.solidBlock !== undefined);
+
+  // ตรวจสอบว่ามีข้อมูล solidBlock หรือไม่
+  const hasSolidBlock = filteredData.some((plan) => plan.solidBlock !== null && plan.solidBlock !== undefined);
+
   return (
     <TableContainer component={Paper} className="custom-table-container">
       <Table className="custom-table">
@@ -21,6 +27,7 @@ const CustomTable = ({ data , formatTime }) => {
             <TableCell>Batch No</TableCell>
             <TableCell>Start Time</TableCell>
             <TableCell>Mixing</TableCell>
+            {hasSolidBlock && <TableCell>SolidBlock</TableCell>}
             <TableCell>Extruder Exit</TableCell>
             <TableCell>Pre-Press Exit</TableCell>
             <TableCell>Primary Press Start</TableCell>
@@ -89,6 +96,11 @@ const CustomTable = ({ data , formatTime }) => {
                         {formatTime(plan.extruder_exit) || ""}
                       </TableCell>
                     </>
+                  )}
+                  {hasSolidBlock && (
+                    <TableCell className={!plan.solidBlock ? "missing-time" : ""}>
+                      {plan.solidBlock || ""}
+                    </TableCell>
                   )}
                   {isFirstRowForRun && (
                     <TableCell

@@ -87,9 +87,9 @@ const PlanTimeTable = ({ url }) => {
 
           if (diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
             toast.warn(
-              `⏰ ${key} for ${
+              `⏰เตือนขั้นตอน ${key} สำหรับ ${
                 savedData.productName
-              } is in 5-10 minutes "${eventTime.toLocaleTimeString("en-GB", {
+              } จะเกิดขึ้นในอีก 5-10 นาที ที่เวลา "${eventTime.toLocaleTimeString("en-GB", {
                 hour12: false,
               })}"`
             );
@@ -99,7 +99,7 @@ const PlanTimeTable = ({ url }) => {
             let timeInterval;
             const alertDuration = 10000; // 5 วินาที
             Swal.fire({
-              title: "⏰ ",
+              title: "🚨 ",
               text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
                 "en-GB",
                 { hour12: false }

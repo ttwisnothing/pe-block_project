@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo-small.jpg";
-import "./navbar.css"; // นำเข้า CSS
+import "./navbar.css";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State สำหรับ Hamburger Menu
 
   const handleMouseEnter = () => {
     setIsDropdownOpen(true);
@@ -12,6 +13,10 @@ const Navbar = () => {
 
   const handleMouseLeave = () => {
     setIsDropdownOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen); // Toggle เปิด/ปิดเมนู
   };
 
   return (
@@ -23,19 +28,19 @@ const Navbar = () => {
         </Link>
       </div>
 
+      {/* Hamburger Button */}
+      <button className="navbar-hamburger" onClick={toggleMenu}>
+        ☰
+      </button>
+
       {/* Menu */}
-      <ul className="navbar-menu">
-        <li>
-          <Link to="/" className="navbar-item">
-            Home
-          </Link>
-        </li>
+      <ul className={`navbar-menu ${isMenuOpen ? "open" : ""}`}>
         <li
           className="navbar-dropdown"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <button className="navbar-dropdown-button">สร้าง Plan Time</button>
+          <button className="navbar-dropdown-button">บันทึก Master</button>
           {isDropdownOpen && (
             <ul className="navbar-dropdown-menu">
               <li>
