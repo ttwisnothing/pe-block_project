@@ -40,17 +40,17 @@ const Navbar = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <button className="navbar-dropdown-button">บันทึก Master</button>
+          <button className="navbar-dropdown-button">New Part</button>
           {isDropdownOpen && (
             <ul className="navbar-dropdown-menu">
               <li>
                 <Link to="/product" className="navbar-dropdown-item">
-                  บันทึก Products
+                  New Products
                 </Link>
               </li>
               <li>
                 <Link to="/config-time" className="navbar-dropdown-item">
-                  บันทึก Config Time
+                  New Config Time
                 </Link>
               </li>
             </ul>

@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../components/table/table.jsx";
 import CustomTable from "../../components/table/table"; // นำเข้า CustomTable
+import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
 
 const playAlertSound = (alertDuration) => {
@@ -209,13 +210,14 @@ const PlanTimeTable = ({ url }) => {
 
   return (
     <div className="table-container">
+      <DigitalClock />
       <div className="top-buttons">
         <Button
           variant="contained"
           color="primary"
           onClick={() => window.close()}
         >
-          Close Table
+          ปิดตารางเวลา
         </Button>
       </div>
 
