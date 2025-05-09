@@ -20,7 +20,7 @@ const playAlertSound = (alertDuration) => {
   }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
 }
 
-const PlanTimeTable = ({ url }) => {
+const PlanTimeTable = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const intervalRef = useRef(null);
@@ -169,7 +169,7 @@ const PlanTimeTable = ({ url }) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       const response = await axios.post(
-        `${url}/api/post/plantime/temp/add/${productName}`
+        `/api/post/plantime/temp/add/${productName}`
       );
 
       if (response.status !== 200) {

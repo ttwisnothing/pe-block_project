@@ -18,7 +18,7 @@ const playAlertSound = (alertDuration) => {
   }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
 };
 
-const TempTable = ({ url }) => {
+const TempTable = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { productName, colorName } = location.state || {};
@@ -46,7 +46,7 @@ const TempTable = ({ url }) => {
     const fetchTempPlanTimes = async () => {
       try {
         const response = await axios.get(
-          `${url}/api/get/temp-time-asc/${productName}`
+          `/api/get/temp-time-asc/${productName}`
         );
         setTempPlanTimes(response.data.tempPlanTimes || []);
         setError(false);
@@ -59,7 +59,7 @@ const TempTable = ({ url }) => {
     };
 
     fetchTempPlanTimes();
-  }, [url, productName]);
+  }, [ productName]);
 
   // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
   const handleMachineBreakdown = async () => {
@@ -67,7 +67,7 @@ const TempTable = ({ url }) => {
       await new Promise((resolve) => setTimeout(resolve, 3000)); // จำลองการหน่วงเวลา 1 วินาที
 
       const response = await axios.post(
-        `${url}/api/post/plantime/temp-mb/add/${productName}`
+        `/api/post/plantime/temp-mb/add/${productName}`
       );
 
       if (response.status !== 200) {

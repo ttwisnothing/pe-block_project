@@ -4,17 +4,23 @@ import cors from 'cors';
 import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
 import putRoutes from './routes/putRoute.js';
-import connectDB from './config/db.js'; 
+import connectDB from './config/db.js';
 
 // กำหนดค่า Environment จากไฟล์ .env
 dotenv.config();
 
 // สร้าง Express App
 const app = express();
-const PORT = process.env.PORT || 6090;
+const PORT = process.env.PORT;
 
 // middleware สำหรับรับข้อมูลแบบ JSON
-app.use(cors());
+app.use(cors(
+    // {
+    // origin: 'http://192.168.2.83:9920',
+    // methods: ['GET', 'POST', 'PUT'],
+    // credentials: true
+    // }
+));
 app.use(express.json());
 
 // เชื่อมต่อกับฐานข้อมูล

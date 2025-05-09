@@ -17,7 +17,7 @@ import "./temptime.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const EditTemp = ({ url }) => {
+const EditTemp = () => {
   const location = useLocation();
   const navigate = useNavigate(); // ใช้ useNavigate
   const { productName, colorName } = location.state || {};
@@ -46,7 +46,7 @@ const EditTemp = ({ url }) => {
     const fetchTempPlanTimes = async () => {
       try {
         const response = await axios.get(
-          `${url}/api/get/tempplantime/${productName}`
+          `/api/get/tempplantime/${productName}`
         );
         setTempPlanTimes(response.data.tempPlanTimes || []);
         setError(false);
@@ -59,7 +59,7 @@ const EditTemp = ({ url }) => {
     };
 
     fetchTempPlanTimes();
-  }, [url, productName]);
+  }, [ productName]);
 
   const handleEditStartTime = (tempId, currentStartTime) => {
     setEditingRow(tempId);
@@ -74,7 +74,7 @@ const EditTemp = ({ url }) => {
         : newStartTime;
 
       await axios.put(
-        `${url}/api/put/tempplantime/update/${productName}/${editingRow}`,
+        `/api/put/tempplantime/update/${productName}/${editingRow}`,
         {
           new_start_time: formattedTime, // ใช้เวลาที่ปรับรูปแบบแล้ว
         }
@@ -83,7 +83,7 @@ const EditTemp = ({ url }) => {
       setEditingRow(null);
       setNewStartTime("");
       const response = await axios.get(
-        `${url}/api/get/tempplantime/${productName}`
+        `/api/get/tempplantime/${productName}`
       );
       setTempPlanTimes(response.data.tempPlanTimes || []);
     } catch (err) {
@@ -115,13 +115,13 @@ const EditTemp = ({ url }) => {
       }));
 
       // ส่งคำขอ PUT ไปยัง API
-      await axios.put(`${url}/api/put/tempplantime/upmachine/${productName}`, {
+      await axios.put(`/api/put/tempplantime/upmachine/${productName}`, {
         machines,
       });
 
       toast.success("✅ Machines updated successfully");
       setEditingMachineRow(false);
-      const response = await axios.get(`${url}/api/get/tempplantime/${productName}`);
+      const response = await axios.get(`/api/get/tempplantime/${productName}`);
       setTempPlanTimes(response.data.tempPlanTimes || []);
     } catch (err) {
       console.error("❌ ERROR updating Machines:", err);

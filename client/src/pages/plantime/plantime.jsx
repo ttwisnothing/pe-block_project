@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { Add, Remove } from "@mui/icons-material";
 
-const Plantime = ({ url }) => {
+const Plantime = () => {
   const [productName, setProductName] = useState("");
   const [fristStart, setFristStart] = useState("");
   const [runRound, setRunRound] = useState("");
@@ -29,7 +29,7 @@ const Plantime = ({ url }) => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${url}/api/get/products`);
+      const response = await axios.get(`/api/get/products`);
       setProducts(response.data.products || []);
     } catch (error) {
       console.error("❌ ERROR fetching Products:", error);
@@ -59,7 +59,7 @@ const Plantime = ({ url }) => {
         color_name: colorName,
       };
       const response = await axios.post(
-        `${url}/api/post/plantime/add/${productName}`,
+        `/api/post/plantime/add/${productName}`,
         payload
       );
       toast.success(response.data.message || "✅ Plan Time calculated successfully");
@@ -98,7 +98,7 @@ const Plantime = ({ url }) => {
 
     setLoading(true);
     try {
-      const response = await axios.get(`${url}/api/get/plantime/${productName}`);
+      const response = await axios.get(`/api/get/plantime/${productName}`);
       const fetchedPlanTimes = response.data.planTimes || [];
 
       if (fetchedPlanTimes.length === 0) {

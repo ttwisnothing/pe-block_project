@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo-small.jpg";
 import "./navbar.css";
@@ -56,10 +56,26 @@ const Navbar = () => {
             </ul>
           )}
         </li>
-        <li>
-          <Link to="/plantime" className="navbar-item">
-            Plan Time
-          </Link>
+        <li
+          className="navbar-dropdown"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <button className="navbar-dropdown-button">Plan Time</button>
+          {isDropdownOpen && (
+            <ul className="navbar-dropdown-menu">
+              <li>
+                <Link to="/plantime" className="navbar-dropdown-item">
+                  สร้างแผนเวลา
+                </Link>
+              </li>
+              <li>
+                <Link to="/list-plan-time" className="navbar-dropdown-item">
+                  Plan Time List
+                </Link>
+              </li>
+            </ul>
+          )}
         </li>
         <li>
           <Link to="/record-data" className="navbar-item">

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./config.css";
 
-const Config = ({ url }) => {
+const Config = () => {
   const [formData, setFormData] = useState({
     config_group: "",
     mixing_time: "",
@@ -30,7 +30,7 @@ const Config = ({ url }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${url}/api/post/config/add`, formData);
+      const response = await axios.post(`/api/post/config/add`, formData);
       alert("Config added successfully!");
     } catch (error) {
       console.error("Error in adding config:", error);

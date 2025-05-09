@@ -4,7 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './product.css';
 
-const Products = ({ url }) => {
+const Products = () => {
   const [productName, setProductName] = useState('');
   const [productColor, setProductColor] = useState('');
   const [status, setStatus] = useState('');
@@ -23,7 +23,7 @@ const Products = ({ url }) => {
   useEffect(() => {
     const fetchChemicals = async () => {
       try {
-        const response = await axios.get(`${url}/api/get/chemicals`);
+        const response = await axios.get(`/api/get/chemicals`);
         setResinOptions(response.data.resin);
         setFoamingOptions(response.data.foaming);
         setColorOptions(response.data.color);
@@ -62,7 +62,7 @@ const Products = ({ url }) => {
         bUse: foamingBlock,
         chemicals: selectedChemicals.filter((chemical) => chemical !== ''),
       };
-      await axios.post(`${url}/api/post/product/add`, payload);
+      await axios.post(`/api/post/product/add`, payload);
       toast.success('✅ Product added successfully');
       setProductName('');
       setProductColor('');

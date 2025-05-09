@@ -8,7 +8,7 @@ const fetchPlanTimes = async (productName) => {
 
     const result = await request.query(`
         SELECT pt.*, rt.product_name, rt.color_name
-        FROM plan_time_table pt
+        FROM plan_time_mst pt
         INNER JOIN product_mst rt ON pt.product_id = rt.product_id
         WHERE rt.product_name = @productName
         ORDER BY pt.run_no ASC, pt.batch_no ASC

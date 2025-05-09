@@ -321,63 +321,34 @@ export const addPlantime = async (req, res) => {
             console.log("Waiting Algorithm 3 Blocks");
         }
 
-        if (cGroup === 'B-150') {
-            // เพิ่มข้อมูลลงในฐานข้อมูล
-            for (const plan of planTimeList) {
-                const sqlValue = (val) =>
-                    val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
+        // เพิ่มข้อมูลลงในฐานข้อมูล
+        for (const plan of planTimeList) {
+            const sqlValue = (val) =>
+                val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
-                const query = `
-                  INSERT INTO B150_plan_table (
+            const query = `
+                  INSERT INTO plan_time_mst (
                     product_id, run_no, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
                     temp_check_1, secondary_press_2_start, temp_check_2,
-                    cooling, secondary_press_exit, remove_work_time, block
+                    cooling, secondary_press_exit, remove_work, foam_block
                   ) VALUES (
                     ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
-                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work_time)}, ${sqlValue(plan.block)}
+                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.block)}
                   );
                 `;
 
-                try {
-                    await pool.request().query(query);
-                } catch (err) {
-                    console.error(`❌ Insert error for item`, err);
-                }
-            }
-        } else {
-            // เพิ่มข้อมูลลงในฐานข้อมูล
-            for (const plan of planTimeList) {
-                const sqlValue = (val) =>
-                    val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
-
-                const query = `
-                  INSERT INTO plan_time_table (
-                    product_id, run_no, machine, batch_no, start_time,
-                    mixing, extruder_exit, pre_press_exit, primary_press_start,
-                    stream_in, primary_press_exit, secondary_press_1_start,
-                    temp_check_1, secondary_press_2_start, temp_check_2,
-                    cooling, secondary_press_exit, block
-                  ) VALUES (
-                    ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
-                    ${sqlValue(plan.mixing)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
-                    ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
-                    ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
-                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.block)}
-                  );
-                `;
-
-                try {
-                    await pool.request().query(query);
-                } catch (err) {
-                    console.error(`❌ Insert error for item`, err);
-                }
+            try {
+                await pool.request().query(query);
+            } catch (err) {
+                console.error(`❌ Insert error for item`, err);
             }
         }
+
 
         return res.json({
             message: "Plan Time Data successfully added",
@@ -455,7 +426,7 @@ export const testPlantime = async (req, res) => {
         let startTimes = fristStart;
         let round = runRound;
         let blockPerRound = products[0].bPerRound;
-        let blockUse = products[0].bUse;        let prevBlock = 0;
+        let blockUse = products[0].bUse; let prevBlock = 0;
         let planTimeList = [];
 
         for (let i = 0; i < round; i++) {
