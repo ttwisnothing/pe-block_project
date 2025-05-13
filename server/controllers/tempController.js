@@ -11,7 +11,7 @@ export const getTempPlanTime = async (req, res) => {
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
-            FROM temp_plan_table pt
+            FROM temp_time_mst pt
             INNER JOIN product_mst rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = @product_name
         `);
@@ -42,7 +42,7 @@ export const getTempPlanTimeASC = async (req, res) => {
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
-            FROM temp_plan_table pt
+            FROM temp_time_mst pt
             INNER JOIN product_mst rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = @product_name
             ORDER BY pt.run_no, pt.batch_no;
