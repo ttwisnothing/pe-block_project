@@ -23,22 +23,23 @@ const CustomTable = ({ data , formatTime }) => {
         <TableHead>
           <TableRow>
             <TableCell>Run No</TableCell>
-            <TableCell>Machine</TableCell>
+            <TableCell>เครื่อง</TableCell>
             <TableCell>Batch No</TableCell>
-            <TableCell>Start Time</TableCell>
-            <TableCell>Mixing</TableCell>
+            <TableCell>เริ่มเดินงาน</TableCell>
+            <TableCell>เวลาผสมเสร็จ</TableCell>
             {hasSolidBlock && <TableCell>SolidBlock</TableCell>}
-            <TableCell>Extruder Exit</TableCell>
-            <TableCell>Pre-Press Exit</TableCell>
-            <TableCell>Primary Press Start</TableCell>
-            <TableCell>Stream In</TableCell>
-            <TableCell>Primary Press Exit</TableCell>
-            <TableCell className="secondary-press">Secondary Press 1</TableCell>
-            <TableCell className="temp-check">Temp Check 1</TableCell>
-            <TableCell className="secondary-press">Secondary Press 2</TableCell>
-            <TableCell className="temp-check">Temp Check 2</TableCell>
-            <TableCell>Cooling</TableCell>
-            <TableCell>Secondary Press Exit</TableCell>
+            <TableCell>ออกจาก เอ็กซ์ทรูดเดอร์</TableCell>
+            <TableCell>ออกจาก พรีเพลส</TableCell>
+            <TableCell>เริ่มอบที่ไพรมารี่ เพลส</TableCell>
+            <TableCell>กด สตรีมอิน</TableCell>
+            <TableCell>ออกจากไพรมารี่ เพลส</TableCell>
+            <TableCell className="secondary-press">เริ่มอบรอบที่ 1 เซคคันดารี่ เพลส</TableCell>
+            <TableCell className="temp-check">จดอุณหภูมิรอบที่ 1</TableCell>
+            <TableCell className="secondary-press">เริ่มอบรอบที่ 2 เซคคันดารี่ เพลส</TableCell>
+            <TableCell className="temp-check">จดอุณหภูมิรอบที่ 2</TableCell>
+            <TableCell>คูลลิ่ง</TableCell>
+            <TableCell>ออกจาก เซคคันดารี่ เพลส</TableCell>
+            {hasSolidBlock && <TableCell>เอางานออก</TableCell>}
             <TableCell>Block</TableCell>
           </TableRow>
         </TableHead>
@@ -195,6 +196,11 @@ const CustomTable = ({ data , formatTime }) => {
                       }
                     >
                       {formatTime(plan.secondary_press_exit)}
+                    </TableCell>
+                  )}
+                  {hasSolidBlock && (
+                    <TableCell className={!plan.solidBlock ? "missing-time" : ""}>
+                      {plan.solidBlock || ""}
                     </TableCell>
                   )}
                   <TableCell>{plan.block}</TableCell>

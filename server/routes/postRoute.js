@@ -4,6 +4,7 @@ import { addPlantime } from '../models/plantimeModel.js';
 import { addTempMB, addTempPlanTime } from '../models/tempplanModel.js';
 import { addProduct, addChemical } from '../models/productModel.js';
 import { addChemicalNameStep, addChemicalWeightStep, addProduction } from '../models/productionModel.js';
+import { addCuttingStep, addMixingStep } from '../models/mixingModel.js';
 
 const router = express.Router();
 
@@ -16,5 +17,7 @@ router.post('/plantime/temp-mb/add/:product_name', addTempMB);
 router.post('/production/add', addProduction);
 router.post('/production/chemical-name/add', addChemicalNameStep);
 router.post('/production/chemical-weight/add', addChemicalWeightStep);
+router.post('/production/mixing-step/add', addMixingStep);
+router.post('/production/cutting-step', addCuttingStep);
 
 export default router;

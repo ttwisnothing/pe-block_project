@@ -24,7 +24,7 @@ export const addProduction = async (req, res) => {
         request.input('productName', sql.VarChar, productName);
 
         await request.query(query);
-        res.status(201).json({ 
+        res.status(201).json({
             message: "✅ Production added successfully",
             data: {
                 batch_no: batchNo,
@@ -67,7 +67,13 @@ export const addChemicalNameStep = async (req, res) => {
         }
 
         await request.query(queryName);
-        res.status(201).json({ message: "✅ Chemical Step added successfully" });
+        res.status(201).json({
+            message: "✅ Chemical Step added successfully",
+            data: {
+                batch_no: batchNo,
+                chemistry_name: chemistryName
+            }
+        });
     } catch (error) {
         console.error("❌ Error in adding chemical step: ", error);
         res.status(500).json({ message: "Internal server error" });
@@ -75,15 +81,15 @@ export const addChemicalNameStep = async (req, res) => {
 }
 
 export const addChemicalWeightStep = async (req, res) => {
-    const { batchNo, Ref, chemicalWeight } = req.body;
+    const { batchNo, Ref, chemistryWeight } = req.body;
 
-    const weightList = Array.from({ length: 15 }, (_, i) => `weight_${i + 1}`);
+    const weightList = Array.from({ length: 15 }, (_, i) => `chemistry_${i + 1}`);
 
     const queryWeight = `
         INSERT INTO chemical_weight_step (
-            product_record_id, , ${weightList.join(", ")}
+            product_record_id, ref, ${weightList.join(", ")}
         ) VALUES (
-            @product_record_id, ${weightList.map((_, i) => `@weight_${i + 1}`).join(", ")}
+            @product_record_id, @Ref, ${weightList.map((_, i) => `@chemistry_${i + 1}`).join(", ")}
         )
     `
 
@@ -93,14 +99,22 @@ export const addChemicalWeightStep = async (req, res) => {
 
         // กำหนด Parameters
         request.input('product_record_id', sql.Int, batchNo);
+        request.input('Ref', sql.Float, Ref);
 
         // กำหนด Weight Parameters
         for (let i = 0; i < 15; i++) {
-            request.input(`weight_${i + 1}`, sql.VarChar, chemical_weight[i] || null);
+            request.input(`chemistry_${i + 1}`, sql.Float, chemistryWeight[i] || null);
         }
 
         await request.query(queryWeight);
-        res.status(201).json({ message: "✅ Chemical Weight Step added successfully" });
+        res.status(201).json({
+            message: "✅ Chemical Weight Step added successfully",
+            data: {
+                batch_no: batchNo,
+                ref: Ref,
+                chemistry_weight: chemistryWeight
+            }
+        });
     } catch (error) {
         console.error("❌ Error in adding chemical weight step: ", error);
         res.status(500).json({ message: "Internal server error" });
