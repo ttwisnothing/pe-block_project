@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./DigitalClock.css";
 
-const DigitalClock = () => {
-  const [time, setTime] = useState(new Date());
+const DigitalClock = React.memo(() => {
+  const [time, setTime] = useState(() => new Date());
+  const requestRef = useRef();
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const tick = () => {
       setTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
+      requestRef.current = setTimeout(tick, 1000 - (Date.now() % 1000));
+    };
+    tick();
+    return () => clearTimeout(requestRef.current);
   }, []);
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-GB", { hour12: false });
-  };
+  const formatTime = React.useCallback(
+    (date) => date.toLocaleTimeString("en-GB", { hour12: false }),
+    []
+  );
 
   return <div className="digital-clock">{formatTime(time)}</div>;
-};
+});
 
 export default DigitalClock;

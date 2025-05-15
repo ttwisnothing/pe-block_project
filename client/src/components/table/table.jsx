@@ -27,7 +27,6 @@ const CustomTable = ({ data , formatTime }) => {
             <TableCell>Batch No</TableCell>
             <TableCell>เริ่มเดินงาน</TableCell>
             <TableCell>เวลาผสมเสร็จ</TableCell>
-            {hasSolidBlock && <TableCell>SolidBlock</TableCell>}
             <TableCell>ออกจาก เอ็กซ์ทรูดเดอร์</TableCell>
             <TableCell>ออกจาก พรีเพลส</TableCell>
             <TableCell>เริ่มอบที่ไพรมารี่ เพลส</TableCell>
@@ -97,11 +96,6 @@ const CustomTable = ({ data , formatTime }) => {
                         {formatTime(plan.extruder_exit) || ""}
                       </TableCell>
                     </>
-                  )}
-                  {hasSolidBlock && (
-                    <TableCell className={!plan.solidBlock ? "missing-time" : ""}>
-                      {plan.solidBlock || ""}
-                    </TableCell>
                   )}
                   {isFirstRowForRun && (
                     <TableCell
@@ -196,11 +190,6 @@ const CustomTable = ({ data , formatTime }) => {
                       }
                     >
                       {formatTime(plan.secondary_press_exit)}
-                    </TableCell>
-                  )}
-                  {hasSolidBlock && (
-                    <TableCell className={!plan.solidBlock ? "missing-time" : ""}>
-                      {plan.solidBlock || ""}
                     </TableCell>
                   )}
                   <TableCell>{plan.block}</TableCell>

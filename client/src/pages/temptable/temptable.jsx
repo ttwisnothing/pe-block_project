@@ -7,6 +7,7 @@ import CustomTable from "../../components/table/table"; // นำเข้า Cu
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
+import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
 
 const playAlertSound = (alertDuration) => {
   const audio = new Audio("/sounds/warning-beeping.mp3"); // เสียงเตือน
@@ -206,6 +207,7 @@ const TempTable = () => {
 
   return (
     <div className="table-container">
+      <DigitalClock />
       <div className="top-buttons">
         <Button
           variant="contained"

@@ -5,6 +5,7 @@ import postRoutes from './routes/postRoute.js';
 import getRoutes from './routes/getRoute.js';
 import putRoutes from './routes/putRoute.js';
 import connectDB from './config/db.js';
+import client from 'prom-client';
 
 // กำหนดค่า Environment จากไฟล์ .env
 dotenv.config();
@@ -14,13 +15,7 @@ const app = express();
 const PORT = process.env.PORT;
 
 // middleware สำหรับรับข้อมูลแบบ JSON
-app.use(cors(
-    // {
-    // origin: 'http://192.168.2.83:9920',
-    // methods: ['GET', 'POST', 'PUT'],
-    // credentials: true
-    // }
-));
+app.use(cors());
 app.use(express.json());
 
 // เชื่อมต่อกับฐานข้อมูล

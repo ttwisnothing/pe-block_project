@@ -1,3 +1,4 @@
+@import "tailwindcss";
 /* Navbar Container */
 .navbar-container {
   display: flex;
