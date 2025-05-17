@@ -141,7 +141,7 @@ export const addMixingStep = async (req, res) => {
     try {
         const pool = await getPool();
         const request = pool.request();
-        
+
         request.input("batchNo", sql.Int, batchNo);
         request.input("programNo", sql.Int, programNo);
         request.input("hopperWeight", sql.Int, hopperWeight);
@@ -181,19 +181,21 @@ export const addMixingStep = async (req, res) => {
 
 export const addCuttingStep = async (req, res) => {
     const { batchNo, wb1, wb2, wb3,
-         wb4, wb5, wb6, wb7,
-         wb8, wb9, weightRemain, staffSave } = req.body;
+        wb4, wb5, wb6, wb7,
+        wb8, wb9, weightRemain, staffSave,
+        startPress, mixFinish } = req.body;
 
     const query = `
         INSERT INTO cut_step (
             product_record_id, weight_block_1, weight_block_2, weight_block_3,
             weight_block_4, weight_block_5, weight_block_6,
             weight_block_7, weight_block_8, weight_block_9,
-            weight_remain, staff_save
+            weight_remain, staff_data_save, start_press, mixing_finish
         ) VALUES (
             @batchNo, @wb1, @wb2, @wb3,
             @wb4, @wb5, @wb6, @wb7,
-            @wb8, @wb9, @weightRemain, @staffSave
+            @wb8, @wb9, @weightRemain, @staffSave,
+            @startPress, @mixFinish
         )
     `
 
@@ -213,6 +215,8 @@ export const addCuttingStep = async (req, res) => {
         request.input("wb9", sql.Float, wb9);
         request.input("weightRemain", sql.Float, weightRemain);
         request.input("staffSave", sql.NVarChar, staffSave);
+        request.input("startPress", sql.NVarChar, startPress);
+        request.input("mixFinsh", sql.NVarChar, mixFinsh);
 
         await request.query(query);
         res.status(201).json({
@@ -229,7 +233,9 @@ export const addCuttingStep = async (req, res) => {
                 weight_block_8: wb8,
                 weight_block_9: wb9,
                 weight_remain: weightRemain,
-                staff_save: staffSave
+                staff_save: staffSave,
+                start_press: startPress,
+                mixing_finish: mixFinish
             }
         });
     } catch (error) {
@@ -246,7 +252,7 @@ export const addPrePress = async (req, res) => {
     } = req.body;
 
     const query = `
-        INSERT INTO pre_press (
+        INSERT INTO pre_press_step (
             product_record_id, pre_press_heat, water_heating_a, water_heating_b,
             bake_time_pre_press, top_heat, layer_a_heat, layer_b_heat,
             layer_c_heat, layer_d_heat, layer_e_heat, layer_f_heat,
@@ -262,7 +268,7 @@ export const addPrePress = async (req, res) => {
     try {
         const pool = await getPool();
         const request = pool.request();
-        
+
         request.input("batchNo", sql.Int, batchNo);
         request.input("prePressHeat", sql.Int, prePressHeat);
         request.input("waterHeat1", sql.Int, waterHeat1);
@@ -305,13 +311,13 @@ export const addPrePress = async (req, res) => {
 }
 
 export const addSecondPrepress = async (req, res) => {
-    const { batchNo, machineNo, streamInPress, 
+    const { batchNo, machineNo, streamInPress,
         foamWidth, foamLength, bakeTimeSecondary,
         sprayAgent, heatCheckA, heatCheckB, heatExit
     } = req.body;
 
     const query = `
-        INSERT INTO second_pre_press (
+        INSERT INTO secondary_press_step (
             product_record_id, machine_no, stream_in_press,
             foam_width, foam_length, bake_time_secondary,
             spray_agent, heat_check_a, heat_check_b, heat_exit
@@ -325,12 +331,12 @@ export const addSecondPrepress = async (req, res) => {
     try {
         const pool = await getPool();
         const request = pool.request();
-        
+
         request.input("batchNo", sql.Int, batchNo);
         request.input("machineNo", sql.Int, machineNo);
         request.input("streamInPress", sql.NVarChar, streamInPress);
-        request.input("foamWidth", sql.Int, foamWidth);
-        request.input("foamLength", sql.Int, foamLength);
+        request.input("foamWidth", sql.Float, foamWidth);
+        request.input("foamLength", sql.Float, foamLength);
         request.input("bakeTimeSecondary", sql.NVarChar, bakeTimeSecondary);
         request.input("sprayAgent", sql.NVarChar, sprayAgent);
         request.input("heatCheckA", sql.Int, heatCheckA);
@@ -360,13 +366,13 @@ export const addSecondPrepress = async (req, res) => {
 }
 
 export const foamCheck = async (req, res) => {
-    const { batchNo, runNo, layer1, 
-        layer2, layer3, layer4, layer5, 
+    const { batchNo, runNo, layer1,
+        layer2, layer3, layer4, layer5,
         layer6, entryData
     } = req.body;
 
     const query = `
-        INSERT INTO foam_check (
+        INSERT INTO foam_check_step (
             product_record_id, run_no, layer_1,
             layer_2, layer_3, layer_4,
             layer_5, layer_6, clerk_entry_data
@@ -380,7 +386,7 @@ export const foamCheck = async (req, res) => {
     try {
         const pool = await getPool();
         const request = pool.request();
-        
+
         request.input("batchNo", sql.Int, batchNo);
         request.input("runNo", sql.Int, runNo);
         request.input("layer1", sql.NVarChar, layer1);

@@ -3,7 +3,12 @@ import { addConfig } from '../models/configModel.js';
 import { addPlantime } from '../models/plantimeModel.js';
 import { addTempMB, addTempPlanTime } from '../models/tempplanModel.js';
 import { addProduct, addChemical } from '../models/productModel.js';
-import { addChemicalNameStep, addChemicalWeightStep, addCuttingStep, addMixingStep, addPrePress, addProduction, addSecondPrepress, foamCheck } from '../models/productionModel.js';
+import {
+    addChemicalNameStep, addChemicalWeightStep,
+    addCuttingStep, addMixingStep,
+    addPrePress, addProduction,
+    addSecondPrepress, foamCheck
+} from '../models/productionModel.js';
 
 const router = express.Router();
 
@@ -17,9 +22,9 @@ router.post('/production/add', addProduction);
 router.post('/production/chemical-name/add', addChemicalNameStep);
 router.post('/production/chemical-weight/add', addChemicalWeightStep);
 router.post('/production/mixing-step/add', addMixingStep);
-router.post('/production/cutting-step', addCuttingStep);
-addPrePress;
-addSecondPrepress;
-foamCheck;
+router.post('/production/cutting-step/add', addCuttingStep);
+router.post('/production/pre-press-step/add', addPrePress);
+router.post('/production/second-press/add', addSecondPrepress);
+router.post('/production/foam-check/add', foamCheck);
 
 export default router;

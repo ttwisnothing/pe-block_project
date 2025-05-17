@@ -78,8 +78,8 @@ const Navbar = () => {
           )}
         </li>
         <li>
-          <Link to="/record-data" className="navbar-item">
-            บันทึกข้อมูล
+          <Link to="/production" className="navbar-item">
+            Production
           </Link>
         </li>
         <li>

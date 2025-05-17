@@ -8,6 +8,7 @@ import TempTable from "./pages/temptable/temptable";
 import "./App.css";
 import Products from "./pages/product/product";
 import Config from './pages/config/config';
+import Production from './pages/productiondata/production';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/plantime" element={ <> <Navbar /> <PlanTime /> </> } />
           <Route path="/product" element={ <> <Navbar /> <Products /> </> } />
           <Route path="/config-time" element={ <> <Navbar /> <Config /> </> } />
+          <Route path="/production" element={ <> <Navbar /> <Production /> </> } />
 
           {/* เส้นทางที่ไม่มี Navbar */}
           <Route path="/plantime-table" element={<PlanTimeTable />} />
