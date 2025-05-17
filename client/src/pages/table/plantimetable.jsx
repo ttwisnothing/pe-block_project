@@ -10,14 +10,18 @@ import CustomTable from "../../components/table/table"; // นำเข้า Cu
 import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
 
+let alertAudio = null; // เพิ่มตัวแปรนี้ไว้ด้านบนสุดของไฟล์ (นอก component)
+
 const playAlertSound = (alertDuration) => {
-  const audio = new Audio("/sounds/warning-beeping.mp3") // เสียงเตือน
-  audio.play();
+  alertAudio = new Audio("/sounds/warning-beeping.mp3");
+  alertAudio.play();
 
   setTimeout(() => {
-    audio.pause(); // หยุดเสียงเตือนหลังจาก 5 วินาที
-    audio.currentTime = 0; // รีเซ็ตเวลาเสียง
-  }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
+    if (alertAudio) {
+      alertAudio.pause();
+      alertAudio.currentTime = 0;
+    }
+  }, alertDuration);
 }
 
 const PlanTimeTable = () => {
@@ -98,7 +102,7 @@ const PlanTimeTable = () => {
 
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
-            const alertDuration = 10000; // 5 วินาที
+            const alertDuration = 10000; // 10 วินาที
             Swal.fire({
               title: "🚨 ",
               text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
@@ -108,17 +112,24 @@ const PlanTimeTable = () => {
               timer: alertDuration,
               timerProgressBar: true,
               didOpen: () => {
-                playAlertSound(alertDuration); // เรียกใช้ฟังก์ชันเสียงเตือน
+                playAlertSound(alertDuration);
                 Swal.showLoading();
-                const timer = Swal.getHtmlContainer().querySelector("b")
+                const timer = Swal.getHtmlContainer().querySelector("b");
                 timeInterval = setInterval(() => {
                   if (timer) {
                     timer.textContent = Swal.getTimerLeft();
                   }
-                }, 100)
+                }, 100);
               },
               willClose: () => {
                 clearInterval(timeInterval);
+              },
+              didDestroy: () => {
+                // หยุดเสียงเมื่อปิด Swal
+                if (alertAudio) {
+                  alertAudio.pause();
+                  alertAudio.currentTime = 0;
+                }
               }
             })
           }

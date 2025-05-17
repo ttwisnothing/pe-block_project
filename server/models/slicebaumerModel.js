@@ -1,4 +1,4 @@
-import { getPool } from './../config/db.js';
+import { getPool } from '../config/db.js';
 import sql from 'mssql';
 
 export const addFoamMaster = async (req, res) => {

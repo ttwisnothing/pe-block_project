@@ -3,8 +3,7 @@ import { addConfig } from '../models/configModel.js';
 import { addPlantime } from '../models/plantimeModel.js';
 import { addTempMB, addTempPlanTime } from '../models/tempplanModel.js';
 import { addProduct, addChemical } from '../models/productModel.js';
-import { addChemicalNameStep, addChemicalWeightStep, addProduction } from '../models/productionModel.js';
-import { addCuttingStep, addMixingStep } from '../models/mixingModel.js';
+import { addChemicalNameStep, addChemicalWeightStep, addCuttingStep, addMixingStep, addPrePress, addProduction, addSecondPrepress, foamCheck } from '../models/productionModel.js';
 
 const router = express.Router();
 
@@ -19,5 +18,8 @@ router.post('/production/chemical-name/add', addChemicalNameStep);
 router.post('/production/chemical-weight/add', addChemicalWeightStep);
 router.post('/production/mixing-step/add', addMixingStep);
 router.post('/production/cutting-step', addCuttingStep);
+addPrePress;
+addSecondPrepress;
+foamCheck;
 
 export default router;

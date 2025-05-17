@@ -9,13 +9,17 @@ import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
 import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
 
+let alertAudio = null; // เพิ่มตัวแปรนี้ไว้ด้านบนสุดของไฟล์ (นอก component)
+
 const playAlertSound = (alertDuration) => {
-  const audio = new Audio("/sounds/warning-beeping.mp3"); // เสียงเตือน
-  audio.play();
+  alertAudio = new Audio("/sounds/warning-beeping.mp3"); // เสียงเตือน
+  alertAudio.play();
 
   setTimeout(() => {
-    audio.pause(); // หยุดเสียงเตือนหลังจาก 5 วินาที
-    audio.currentTime = 0; // รีเซ็ตเวลาเสียง
+    if (alertAudio) {
+      alertAudio.pause(); // หยุดเสียงเตือนหลังจากครบเวลา
+      alertAudio.currentTime = 0; // รีเซ็ตเวลาเสียง
+    }
   }, alertDuration); // ระยะเวลาในการเล่นเสียงเตือน
 };
 
@@ -145,7 +149,7 @@ const TempTable = () => {
 
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
-            const alertDuration = 10000; // 5 วินาที
+            const alertDuration = 10000; // 10 วินาที
             Swal.fire({
               title: "🚨 Time Alert",
               text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
@@ -167,6 +171,13 @@ const TempTable = () => {
               willClose: () => {
                 clearInterval(timeInterval);
               },
+              didDestroy: () => {
+                // หยุดเสียงเมื่อปิด Swal (กดปิดหรือหมดเวลา)
+                if (alertAudio) {
+                  alertAudio.pause();
+                  alertAudio.currentTime = 0;
+                }
+              }
             });
           }
         });
