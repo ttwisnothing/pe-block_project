@@ -2,19 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  Box,
-  Typography,
-  IconButton,
-  CircularProgress,
-} from "@mui/material";
-import { Add, Remove } from "@mui/icons-material";
+import "./plantime.css";
 
 const Plantime = () => {
   const [productName, setProductName] = useState("");
@@ -86,48 +74,10 @@ const Plantime = () => {
   };
 
   const removeMachineField = (index) => {
-    const updatedNames = machineNames.filter((_, i) => i !== index);
-    setMachineNames(updatedNames);
-  };
-
-  const handleShowPlanTime = async () => {
-    if (!productName) {
-      toast.warn("⚠️ กรุณาเลือก Product ก่อน");
-      return;
+    if (machineNames.length > 1) {
+      const updatedNames = machineNames.filter((_, i) => i !== index);
+      setMachineNames(updatedNames);
     }
-
-    setLoading(true);
-    try {
-      const response = await axios.get(`/api/get/plantime/${productName}`);
-      const fetchedPlanTimes = response.data.planTimes || [];
-
-      if (fetchedPlanTimes.length === 0) {
-        toast.info("ℹ️ ไม่มีข้อมูล Plan Time สำหรับ Product นี้");
-        return;
-      }
-
-      handleOpenPlanTimeTable(); // เปิดแท็บใหม่ที่มีข้อมูล Plan Time
-    } catch (error) {
-      console.error("❌ ERROR fetching Plan Time:", error);
-      toast.error(error.response?.data?.message || "❌ Failed to fetch Plan Time");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenPlanTimeTable = () => {
-    // เก็บข้อมูลไว้ใน localStorage
-    localStorage.setItem(
-      "planTimeData",
-      JSON.stringify({
-        productName,
-        colorName,
-        planTimes,
-      })
-    );
-
-    // เปิดแท็บใหม่
-    window.open("/plantime-table", "_blank");
   };
 
   useEffect(() => {
@@ -135,107 +85,166 @@ const Plantime = () => {
   }, []);
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Plan Time
-      </Typography>
+    <div className="plantime-container">
+      <ToastContainer position="top-right" />
+      
+      <div className="header-section">
+        <h1 className="plantime-title">สร้างแผนเวลาการผลิต</h1>
+        <p className="plantime-subtitle">กำหนดแผนการผลิตและเครื่องจักรที่ใช้งาน</p>
+      </div>
 
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="product-select-label">เลือก Product</InputLabel>
-        <Select
-          labelId="product-select-label"
-          value={productName}
-          onChange={(e) => setProductName(e.target.value)}
-        >
-          <MenuItem value="" disabled>
-            -- เลือก Product --
-          </MenuItem>
-          {products.map((product, index) => (
-            <MenuItem key={product.id || index} value={product.name}>
-              {product.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <form className="plantime-form">
+        {/* ข้อมูลผลิตภัณฑ์และตั้งค่าการผลิต (แนวนอน) */}
+        <div className="form-combined-section">
+          <div className="form-section product-info">
+            <h3 className="section-title">
+              <div className="icon-container">📦</div>
+              ข้อมูลผลิตภัณฑ์
+            </h3>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">เลือกผลิตภัณฑ์ *</label>
+                <select
+                  className="form-select"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  required
+                >
+                  <option value="">-- เลือกผลิตภัณฑ์ --</option>
+                  {products.map((product, index) => (
+                    <option key={product.id || index} value={product.name}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      <TextField
-        fullWidth
-        margin="normal"
-        label="เวลาเริ่มต้น (Frist Start Time)"
-        placeholder="กรอกเวลาเริ่มต้น เช่น 08:00"
-        value={fristStart}
-        onChange={(e) => setFristStart(e.target.value)}
-      />
+              <div className="form-group">
+                <label className="form-label">ชื่อสี *</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={colorName}
+                  onChange={(e) => setColorName(e.target.value)}
+                  placeholder="กรอกชื่อสี"
+                  required
+                />
+              </div>
+            </div>
+          </div>
 
-      <TextField
-        fullWidth
-        margin="normal"
-        label="จำนวนรอบ (Run Round)"
-        type="number"
-        value={runRound}
-        onChange={(e) => setRunRound(e.target.value)}
-      />
+          <div className="form-section production-settings">
+            <h3 className="section-title">
+              <div className="icon-container">⏰</div>
+              ตั้งค่าการผลิต
+            </h3>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">เวลาเริ่มต้น *</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  value={fristStart}
+                  onChange={(e) => setFristStart(e.target.value)}
+                  placeholder="กรอกเวลาเริ่ม HH:mm"
+                  required
+                />
+              </div>
 
-      <TextField
-        fullWidth
-        margin="normal"
-        label="ชื่อสี (Color Name)"
-        placeholder="กรอกชื่อสี"
-        value={colorName}
-        onChange={(e) => setColorName(e.target.value)}
-      />
+              <div className="form-group">
+                <label className="form-label">จำนวนรอบ *</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  value={runRound}
+                  onChange={(e) => setRunRound(e.target.value)}
+                  placeholder="กรอกจำนวนรอบ"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <Box sx={{ marginY: 2 }}>
-        <Typography variant="h6">Machine Names:</Typography>
-        {machineNames.map((name, index) => (
-          <Box key={index} sx={{ display: "flex", alignItems: "center", marginBottom: 1 }}>
-            <TextField
-              fullWidth
-              label={`Machine ${index + 1}`}
-              value={name}
-              onChange={(e) => handleMachineNameChange(index, e.target.value)}
-            />
-            <IconButton
-              onClick={() => removeMachineField(index)}
-              disabled={machineNames.length === 1}
+        {/* เครื่องจักร */}
+        <div className="form-section">
+          <div className="section-header">
+            <h3 className="section-title">
+              <div className="icon-container">🏭</div>
+              เครื่องจักรที่ใช้งาน
+            </h3>
+            <button
+              className="add-machine-button"
+              type="button"
+              onClick={addMachineField}
             >
-              <Remove />
-            </IconButton>
-          </Box>
-        ))}
-        <Button
-          variant="outlined"
-          startIcon={<Add />}
-          onClick={addMachineField}
-        >
-          เพิ่มเครื่องจักร
-        </Button>
-      </Box>
+              <span>+</span>
+              เพิ่มเครื่องจักร
+            </button>
+          </div>
+          
+          <div className="machines-grid-horizontal">
+            {machineNames.map((name, index) => (
+              <div key={index} className="machine-item">
+                <div className="form-group">
+                  <label className="form-label">เครื่องจักร {index + 1}</label>
+                  <div className="machine-input-wrapper">
+                    <input
+                      className="form-input"
+                      type="text"
+                      value={name}
+                      onChange={(e) => handleMachineNameChange(index, e.target.value)}
+                      placeholder={`ชื่อเครื่องจักร ${index + 1}`}
+                      required
+                    />
+                    {machineNames.length > 1 && (
+                      <button
+                        type="button"
+                        className="remove-machine-button"
+                        onClick={() => removeMachineField(index)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      <Box sx={{ display: "flex", gap: 2, marginTop: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={calculatePlanTime}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={24} /> : "สร้าง Plan Time"}
-        </Button>
-
-        {calculated && (
-          <Button
-            variant="contained"
-            color="success"
-            onClick={handleShowPlanTime}
+        {/* ปุ่มดำเนินการ */}
+        <div className="form-actions">
+          <button 
+            className="cancel-button" 
+            type="button" 
+            onClick={() => window.history.back()}
+          >
+            ยกเลิก
+          </button>
+          
+          <button
+            className="calculate-button"
+            type="button"
+            onClick={calculatePlanTime}
             disabled={loading}
           >
-            แสดง Plan Time
-          </Button>
-        )}
-      </Box>
-
-      <ToastContainer />
-    </Box>
+            {loading ? (
+              <>
+                <span className="loading-spinner"></span>
+                กำลังคำนวณ...
+              </>
+            ) : (
+              <>
+                <span>🔄</span>
+                สร้างแผนเวลา
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

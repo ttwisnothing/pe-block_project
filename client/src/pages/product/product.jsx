@@ -30,6 +30,7 @@ const Products = () => {
         setChemicals(response.data.chemicals);
       } catch (error) {
         console.error('❌ Error fetching chemicals:', error);
+        toast.error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
       } finally {
         setIsLoading(false);
       }
@@ -40,6 +41,13 @@ const Products = () => {
 
   const addChemicalField = () => {
     setSelectedChemicals([...selectedChemicals, '']);
+  };
+
+  const removeChemicalField = (index) => {
+    if (selectedChemicals.length > 1) {
+      const updatedChemicals = selectedChemicals.filter((_, idx) => idx !== index);
+      setSelectedChemicals(updatedChemicals);
+    }
   };
 
   const handleChemicalChange = (index, value) => {
@@ -63,7 +71,9 @@ const Products = () => {
         chemicals: selectedChemicals.filter((chemical) => chemical !== ''),
       };
       await axios.post(`/api/post/product/add`, payload);
-      toast.success('✅ Product added successfully');
+      toast.success('✅ เพิ่มผลิตภัณฑ์สำเร็จ');
+      
+      // รีเซ็ตฟอร์ม
       setProductName('');
       setProductColor('');
       setStatus('');
@@ -75,163 +85,222 @@ const Products = () => {
       setSelectedChemicals(['']);
     } catch (error) {
       console.error('❌ Error adding product:', error);
-      toast.error('❌ Failed to add product');
+      toast.error('❌ เกิดข้อผิดพลาดในการเพิ่มผลิตภัณฑ์');
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="product-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="product-container">
-      <ToastContainer />
+      <ToastContainer position="top-right" />
+      
+      <div className="header-section">
+        <h1 className="product-title">เพิ่มผลิตภัณฑ์ใหม่</h1>
+        <p className="product-subtitle">กรอกข้อมูลผลิตภัณฑ์ที่ต้องการเพิ่มลงในระบบ</p>
+      </div>
+
       <form className="product-form" onSubmit={handleSubmit}>
-        <h1 className="product-title">Add Product</h1>
-        {/* แถวแรก */}
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Product Name:</label>
-            <input
-              className="form-input"
-              type="text"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Status:</label>
-            <select
-              className="form-select"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              required
-            >
-              <option value="">-- Select Status --</option>
-              <option value="Mass">Mass</option>
-              <option value="R&D">R&D</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Resin:</label>
-            <select
-              className="form-select"
-              value={resin}
-              onChange={(e) => setResin(e.target.value)}
-              required
-            >
-              <option value="">-- Select Resin --</option>
-              {resinOptions.map((resin, index) => (
-                <option key={index} value={resin.name}>
-                  {resin.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Foaming:</label>
-            <select
-              className="form-select"
-              value={foaming}
-              onChange={(e) => setFoaming(e.target.value)}
-              required
-            >
-              <option value="">-- Select Foaming --</option>
-              {foamingOptions.map((foaming, index) => (
-                <option key={index} value={foaming.name}>
-                  {foaming.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Color:</label>
-            <select
-              className="form-select"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-            >
-              <option value="">-- Select Color --</option>
-              {colorOptions.map((color, index) => (
-                <option key={index} value={color.name}>
-                  {color.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* แถวที่สอง */}
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Product Color:</label>
-            <input
-              className="form-input"
-              type="text"
-              value={productColor}
-              onChange={(e) => setProductColor(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Kneader Block:</label>
-            <input
-              className="form-input"
-              type="number"
-              value={kneaderBlock}
-              onChange={(e) => setKneaderBlock(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Foaming Block:</label>
-            <input
-              className="form-input"
-              type="number"
-              value={foamingBlock}
-              onChange={(e) => setFoamingBlock(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-
-        {/* แถวที่สาม */}
-        <div className="chemicals-grid">
-          {selectedChemicals.map((selectedChemical, index) => (
-            <div key={index} className="form-group">
-              <label className="form-label">Chemical {index + 1}:</label>
-              {isLoading ? (
-                <p className="loading-text">Loading chemicals...</p>
-              ) : (
-                <select
-                  className="form-select"
-                  value={selectedChemical}
-                  onChange={(e) => handleChemicalChange(index, e.target.value)}
-                  required
-                >
-                  <option value="">-- Select a Chemical --</option>
-                  {chemicals.map((chemical, idx) => (
-                    <option key={idx} value={chemical.name}>
-                      {chemical.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+        {/* ข้อมูลหลัก */}
+        <div className="form-section">
+          <h3 className="section-title">ข้อมูลหลัก</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">ชื่อผลิตภัณฑ์ *</label>
+              <input
+                className="form-input"
+                type="text"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                required
+                placeholder="กรอกชื่อผลิตภัณฑ์"
+              />
             </div>
-          ))}
-        </div>
-        <div className="form-actions">
-          <button
-            className="add-chemical-button"
-            type="button"
-            onClick={addChemicalField}
-          >
-            Add Another Chemical
-          </button>
+            
+            <div className="form-group">
+              <label className="form-label">สีผลิตภัณฑ์ *</label>
+              <input
+                className="form-input"
+                type="text"
+                value={productColor}
+                onChange={(e) => setProductColor(e.target.value)}
+                required
+                placeholder="กรอกสีผลิตภัณฑ์"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">สถานะ *</label>
+              <select
+                className="form-select"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                required
+              >
+                <option value="">-- เลือกสถานะ --</option>
+                <option value="Mass">Mass</option>
+                <option value="R&D">R&D</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* ปุ่ม Save */}
+        {/* วัตถุดิบ */}
+        <div className="form-section">
+          <h3 className="section-title">วัตถุดิบ</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">Resin *</label>
+              <select
+                className="form-select"
+                value={resin}
+                onChange={(e) => setResin(e.target.value)}
+                required
+              >
+                <option value="">-- เลือก Resin --</option>
+                {resinOptions.map((resin, index) => (
+                  <option key={index} value={resin.name}>
+                    {resin.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Foaming *</label>
+              <select
+                className="form-select"
+                value={foaming}
+                onChange={(e) => setFoaming(e.target.value)}
+                required
+              >
+                <option value="">-- เลือก Foaming --</option>
+                {foamingOptions.map((foaming, index) => (
+                  <option key={index} value={foaming.name}>
+                    {foaming.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Color</label>
+              <select
+                className="form-select"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              >
+                <option value="">-- เลือก Color --</option>
+                {colorOptions.map((color, index) => (
+                  <option key={index} value={color.name}>
+                    {color.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ข้อมูลการผลิต */}
+        <div className="form-section">
+          <h3 className="section-title">ข้อมูลการผลิต</h3>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label className="form-label">Kneader Block *</label>
+              <input
+                className="form-input"
+                type="number"
+                value={kneaderBlock}
+                onChange={(e) => setKneaderBlock(e.target.value)}
+                required
+                placeholder="จำนวน block"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Foaming Block *</label>
+              <input
+                className="form-input"
+                type="number"
+                value={foamingBlock}
+                onChange={(e) => setFoamingBlock(e.target.value)}
+                required
+                placeholder="จำนวน block"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Chemicals */}
+        <div className="form-section">
+          <div className="section-header">
+            <h3 className="section-title">สารเคมี</h3>
+            <button
+              className="add-chemical-button"
+              type="button"
+              onClick={addChemicalField}
+            >
+              <span>+</span>
+              เพิ่มสารเคมี
+            </button>
+          </div>
+          
+          <div className="chemicals-grid">
+            {selectedChemicals.map((selectedChemical, index) => (
+              <div key={index} className="chemical-item">
+                <div className="form-group">
+                  <label className="form-label">สารเคมี {index + 1}</label>
+                  <div className="chemical-input-wrapper">
+                    <select
+                      className="form-select"
+                      value={selectedChemical}
+                      onChange={(e) => handleChemicalChange(index, e.target.value)}
+                      required
+                    >
+                      <option value="">-- เลือกสารเคมี --</option>
+                      {chemicals.map((chemical, idx) => (
+                        <option key={idx} value={chemical.name}>
+                          {chemical.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedChemicals.length > 1 && (
+                      <button
+                        type="button"
+                        className="remove-chemical-button"
+                        onClick={() => removeChemicalField(index)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ปุ่มบันทึก */}
         <div className="form-actions">
+          <button className="cancel-button" type="button" onClick={() => window.history.back()}>
+            ยกเลิก
+          </button>
           <button className="save-button" type="submit">
-            Save Product
+            <span>💾</span>
+            บันทึกผลิตภัณฑ์
           </button>
         </div>
       </form>

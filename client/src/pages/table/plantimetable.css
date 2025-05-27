@@ -1,16 +1,31 @@
 /* Container for the table */
 .table-container {
-  padding: 20px;
+  padding: 24px;
   background-color: #f9f9f9;
   position: relative;
-  width: 100%; /* ขยายตารางให้เต็มพื้นที่ */
-  max-width: none; /* ยกเลิกความกว้างสูงสุด */
-  margin: 0; /* ลบระยะขอบ */
-  border-radius: 0; /* ลบมุมโค้ง */
-  box-shadow: none; /* ลบเงา */
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
   display: flex;
-  flex-direction: column; /* จัดเรียงเนื้อหาในแนวตั้ง */
-  gap: 20px; /* เพิ่มระยะห่างระหว่างตารางและปุ่ม */
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header section with clock and buttons */
+.table-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Product info section */
+.product-info-section {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 /* Title for the table */
@@ -24,54 +39,194 @@
 /* Header for Recipe */
 .table-header {
   display: flex;
-  justify-content: flex-start; /* Align to the left */
-  margin-bottom: 20px;
-  padding-left: 20px; /* เพิ่มระยะห่างจากขอบซ้าย */
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .table-header h2 {
   font-size: 1.8rem;
   color: #333;
   margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* Footer button */
-.footer-button {
-  align-self: flex-start; /* จัดปุ่มให้อยู่ด้านซ้าย */
+.product-label {
+  font-weight: 500;
+  color: #555;
 }
 
-.footer-button button {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 24px; /* เพิ่มขนาดปุ่ม */
-  border: none;
-  border-radius: 5px;
+.product-name {
+  font-weight: 700;
+  color: #1976d2;
+}
+
+.product-color {
+  font-weight: 500;
+  color: #666;
+}
+
+.current-time {
   font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  color: #666;
+  background: rgba(25, 118, 210, 0.08);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: 500;
 }
 
-.footer-button button:hover {
-  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
-  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+/* Current step indicator */
+.current-step {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background-color: #e8f4fd;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border-left: 4px solid #1976d2;
+  margin-top: 12px;
 }
 
-/* ปุ่ม Back */
+.current-step-label {
+  font-weight: 600;
+  color: #555;
+}
+
+.current-step-value {
+  font-weight: 700;
+  color: #1976d2;
+  text-transform: capitalize;
+  font-size: 1.1rem;
+}
+
+/* Table responsive container */
+.table-responsive {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer actions */
+.footer-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+/* Button styles */
+.top-buttons {
+  display: flex;
+  gap: 12px;
+}
+
 .top-buttons button {
-  background-color: #007bff; /* สีพื้นหลัง */
-  color: white; /* สีตัวอักษร */
-  padding: 12px 24px; /* ขนาดปุ่ม */
-  border: none;
-  border-radius: 5px; /* มุมโค้ง */
-  font-size: 1rem; /* ขนาดตัวอักษร */
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 200px; /* กำหนดความกว้างให้เท่ากัน */
-  height: 50px; /* กำหนดความสูงให้เท่ากัน */
-  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  min-width: 160px;
+  height: 48px;
 }
 
-.top-buttons button:hover {
-  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
-  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+.close-button {
+  background-color: #f44336 !important;
+}
+
+.close-button:hover {
+  background-color: #d32f2f !important;
+}
+
+.print-button {
+  background-color: #673ab7 !important;
+}
+
+.print-button:hover {
+  background-color: #5e35b1 !important;
+}
+
+.machine-button {
+  background-color: #2196f3 !important;
+  min-width: 200px;
+  height: 48px;
+}
+
+.machine-button:hover {
+  background-color: #1976d2 !important;
+}
+
+/* Alert styling */
+.alert-content {
+  text-align: left;
+  margin: 16px 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.alert-content p {
+  margin: 8px 0;
+}
+
+/* Print styles */
+@media print {
+  .top-buttons,
+  .footer-actions,
+  .Toastify,
+  .digital-clock {
+    display: none !important;
+  }
+  
+  .table-container {
+    padding: 0;
+    background: white;
+  }
+  
+  .table-responsive {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .product-info-section {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .current-step {
+    border: 1px solid #1976d2;
+  }
+  
+  @page {
+    size: landscape;
+    margin: 1cm;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .table-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .top-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .top-buttons button {
+    width: 100%;
+  }
+  
+  .footer-actions {
+    justify-content: center;
+  }
+  
+  .machine-button {
+    width: 100%;
+  }
 }

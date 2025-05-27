@@ -9,17 +9,28 @@ import {
   Paper,
 } from "@mui/material";
 import "./table.css";
+ 
+const CustomTable = ({ data, formatTime, currentRow }) => {
+  // ฟังก์ชันตรวจสอบว่าเป็นแถวแรกของรอบการผลิตหรือไม่
+  const isFirstRowForRun = (index, data) => {
+    return index === 0 || data[index].run_no !== data[index - 1].run_no;
+  };
 
-const CustomTable = ({ data , formatTime }) => {
-  // กรองข้อมูล: ลบแถวที่ solidBlock ไม่มีค่า
-  const filteredData = data.filter((plan) => plan.solidBlock !== null && plan.solidBlock !== undefined);
-
-  // ตรวจสอบว่ามีข้อมูล solidBlock หรือไม่
-  const hasSolidBlock = filteredData.some((plan) => plan.solidBlock !== null && plan.solidBlock !== undefined);
+  // ฟังก์ชันคำนวณจำนวนแถวที่จะ rowspan
+  const calculateRowSpan = (data, index) => {
+    const currentRunNo = data[index].run_no;
+    return data.filter(p => p.run_no === currentRunNo).length;
+  };
+  
+  // ฟังก์ชันตรวจสอบว่าเป็นแถวปัจจุบันหรือไม่
+  const isCurrentRow = (row) => {
+    if (!currentRow) return false;
+    return row.batch_no === currentRow.batch_no && row.run_no === currentRow.run_no;
+  };
 
   return (
     <TableContainer component={Paper} className="custom-table-container">
-      <Table className="custom-table">
+      <Table className="custom-table" stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>Run No</TableCell>
@@ -38,14 +49,14 @@ const CustomTable = ({ data , formatTime }) => {
             <TableCell className="temp-check">จดอุณหภูมิรอบที่ 2</TableCell>
             <TableCell>คูลลิ่ง</TableCell>
             <TableCell>ออกจาก เซคคันดารี่ เพลส</TableCell>
-            {hasSolidBlock && <TableCell>เอางานออก</TableCell>}
             <TableCell>Block</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {data.map((plan, index) => {
-            const isFirstRowForRun =
-              index === 0 || plan.run_no !== data[index - 1].run_no;
+            const isFirst = isFirstRowForRun(index, data);
+            const rowSpan = isFirst ? calculateRowSpan(data, index) : 1;
+            const isCurrent = isCurrentRow(plan);
 
             return (
               <React.Fragment key={index}>
@@ -57,22 +68,14 @@ const CustomTable = ({ data , formatTime }) => {
                   </TableRow>
                 )}
 
-                <TableRow>
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
+                <TableRow className={isCurrent ? "current-row" : ""}>
+                  {isFirst && (
+                    <TableCell rowSpan={rowSpan}>
                       {plan.run_no}
                     </TableCell>
                   )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
+                  {isFirst && (
+                    <TableCell rowSpan={rowSpan}>
                       {plan.machine}
                     </TableCell>
                   )}
@@ -97,102 +100,41 @@ const CustomTable = ({ data , formatTime }) => {
                       </TableCell>
                     </>
                   )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.pre_press_exit)}
-                    </TableCell>
+                  {isFirst && (
+                    <>
+                      <TableCell rowSpan={rowSpan}>
+                        {formatTime(plan.pre_press_exit)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan}>
+                        {formatTime(plan.primary_press_start)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan} className="stream-in">
+                        {formatTime(plan.stream_in)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan}>
+                        {formatTime(plan.primary_press_exit)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan} className="secondary-press-start">
+                        {formatTime(plan.secondary_press_1_start)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan} className="temp-check-row">
+                        {formatTime(plan.temp_check_1)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan} className="secondary-press-start">
+                        {formatTime(plan.secondary_press_2_start)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan} className="temp-check-row">
+                        {formatTime(plan.temp_check_2)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan}>
+                        {formatTime(plan.cooling)}
+                      </TableCell>
+                      <TableCell rowSpan={rowSpan}>
+                        {formatTime(plan.secondary_press_exit)}
+                      </TableCell>
+                    </>
                   )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.primary_press_start)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                      className="stream-in"
-                    >
-                      {formatTime(plan.stream_in)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.primary_press_exit)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                      className="secondary-press-start"
-                    >
-                      {formatTime(plan.secondary_press_1_start)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                      className="temp-check-row"
-                    >
-                      {formatTime(plan.temp_check_1)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                      className="secondary-press-start"
-                    >
-                      {formatTime(plan.secondary_press_2_start)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                      className="temp-check-row"
-                    >
-                      {formatTime(plan.temp_check_2)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.cooling)}
-                    </TableCell>
-                  )}
-                  {isFirstRowForRun && (
-                    <TableCell
-                      rowSpan={
-                        data.filter((p) => p.run_no === plan.run_no).length
-                      }
-                    >
-                      {formatTime(plan.secondary_press_exit)}
-                    </TableCell>
-                  )}
-                  <TableCell>{plan.block}</TableCell>
+                  <TableCell>{plan.foam_block}</TableCell>
                 </TableRow>
               </React.Fragment>
             );

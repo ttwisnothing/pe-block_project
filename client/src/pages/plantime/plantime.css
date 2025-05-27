@@ -1,23 +1,362 @@
 /* Container */
 .container {
-  max-width: 800px; /* ลดความกว้าง */
-  margin: 0 auto; /* จัดตำแหน่งกลาง */
-  padding: 20px; /* ลด padding */
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
   background-color: #ffffff;
-  border-radius: 8px; /* ลดมุมโค้ง */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* ลดเงา */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Machine Input Group */
-.machine-input-group {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* ระยะห่างระหว่าง TextField และปุ่ม */
+/* Plantime Container */
+.plantime-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.machine-names-container {
+/* Header Section */
+.header-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  text-align: center;
+}
+
+.plantime-title {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.plantime-subtitle {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+/* Form Section */
+.plantime-form {
+  padding: 32px;
+}
+
+/* Combined section style for horizontal layout */
+.form-combined-section {
   display: flex;
-  flex-wrap: wrap; /* จัดเรียงหลายแถวได้ถ้าพื้นที่ไม่พอ */
-  gap: 10px; /* ระยะห่างระหว่างช่อง */
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.form-combined-section .form-section {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9ff;
+  border-radius: 12px;
+  border: 1px solid #e0e6ed;
+}
+
+.section-title {
+  color: #2d3a4b;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+/* Icon Container */
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #764ba2;
+  color: white;
+  border-radius: 8px;
+  font-size: 1.2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Form Grid */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3a4b;
+  font-size: 0.95rem;
+}
+
+/* Form Inputs */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Machines Section - Horizontal */
+.machines-grid-horizontal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.machine-item {
+  position: relative;
+}
+
+.machine-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Buttons */
+.add-machine-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-machine-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.remove-machine-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.remove-machine-button:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-button {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.calculate-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  min-width: 160px;
+  justify-content: center;
+}
+
+.calculate-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.calculate-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.show-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.show-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .form-combined-section {
+    flex-direction: column;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .plantime-container {
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  .header-section {
+    padding: 24px 20px;
+  }
+  
+  .plantime-title {
+    font-size: 1.6rem;
+  }
+  
+  .plantime-subtitle {
+    font-size: 1rem;
+  }
+  
+  .plantime-form {
+    padding: 20px;
+  }
+  
+  .form-section {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .machines-grid-horizontal {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cancel-button,
+  .calculate-button,
+  .show-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-section {
+    padding: 20px 16px;
+  }
+  
+  .plantime-form {
+    padding: 16px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
 }

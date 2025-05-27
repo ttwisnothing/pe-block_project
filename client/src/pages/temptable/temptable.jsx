@@ -218,7 +218,7 @@ const TempTable = () => {
 
   return (
     <div className="table-container">
-      <DigitalClock />
+      <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
       <div className="top-buttons">
         <Button
           variant="contained"

@@ -1,53 +1,268 @@
 .config-container {
-  padding: 20px;
-  background-color: #f9f9f9;
+  max-width: 1400px;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.header-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  text-align: center;
 }
 
 .config-title {
-  font-size: 24px;
-  margin-bottom: 20px;
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.config-subtitle {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
 }
 
 .config-form {
+  padding: 32px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9ff;
+  border-radius: 12px;
+  border: 1px solid #e0e6ed;
+}
+
+.section-title {
+  color: #2d3a4b;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
   display: flex;
-  flex-wrap: wrap; /* ทำให้ฟอร์มสามารถจัดเรียงหลายแถวได้ */
-  gap: 15px; /* ระยะห่างระหว่างช่อง */
+  align-items: center;
+  gap: 12px;
+}
+
+/* แก้ไขส่วนของไอคอน */
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #764ba2;
+  color: white;
+  border-radius: 8px;
+  font-size: 1.2rem;
+}
+
+/* แนวนอน - 4 คอลัมน์ */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
 }
 
 .form-group {
-  flex: 1 1 calc(25% - 15px); /* ช่องแต่ละช่องจะมีขนาด 25% ของแถว (5 ช่องต่อแถว) */
-  min-width: 150px; /* กำหนดขนาดขั้นต่ำ */
   display: flex;
-  flex-direction: column; /* จัด label และ input ให้อยู่ในคอลัมน์เดียวกัน */
+  flex-direction: column;
 }
 
 .form-label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
-  text-align: left; /* จัด label ให้อยู่ชิดซ้าย */
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3a4b;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: #ef4444;
+  font-size: 0.9rem;
 }
 
 .form-input {
-  padding: 8px;
   width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาดของ input */
-  height: 40px; /* กำหนดความสูงให้เท่ากัน */
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.form-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.form-input[type="number"]::-webkit-outer-spin-button,
+.form-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-button {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
 }
 
 .form-submit-button {
-  padding: 10px 15px;
-  background-color: #007bff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: 20px;
-  width: 100%; /* ปุ่ม Submit จะเต็มความกว้าง */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  min-width: 160px;
+  justify-content: center;
 }
 
-.form-submit-button:hover {
-  background-color: #0056b3;
+.form-submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.form-submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .form-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .config-container {
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  .header-section {
+    padding: 24px 20px;
+  }
+  
+  .config-title {
+    font-size: 1.6rem;
+  }
+  
+  .config-subtitle {
+    font-size: 1rem;
+  }
+  
+  .config-form {
+    padding: 20px;
+  }
+  
+  .form-section {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cancel-button,
+  .form-submit-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-section {
+    padding: 20px 16px;
+  }
+  
+  .config-form {
+    padding: 16px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+  }
 }

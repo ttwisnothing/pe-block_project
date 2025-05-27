@@ -1,16 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@mui/material";
-import axios from "axios"; // ใช้ axios แทน fetch
+import { Button, IconButton } from "@mui/material";
+import axios from "axios";
 import "./plantimetable.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../components/table/table.jsx";
-import CustomTable from "../../components/table/table"; // นำเข้า CustomTable
-import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
-import Swal from "sweetalert2"; // นำเข้า SweetAlert2
+import CustomTable from "../../components/table/table"; 
+import DigitalClock from "../../components/clock/digitalClock.jsx";
+import Swal from "sweetalert2";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
+import BuildIcon from '@mui/icons-material/Build';
+import PrintIcon from '@mui/icons-material/Print';
 
-let alertAudio = null; // เพิ่มตัวแปรนี้ไว้ด้านบนสุดของไฟล์ (นอก component)
+let alertAudio = null;
 
 const playAlertSound = (alertDuration) => {
   alertAudio = new Audio("/sounds/warning-beeping.mp3");
@@ -32,6 +36,17 @@ const PlanTimeTable = () => {
   const [colorName, setColorName] = useState("");
   const [planTimes, setPlanTimes] = useState([]);
   const [currentRow, setCurrentRow] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // เพิ่ม effect เพื่ออัปเดตเวลาปัจจุบันทุกวินาที
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     let savedData = location.state;
@@ -42,11 +57,7 @@ const PlanTimeTable = () => {
       }
     }
 
-    if (
-      !savedData ||
-      !savedData.planTimes ||
-      savedData.planTimes.length === 0
-    ) {
+    if (!savedData || !savedData.planTimes || savedData.planTimes.length === 0) {
       toast.error("❌ ไม่มีข้อมูล Plan Time กรุณากลับไปเลือกใหม่");
       navigate("/plantime");
       return;
@@ -55,20 +66,20 @@ const PlanTimeTable = () => {
     // จัดเรียงข้อมูลตาม run_no และ batch_no
     const sortedPlanTimes = [...savedData.planTimes].sort((a, b) => {
       if (a.run_no !== b.run_no) {
-        return a.run_no - b.run_no; // จัดเรียงตาม run_no
+        return a.run_no - b.run_no;
       }
-      return a.batch_no - b.batch_no; // ถ้า run_no เท่ากัน ให้จัดเรียงตาม batch_no
+      return a.batch_no - b.batch_no;
     });
 
     setProductName(savedData.productName);
     setColorName(savedData.colorName);
-    setPlanTimes(sortedPlanTimes); // ใช้ข้อมูลที่จัดเรียงแล้ว
+    setPlanTimes(sortedPlanTimes);
 
-    // เรียก setupAlertInterval หลังจากตั้งค่า planTimes
+    // ตั้งค่าตัวแปรแจ้งเตือน
     const NOTICATION_INTERVAL = 60000; // 1 นาที
-    const NOTIFY_BEFORE_MS = 5 * 60 * 1000;
-    const NOTIFY_WITHIN_MS = 10 * 60 * 1000;
-    const EXACT_MATCH_THRESHOLD_MS = 60 * 1000;
+    const NOTIFY_BEFORE_MS = 5 * 60 * 1000; // แจ้งเตือนล่วงหน้า 5 นาที
+    const NOTIFY_WITHIN_MS = 10 * 60 * 1000; // ภายใน 10 นาที
+    const EXACT_MATCH_THRESHOLD_MS = 60 * 1000; // ขอบเขตเวลาตรงกัน 1 นาที
 
     const alertNotification = () => {
       const currentTime = new Date();
@@ -77,47 +88,57 @@ const PlanTimeTable = () => {
 
       savedData.planTimes.forEach((row) => {
         Object.entries(row).forEach(([key, timeValue]) => {
-          if (!timeValue || typeof timeValue !== "string") return;
+          // ข้ามฟิลด์ที่ไม่ใช่เวลา
+          if (!timeValue || typeof timeValue !== "string" || 
+              !timeValue.includes(":") || 
+              ['run_no', 'batch_no', 'id', 'product_id'].includes(key)) return;
 
+          // แปลงเวลาเป็นวัตถุ Date
           const [hours, minutes, seconds] = timeValue.split(":");
           const eventTime = new Date(currentTime);
           eventTime.setHours(+hours, +minutes, +(seconds || 0), 0);
 
           const diff = eventTime - currentTime;
 
+          // ปรับปรุงหาแถวที่ใกล้เวลาปัจจุบันที่สุด
           if (Math.abs(diff) < closestDiff) {
             closestDiff = Math.abs(diff);
-            closestRow = row;
+            closestRow = {...row, closestField: key};
           }
 
-          if (diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
+          // แจ้งเตือนล่วงหน้า 5-10 นาที
+          if (diff >= 0 && diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
+            // คำนวณเวลาที่เหลือเป็นนาที
+            const minutesLeft = Math.floor(diff / 60000);
+            
             toast.warn(
-              `⏰เตือนขั้นตอน ${key} สำหรับ ${
-                savedData.productName
-              } จะเกิดขึ้นในอีก 5-10 นาที ที่เวลา "${eventTime.toLocaleTimeString("en-GB", {
-                hour12: false,
-              })}"`
+              `⏰ เตือน! ขั้นตอน ${key.replace('_', ' ')} สำหรับ ${savedData.productName} จะเกิดขึ้นในอีก ${minutesLeft} นาที (${eventTime.toLocaleTimeString("th-TH", { hour12: false })})`
             );
           }
 
+          // แจ้งเตือนเมื่อถึงเวลาพอดี
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
             const alertDuration = 10000; // 10 วินาที
+            
             Swal.fire({
-              title: "🚨 ",
-              text: `Time for ${key} is now "${eventTime.toLocaleTimeString(
-                "en-GB",
-                { hour12: false }
-              )}"`,
+              title: "🚨 ถึงเวลาดำเนินการ!",
+              html: `<div class="alert-content">
+                     <p><strong>ขั้นตอน:</strong> ${key.replace('_', ' ')}</p>
+                     <p><strong>เวลา:</strong> ${eventTime.toLocaleTimeString("th-TH", { hour12: false })}</p>
+                     <p><strong>สินค้า:</strong> ${savedData.productName} (${savedData.colorName || '-'})</p>
+                     </div>`,
               timer: alertDuration,
               timerProgressBar: true,
+              showConfirmButton: true,
+              confirmButtonText: 'รับทราบ',
               didOpen: () => {
                 playAlertSound(alertDuration);
                 Swal.showLoading();
-                const timer = Swal.getHtmlContainer().querySelector("b");
                 timeInterval = setInterval(() => {
+                  const timer = Swal.getHtmlContainer().querySelector("b.timer-left");
                   if (timer) {
-                    timer.textContent = Swal.getTimerLeft();
+                    timer.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
                   }
                 }, 100);
               },
@@ -125,18 +146,17 @@ const PlanTimeTable = () => {
                 clearInterval(timeInterval);
               },
               didDestroy: () => {
-                // หยุดเสียงเมื่อปิด Swal
                 if (alertAudio) {
                   alertAudio.pause();
                   alertAudio.currentTime = 0;
                 }
               }
-            })
+            });
           }
         });
       });
 
-      setCurrentRow(closestRow); // อัปเดต currentRow
+      setCurrentRow(closestRow);
     };
 
     const setupAlertInterval = () => {
@@ -144,15 +164,13 @@ const PlanTimeTable = () => {
         clearInterval(intervalRef.current);
       }
 
+      // ซิงค์กับนาทีถัดไป
       const now = new Date();
       const delay = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
 
       const timeoutId = setTimeout(() => {
-        intervalRef.current = setInterval(
-          alertNotification,
-          NOTICATION_INTERVAL
-        );
-        alertNotification(); // รันทันทีครั้งแรก
+        alertNotification(); // รันครั้งแรกทันที
+        intervalRef.current = setInterval(alertNotification, NOTICATION_INTERVAL);
       }, delay);
 
       return () => {
@@ -164,97 +182,127 @@ const PlanTimeTable = () => {
     };
 
     return setupAlertInterval();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
-    if (!time || typeof time !== "string") return "";
+    if (!time || typeof time !== "string" || !time.includes(":")) return "";
     const [hours, minutes] = time.split(":");
     return `${hours}:${minutes}`;
   };
 
-  // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
+  // ฟังก์ชันสำหรับตรวจสอบเครื่องจักร
   const handleMachineBreakdown = async () => {
-    const addTempPlanTime = async () => {
-      // จำลองการรอเวลา 3-5 วินาที
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+    setIsLoading(true);
+    
+    try {
+      // แสดงสถานะ loading
+      const pendingToastId = toast.loading("⏳ กำลังเพิ่มข้อมูลแผนชั่วคราว...");
 
-      const response = await axios.post(
-        `/api/post/plantime/temp/add/${productName}`
-      );
-
+      // เรียก API
+      const response = await axios.post(`/api/post/plantime/temp/add/${productName}`);
+      
       if (response.status !== 200) {
-        throw new Error("❌ Failed to add Temp Plan Time");
+        throw new Error("❌ ไม่สามารถเพิ่มข้อมูลแผนชั่วคราวได้");
       }
 
-      return response.data.message || "✅ Temp Plan Time added successfully";
-    };
+      // อัพเดท toast เป็น success
+      toast.update(pendingToastId, {
+        render: response.data.message || "✅ เพิ่มข้อมูลแผนชั่วคราวสำเร็จ",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
 
-    try {
-      // แสดงสถานะ pending
-      const pendingToastId = toast.loading("⏳ Adding Temp Plan Time...");
-
-      // รอให้ addTempPlanTime สำเร็จ
-      const successMessage = await addTempPlanTime();
-
-      // อัปเดต toast เป็น success หลังจากรอ 3-5 วินาที
+      // นำทางไปยังหน้า edit-temp
       setTimeout(() => {
-        toast.update(pendingToastId, {
-          render: successMessage,
-          type: "success",
-          isLoading: false,
-          autoClose: 3000, // ปิดอัตโนมัติหลัง 3 วินาที
+        navigate("/edit-temp", {
+          state: { productName, colorName },
         });
-
-        // นำทางไปยังหน้า edit-temp หลังจากแสดง success
-        setTimeout(() => {
-          navigate("/edit-temp", {
-            state: { productName, colorName },
-          });
-        }, 3000); // รออีก 3 วินาทีก่อน navigate
-      }, 3000); // รอ 3 วินาทีก่อนเปลี่ยนเป็น success
+      }, 3000);
     } catch (error) {
-      // แสดงข้อความข้อผิดพลาดใน toast
-      toast.error(error.message || "❌ Failed to add Temp Plan Time");
+      toast.error(error.message || "❌ ไม่สามารถเพิ่มข้อมูลแผนชั่วคราวได้");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // ฟังก์ชันสำหรับพิมพ์แผนเวลา
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <div className="table-container">
-      <DigitalClock />
-      <div className="top-buttons">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => window.close()}
-        >
-          ปิดตารางเวลา
-        </Button>
+      <div className="table-header-section">
+        <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
+        
+        <div className="top-buttons">
+          <Button
+            variant="contained"
+            startIcon={<CloseIcon />}
+            onClick={() => window.close()}
+            className="close-button"
+          >
+            ปิดตารางเวลา
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<PrintIcon />}
+            onClick={handlePrint}
+            className="print-button"
+          >
+            พิมพ์แผนเวลา
+          </Button>
+        </div>
       </div>
 
-      <div className="table-header">
-        <h2>
-          Product: {productName}({colorName}) Plan Time
-        </h2>
+      <div className="product-info-section">
+        <div className="table-header">
+          <h2>
+            <span className="product-label">สินค้า:</span> 
+            <span className="product-name">{productName}</span>
+            {colorName && (
+              <span className="product-color">({colorName})</span>
+            )}
+          </h2>
+        </div>
+
+        {/* แสดงแถวปัจจุบันที่ใกล้เวลาปัจจุบันที่สุด */}
+        {currentRow && (
+          <div className="current-step">
+            <div className="current-step-label">ขั้นตอนปัจจุบัน:</div>
+            <div className="current-step-value">
+              {currentRow.closestField && currentRow.closestField.replace('_', ' ')}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ใช้ CustomTable */}
-      <CustomTable
-        data={planTimes}
-        formatTime={formatTime}
-        currentRow={currentRow}
-      />
+      <div className="table-responsive">
+        <CustomTable
+          data={planTimes}
+          formatTime={formatTime}
+          currentRow={currentRow}
+        />
+      </div>
 
-      <div className="footer-button">
+      <div className="footer-actions">
         <Button
           variant="contained"
           color="primary"
+          startIcon={<BuildIcon />}
           onClick={handleMachineBreakdown}
+          disabled={isLoading}
+          className="machine-button"
         >
-          ตรวจสอบเครื่องจักร
+          {isLoading ? "กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
         </Button>
       </div>
-      <ToastContainer limit={2} />
+      
+      <ToastContainer position="top-right" limit={3} />
     </div>
   );
 };

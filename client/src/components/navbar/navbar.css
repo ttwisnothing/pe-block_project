@@ -4,27 +4,94 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #ffffff; /* สีพื้นหลัง Navbar เป็นสีขาว */
-  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 10px 24px;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 /* Logo Section */
 .navbar-logo {
   display: flex;
   align-items: center;
+}
+
+.navbar-logo a {
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  color: #000000; /* สีข้อความโลโก้เป็นสีดำ */
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.navbar-logo a:hover {
+  transform: scale(1.05);
+}
+
+.logo-wrapper {
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  border-radius: 8px;
+  background-color: white;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .navbar-logo img {
-  height: 40px;
-  margin-right: 10px;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.navbar-brand {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Hamburger Button */
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  justify-content: space-between;
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
 }
 
 /* Navbar Menu */
@@ -34,20 +101,43 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease; /* เพิ่ม Transition */
+  gap: 8px;
 }
 
 .navbar-item {
-  color: #000000; /* สีข้อความเมนูเป็นสีดำ */
+  color: white;
   text-decoration: none;
-  padding: 10px 15px;
-  transition: background-color 0.3s ease;
-  font-size: 1rem;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.navbar-item:hover::before {
+  left: 100%;
 }
 
 .navbar-item:hover {
-  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Dropdown Menu */
@@ -55,92 +145,189 @@
   position: relative;
 }
 
-/* Dropdown Button */
 .navbar-dropdown-button {
-  color: #000000; /* สีข้อความปุ่ม Dropdown เป็นสีดำ */
+  color: white;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 10px 15px;
-  font-size: 1rem;
-  text-align: left;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-dropdown-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.navbar-dropdown-button:hover::before {
+  left: 100%;
 }
 
 .navbar-dropdown-button:hover {
-  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
-  border-radius: 5px; /* เพิ่มมุมโค้ง */
-  color: #000000; /* คงสีข้อความเป็นสีดำ */
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.3s ease;
+}
+
+.navbar-dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
 }
 
 .navbar-dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
-  background-color: #ffffff; /* สีพื้นหลัง Dropdown เป็นสีขาว */
+  background: white;
   list-style: none;
-  padding: 0;
+  padding: 8px 0;
   margin: 0;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  display: none;
-  z-index: 1000;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .navbar-dropdown:hover .navbar-dropdown-menu {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .navbar-dropdown-item {
-  color: #000000; /* สีข้อความใน Dropdown เป็นสีดำ */
+  color: #2d3a4b;
   text-decoration: none;
-  padding: 10px 15px;
-  display: block;
-  transition: background-color 0.3s ease;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  position: relative;
 }
 
 .navbar-dropdown-item:hover {
-  background-color: #f0f0f0; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+  color: #667eea;
+  transform: translateX(4px);
 }
 
-/* Hamburger Button */
-.navbar-hamburger {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #000000;
+.navbar-dropdown-item span {
+  font-size: 1rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .navbar-menu {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    background-color: #ffffff;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    transform: translateY(-20px); /* เริ่มต้นเลื่อนขึ้น */
-    opacity: 0; /* เริ่มต้นโปร่งใส */
-  }
-
-  .navbar-menu.open {
-    display: flex;
-    transform: translateY(0); /* เลื่อนลงมา */
-    opacity: 1; /* แสดงเมนู */
-  }
-
-  .navbar-item {
-    padding: 15px;
-    text-align: center;
+  .navbar-container {
+    padding: 10px 16px;
   }
 
   .navbar-hamburger {
-    display: block;
+    display: flex;
+  }
+
+  .navbar-menu {
+    position: fixed;
+    top: 68px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    flex-direction: column;
+    gap: 0;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .navbar-menu.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .navbar-item {
+    width: 100%;
+    padding: 16px;
+    text-align: left;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+
+  .navbar-dropdown {
+    width: 100%;
+  }
+
+  .navbar-dropdown-button {
+    width: 100%;
+    padding: 16px;
+    text-align: left;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    justify-content: space-between;
+  }
+
+  .navbar-dropdown-menu {
+    position: static;
+    background: rgba(255, 255, 255, 0.95);
+    margin: 8px 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .navbar-dropdown-item {
+    padding: 14px 20px;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 8px 12px;
+  }
+
+  .logo-wrapper {
+    height: 42px;
+    width: 42px;
+    margin-right: 8px;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+
+  .navbar-menu {
+    padding: 16px;
   }
 }

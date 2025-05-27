@@ -183,7 +183,7 @@ export const addPlantime = async (req, res) => {
                     }
                 }
             }
-        } else if (cGroup === 'RP-300S' || cGroup === 'TEST') {
+        } else if (cGroup === 'RP-300S') {
             for (let i = 0; i < round; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};

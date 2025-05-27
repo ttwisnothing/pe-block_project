@@ -6,32 +6,82 @@ body {
 }
 
 .product-container {
-  max-width: 1000px;
-  margin: 30px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1400px;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.header-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 32px;
+  text-align: center;
 }
 
 .product-title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 24px;
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.product-subtitle {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
 }
 
 .product-form {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
-  grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
+  padding: 32px;
 }
 
-.form-row {
-  grid-column: span 5; /* ใช้สำหรับจัดกลุ่มแถว */
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9ff;
+  border-radius: 12px;
+  border: 1px solid #e0e6ed;
+}
+
+.section-title {
+  color: #2d3a4b;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* แนวนอน - 3 คอลัมน์ */
+.form-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* แนวนอน - 2 คอลัมน์ */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
 }
 
 .form-group {
@@ -40,91 +90,245 @@ body {
 }
 
 .form-label {
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 8px;
-  color: #555;
-  font-size: 14px;
+  color: #2d3a4b;
+  font-size: 0.95rem;
 }
 
 .form-input,
 .form-select {
   width: 100%;
-  padding: 10px; /* ปรับ padding ให้เหมือนกัน */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  background-color: #fdfdfd;
-  transition: border-color 0.3s ease;
-  height: 40px; /* กำหนดความสูงให้เท่ากัน */
-  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาด */
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .form-input:focus,
 .form-select:focus {
-  border-color: #4caf50;
+  border-color: #667eea;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Chemicals Section - แนวนอน */
 .chemicals-grid {
-  grid-column: span 5; /* Chemicals กินพื้นที่เต็มแถว */
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
-  grid-gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
 }
 
-.loading-text {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
+.chemical-item {
+  position: relative;
 }
 
-.form-actions {
-  grid-column: span 5; /* ปุ่มอยู่เต็มแถว */
+.chemical-input-wrapper {
+  position: relative;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .add-chemical-button {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 10px 15px;
-  font-size: 14px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .add-chemical-button:hover {
-  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-.save-button {
-  background-color: #4caf50;
+.remove-chemical-button {
+  background: #ef4444;
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 10px 15px;
-  font-size: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.remove-chemical-button:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancel-button {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.save-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .save-button:hover {
-  background-color: #45a049;
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.alert {
-  text-align: center;
-  color: red;
-  font-size: 14px;
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 16px;
 }
 
-p {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  margin: 0;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .chemicals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .product-container {
+    margin: 10px;
+    border-radius: 12px;
+  }
+  
+  .header-section {
+    padding: 24px 20px;
+  }
+  
+  .product-title {
+    font-size: 1.6rem;
+  }
+  
+  .product-subtitle {
+    font-size: 1rem;
+  }
+  
+  .product-form {
+    padding: 20px;
+  }
+  
+  .form-section {
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .chemicals-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .cancel-button,
+  .save-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-section {
+    padding: 20px 16px;
+  }
+  
+  .product-form {
+    padding: 16px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
 }
