@@ -64,26 +64,192 @@ export const addPlantime = async (req, res) => {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
-                if (i === 0) {
+                if (planTimeList.length !== 0) {
+                    if (planTimeList.length === 2) {
+                        planTime.product_id = products[0].product_id;
+                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
+                        planTime.machine = mac[machineIndex];
+                        planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        planTime.program_no = null;
+                        planTime.start_time = planTimeList[planTimeList.length - 1].primary_press_exit;
+                        planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                        planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+
+                        planTimeList.push({ ...planTime });
+
+                        if (true) {
+                            planTime.product_id = products[0].product_id;
+                            planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
+                            planTime.machine = mac[machineIndex];
+                            planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                            planTime.program_no = null;
+                            planTime.start_time = addMinutes(planTimeList[planTimeList.length - 1].mixing, config[1].stream_in);
+                            planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                            planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                            planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                            planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
+                            planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+                            planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+                            planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+                            planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+                            planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+                            planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+                            planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                            planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+                            planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+                            planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                            planTime.block = blockPerRound;
+
+                            planTimeList.push({ ...planTime });
+
+                            // อัปเดต pre_press_exit ของแถวแรก
+                            if (true) {
+                                planTimeList[planTimeList.length - 2].pre_press_exit = planTime.pre_press_exit;
+                                planTimeList[planTimeList.length - 2].primary_press_start = planTime.primary_press_start;
+                                planTimeList[planTimeList.length - 2].stream_in = planTime.stream_in;
+                                planTimeList[planTimeList.length - 2].primary_press_exit = planTime.primary_press_exit;
+                                planTimeList[planTimeList.length - 2].secondary_press_1_start = planTime.secondary_press_1_start;
+                                planTimeList[planTimeList.length - 2].temp_check_1 = planTime.temp_check_1;
+                                planTimeList[planTimeList.length - 2].secondary_press_2_start = planTime.secondary_press_2_start;
+                                planTimeList[planTimeList.length - 2].temp_check_2 = planTime.temp_check_2;
+                                planTimeList[planTimeList.length - 2].cooling = planTime.cooling;
+                                planTimeList[planTimeList.length - 2].secondary_press_exit = planTime.secondary_press_exit;
+                                planTimeList[planTimeList.length - 2].remove_work = planTime.remove_work;
+                                planTimeList[planTimeList.length - 2].block = planTime.block;
+                            }
+                        }
+                    } else {
+                        if (i >= 5) {
+                            planTime.product_id = products[0].product_id;
+                            planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
+                            planTime.machine = mac[machineIndex];
+                            planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                            planTime.program_no = null;
+                            planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+                            planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                            planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                            planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+
+                            planTimeList.push({ ...planTime });
+
+                            if (true) {
+                                planTime.product_id = products[0].product_id;
+                                planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
+                                planTime.machine = mac[machineIndex];
+                                planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                                planTime.program_no = null;
+                                planTime.start_time = planTimeList[planTimeList.length - 1].mixing;
+                                planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                                planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                                planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                                planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
+                                planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+                                planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+                                planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+                                planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+                                planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+                                planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+                                planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                                planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+                                planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+                                planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                                planTime.block = blockPerRound;
+
+                                planTimeList.push({ ...planTime });
+
+                                // อัปเดต pre_press_exit ของแถวแรก
+                                if (planTimeList.length > 1) {
+                                    planTimeList[planTimeList.length - 2].pre_press_exit = planTime.pre_press_exit;
+                                    planTimeList[planTimeList.length - 2].primary_press_start = planTime.primary_press_start;
+                                    planTimeList[planTimeList.length - 2].stream_in = planTime.stream_in;
+                                    planTimeList[planTimeList.length - 2].primary_press_exit = planTime.primary_press_exit;
+                                    planTimeList[planTimeList.length - 2].secondary_press_1_start = planTime.secondary_press_1_start;
+                                    planTimeList[planTimeList.length - 2].temp_check_1 = planTime.temp_check_1;
+                                    planTimeList[planTimeList.length - 2].secondary_press_2_start = planTime.secondary_press_2_start;
+                                    planTimeList[planTimeList.length - 2].temp_check_2 = planTime.temp_check_2;
+                                    planTimeList[planTimeList.length - 2].cooling = planTime.cooling;
+                                    planTimeList[planTimeList.length - 2].secondary_press_exit = planTime.secondary_press_exit;
+                                    planTimeList[planTimeList.length - 2].remove_work = planTime.remove_work;
+                                    planTimeList[planTimeList.length - 2].block = planTime.block;
+                                }
+                            }
+                        } else {
+                            planTime.product_id = products[0].product_id;
+                            planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
+                            planTime.machine = mac[machineIndex];
+                            planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                            planTime.program_no = null;
+                            planTime.start_time = planTimeList[planTimeList.length - 1].primary_press_exit;
+                            planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                            planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                            planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+
+                            planTimeList.push({ ...planTime });
+
+                            if (true) {
+                                planTime.product_id = products[0].product_id;
+                                planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
+                                planTime.machine = mac[machineIndex];
+                                planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                                planTime.program_no = null;
+                                planTime.start_time = planTimeList[planTimeList.length - 1].mixing;
+                                planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                                planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                                planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                                planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
+                                planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+                                planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+                                planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+                                planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+                                planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+                                planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+                                planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                                planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+                                planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+                                planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                                planTime.block = blockPerRound;
+
+                                planTimeList.push({ ...planTime });
+
+                                // อัปเดต pre_press_exit ของแถวแรก
+                                if (planTimeList.length > 1) {
+                                    planTimeList[planTimeList.length - 2].pre_press_exit = planTime.pre_press_exit;
+                                    planTimeList[planTimeList.length - 2].primary_press_start = planTime.primary_press_start;
+                                    planTimeList[planTimeList.length - 2].stream_in = planTime.stream_in;
+                                    planTimeList[planTimeList.length - 2].primary_press_exit = planTime.primary_press_exit;
+                                    planTimeList[planTimeList.length - 2].secondary_press_1_start = planTime.secondary_press_1_start;
+                                    planTimeList[planTimeList.length - 2].temp_check_1 = planTime.temp_check_1;
+                                    planTimeList[planTimeList.length - 2].secondary_press_2_start = planTime.secondary_press_2_start;
+                                    planTimeList[planTimeList.length - 2].temp_check_2 = planTime.temp_check_2;
+                                    planTimeList[planTimeList.length - 2].cooling = planTime.cooling;
+                                    planTimeList[planTimeList.length - 2].secondary_press_exit = planTime.secondary_press_exit;
+                                    planTimeList[planTimeList.length - 2].remove_work = planTime.remove_work;
+                                    planTimeList[planTimeList.length - 2].block = planTime.block;
+                                }
+                            }
+                        }
+                    }
+
+                } else {
                     planTime.product_id = products[0].product_id;
                     planTime.run_no = planTimeList.length + 1;
                     planTime.machine = mac[machineIndex];
                     planTime.batch_no = planTimeList.length + 1;
-                    planTime.program_no = null
+                    planTime.program_no = null;
                     planTime.start_time = startTimes;
                     planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
                     planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
                     planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                    planTime.block = blockPerRound
 
                     planTimeList.push({ ...planTime });
 
                     if (true) {
                         planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTime.run_no;
+                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
                         planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
+                        planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        planTime.program_no = null;
                         planTime.start_time = addMinutes(planTimeList[planTimeList.length - 1].mixing, config[1].solid_block);
                         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
                         planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
@@ -98,88 +264,26 @@ export const addPlantime = async (req, res) => {
                         planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
                         planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
                         planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                        planTime.remove_work_time = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
-                        planTime.block = blockPerRound
+                        planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                        planTime.block = blockPerRound;
 
                         planTimeList.push({ ...planTime });
-                    }
-                } else {
-                    if (i >= 5) {
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
-                        planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
-                        planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                        planTime.block = blockPerRound
 
-                        planTimeList.push({ ...planTime });
-                    } else {
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = planTimeList[planTimeList.length - 1].primary_press_exit;
-                        planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
-                        planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                        planTime.block = blockPerRound
-
-                        planTimeList.push({ ...planTime });
-                    }
-
-                    if (i === 1) {
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = addMinutes(planTimeList[planTimeList.length - 1].mixing, config[1].extruder_exit_time);
-                        planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
-                        planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                        planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
-                        planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                        planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                        planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                        planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                        planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                        planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                        planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                        planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                        planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                        planTime.remove_work_time = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
-                        planTime.block = blockPerRound
-
-                        planTimeList.push({ ...planTime });
-                    } else {
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = planTimeList[planTimeList.length - 1].mixing;
-                        planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
-                        planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                        planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
-                        planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                        planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                        planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                        planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                        planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                        planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                        planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                        planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                        planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                        planTime.remove_work_time = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
-                        planTime.block = blockPerRound
-
-                        planTimeList.push({ ...planTime });
+                        // อัปเดต pre_press_exit ของแถวแรก
+                        if (planTimeList.length > 1) {
+                            planTimeList[i].pre_press_exit = planTime.pre_press_exit;
+                            planTimeList[i].primary_press_start = planTime.primary_press_start;
+                            planTimeList[i].stream_in = planTime.stream_in;
+                            planTimeList[i].primary_press_exit = planTime.primary_press_exit;
+                            planTimeList[i].secondary_press_1_start = planTime.secondary_press_1_start;
+                            planTimeList[i].temp_check_1 = planTime.temp_check_1;
+                            planTimeList[i].secondary_press_2_start = planTime.secondary_press_2_start;
+                            planTimeList[i].temp_check_2 = planTime.temp_check_2;
+                            planTimeList[i].cooling = planTime.cooling;
+                            planTimeList[i].secondary_press_exit = planTime.secondary_press_exit;
+                            planTimeList[i].remove_work = planTime.remove_work;
+                            planTimeList[i].block = planTime.block;
+                        }
                     }
                 }
             }
@@ -348,7 +452,6 @@ export const addPlantime = async (req, res) => {
                 console.error(`❌ Insert error for item`, err);
             }
         }
-
 
         return res.json({
             message: "Plan Time Data successfully added",

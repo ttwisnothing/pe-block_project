@@ -1,0 +1,177 @@
+.foam-container {
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.foam-paper {
+  padding: 2rem;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 2rem !important;
+  color: #1976d2;
+  font-weight: 700 !important;
+}
+
+.foam-stepper {
+  margin-bottom: 3rem !important;
+}
+
+.foam-stepper .MuiStepLabel-root .MuiStepLabel-iconContainer .Mui-active {
+  color: #1976d2 !important;
+}
+
+.foam-stepper .MuiStepLabel-root .MuiStepLabel-iconContainer .Mui-completed {
+  color: #4caf50 !important;
+}
+
+.step-content-container {
+  margin-bottom: 2rem;
+}
+
+.step-content {
+  padding: 2rem !important;
+  border-radius: 12px !important;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem !important;
+  color: #333;
+  font-weight: 600 !important;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.step-icon {
+  color: #1976d2 !important;
+  font-size: 1.5rem !important;
+}
+
+.section-title {
+  font-weight: 600 !important;
+  color: #666;
+  margin-bottom: 1rem !important;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+.back-button {
+  color: #666 !important;
+  border-color: #e0e0e0 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+}
+
+.back-button:hover {
+  background: #f5f5f5 !important;
+  border-color: #ccc !important;
+}
+
+.save-button {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  color: white !important;
+  padding: 12px 32px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 12px rgba(25,118,210,0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(25,118,210,0.4) !important;
+}
+
+.next-button {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%) !important;
+  color: white !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.next-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76,175,80,0.4) !important;
+}
+
+/* Form Fields */
+.MuiTextField-root {
+  margin-bottom: 1rem !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2 !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .foam-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .foam-paper {
+    padding: 1.5rem;
+  }
+  
+  .step-content {
+    padding: 1.5rem !important;
+  }
+  
+  .navigation-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .back-button,
+  .save-button,
+  .next-button {
+    width: 100%;
+  }
+  
+  .foam-stepper {
+    .MuiStepLabel-label {
+      font-size: 0.8rem !important;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.75rem !important;
+  }
+  
+  .step-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

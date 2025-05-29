@@ -7,7 +7,7 @@ export const getProduction = async (req, res) => {
         const pool = await getPool();
         const request = pool.request();
 
-        let query = "SELECT * FROM production";
+        let query = "SELECT * FROM production_record";
         if (dateFrom && dateTo) {
             query += " WHERE record_date BETWEEN @dateFrom AND @dateTo";
             request.input("dateFrom", sql.DateTime, dateFrom);

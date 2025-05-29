@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button, IconButton } from "@mui/material";
+import { Button } from "@mui/material";
 import axios from "axios";
 import "./plantimetable.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../components/table/table.jsx";
-import CustomTable from "../../components/table/table"; 
-import DigitalClock from "../../components/clock/digitalClock.jsx";
+import CustomTable from "../../components/table/table";
+import CustomTableB150 from "../../components/table/tableb";
+import DigitalClock from "../../components/clock/digitalClock";
 import Swal from "sweetalert2";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import CloseIcon from '@mui/icons-material/Close';
-import BuildIcon from '@mui/icons-material/Build';
-import PrintIcon from '@mui/icons-material/Print';
+import CloseIcon from "@mui/icons-material/Close";
+import BuildIcon from "@mui/icons-material/Build";
 
 let alertAudio = null;
 
@@ -26,7 +25,7 @@ const playAlertSound = (alertDuration) => {
       alertAudio.currentTime = 0;
     }
   }, alertDuration);
-}
+};
 
 const PlanTimeTable = () => {
   const location = useLocation();
@@ -38,6 +37,7 @@ const PlanTimeTable = () => {
   const [currentRow, setCurrentRow] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [tableType, setTableType] = useState("default");
 
   // เพิ่ม effect เพื่ออัปเดตเวลาปัจจุบันทุกวินาที
   useEffect(() => {
@@ -62,6 +62,9 @@ const PlanTimeTable = () => {
       navigate("/plantime");
       return;
     }
+
+    // เรียกใช้ determineTableType ด้วย productName จาก savedData
+    determineTableType(savedData.productName);
 
     // จัดเรียงข้อมูลตาม run_no และ batch_no
     const sortedPlanTimes = [...savedData.planTimes].sort((a, b) => {
@@ -89,9 +92,13 @@ const PlanTimeTable = () => {
       savedData.planTimes.forEach((row) => {
         Object.entries(row).forEach(([key, timeValue]) => {
           // ข้ามฟิลด์ที่ไม่ใช่เวลา
-          if (!timeValue || typeof timeValue !== "string" || 
-              !timeValue.includes(":") || 
-              ['run_no', 'batch_no', 'id', 'product_id'].includes(key)) return;
+          if (
+            !timeValue ||
+            typeof timeValue !== "string" ||
+            !timeValue.includes(":") ||
+            ["run_no", "batch_no", "id", "product_id"].includes(key)
+          )
+            return;
 
           // แปลงเวลาเป็นวัตถุ Date
           const [hours, minutes, seconds] = timeValue.split(":");
@@ -103,16 +110,25 @@ const PlanTimeTable = () => {
           // ปรับปรุงหาแถวที่ใกล้เวลาปัจจุบันที่สุด
           if (Math.abs(diff) < closestDiff) {
             closestDiff = Math.abs(diff);
-            closestRow = {...row, closestField: key};
+            closestRow = { ...row, closestField: key };
           }
 
           // แจ้งเตือนล่วงหน้า 5-10 นาที
-          if (diff >= 0 && diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
+          if (
+            diff >= 0 &&
+            diff >= NOTIFY_BEFORE_MS &&
+            diff <= NOTIFY_WITHIN_MS
+          ) {
             // คำนวณเวลาที่เหลือเป็นนาที
             const minutesLeft = Math.floor(diff / 60000);
-            
+
             toast.warn(
-              `⏰ เตือน! ขั้นตอน ${key.replace('_', ' ')} สำหรับ ${savedData.productName} จะเกิดขึ้นในอีก ${minutesLeft} นาที (${eventTime.toLocaleTimeString("th-TH", { hour12: false })})`
+              `⏰ เตือน! ขั้นตอน ${key.replace("_", " ")} สำหรับ ${
+                savedData.productName
+              } จะเกิดขึ้นในอีก ${minutesLeft} นาที (${eventTime.toLocaleTimeString(
+                "th-TH",
+                { hour12: false }
+              )})`
             );
           }
 
@@ -120,23 +136,29 @@ const PlanTimeTable = () => {
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
             const alertDuration = 10000; // 10 วินาที
-            
+
             Swal.fire({
               title: "🚨 ถึงเวลาดำเนินการ!",
               html: `<div class="alert-content">
-                     <p><strong>ขั้นตอน:</strong> ${key.replace('_', ' ')}</p>
-                     <p><strong>เวลา:</strong> ${eventTime.toLocaleTimeString("th-TH", { hour12: false })}</p>
-                     <p><strong>สินค้า:</strong> ${savedData.productName} (${savedData.colorName || '-'})</p>
+                     <p><strong>ขั้นตอน:</strong> ${key.replace("_", " ")}</p>
+                     <p><strong>เวลา:</strong> ${eventTime.toLocaleTimeString(
+                       "th-TH",
+                       { hour12: false }
+                     )}</p>
+                     <p><strong>สินค้า:</strong> ${savedData.productName} (${
+                savedData.colorName || "-"
+              })</p>
                      </div>`,
               timer: alertDuration,
               timerProgressBar: true,
               showConfirmButton: true,
-              confirmButtonText: 'รับทราบ',
+              confirmButtonText: "รับทราบ",
               didOpen: () => {
                 playAlertSound(alertDuration);
                 Swal.showLoading();
                 timeInterval = setInterval(() => {
-                  const timer = Swal.getHtmlContainer().querySelector("b.timer-left");
+                  const timer =
+                    Swal.getHtmlContainer().querySelector("b.timer-left");
                   if (timer) {
                     timer.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
                   }
@@ -150,7 +172,7 @@ const PlanTimeTable = () => {
                   alertAudio.pause();
                   alertAudio.currentTime = 0;
                 }
-              }
+              },
             });
           }
         });
@@ -170,7 +192,10 @@ const PlanTimeTable = () => {
 
       const timeoutId = setTimeout(() => {
         alertNotification(); // รันครั้งแรกทันที
-        intervalRef.current = setInterval(alertNotification, NOTICATION_INTERVAL);
+        intervalRef.current = setInterval(
+          alertNotification,
+          NOTICATION_INTERVAL
+        );
       }, delay);
 
       return () => {
@@ -184,6 +209,39 @@ const PlanTimeTable = () => {
     return setupAlertInterval();
   }, [navigate, location.state]);
 
+  // ฟังก์ชันสำหรับกำหนดประเภทตาราง
+  const determineTableType = (productName) => {
+    if (productName && productName.includes("B-150")) {
+      setTableType("b150");
+    } else if (productName && productName.includes("RP-300S")) {
+      setTableType("default");
+    } else {
+      setTableType("default");
+    }
+  };
+
+  const renderTable = () => {
+    switch (tableType) {
+      case "b150":
+        return (
+          <CustomTableB150
+            data={planTimes}
+            formatTime={formatTime}
+            currentRow={currentRow}
+          />
+        );
+      case "default":
+      default:
+        return (
+          <CustomTable
+            data={planTimes}
+            formatTime={formatTime}
+            currentRow={currentRow}
+          />
+        );
+    }
+  };
+
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
     if (!time || typeof time !== "string" || !time.includes(":")) return "";
@@ -194,14 +252,16 @@ const PlanTimeTable = () => {
   // ฟังก์ชันสำหรับตรวจสอบเครื่องจักร
   const handleMachineBreakdown = async () => {
     setIsLoading(true);
-    
+
     try {
       // แสดงสถานะ loading
       const pendingToastId = toast.loading("⏳ กำลังเพิ่มข้อมูลแผนชั่วคราว...");
 
       // เรียก API
-      const response = await axios.post(`/api/post/plantime/temp/add/${productName}`);
-      
+      const response = await axios.post(
+        `/api/post/plantime/temp/add/${productName}`
+      );
+
       if (response.status !== 200) {
         throw new Error("❌ ไม่สามารถเพิ่มข้อมูลแผนชั่วคราวได้");
       }
@@ -227,16 +287,12 @@ const PlanTimeTable = () => {
     }
   };
 
-  // ฟังก์ชันสำหรับพิมพ์แผนเวลา
-  const handlePrint = () => {
-    window.print();
-  };
 
   return (
     <div className="table-container">
       <div className="table-header-section">
         <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
-        
+
         <div className="top-buttons">
           <Button
             variant="contained"
@@ -246,26 +302,15 @@ const PlanTimeTable = () => {
           >
             ปิดตารางเวลา
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<PrintIcon />}
-            onClick={handlePrint}
-            className="print-button"
-          >
-            พิมพ์แผนเวลา
-          </Button>
         </div>
       </div>
 
       <div className="product-info-section">
         <div className="table-header">
           <h2>
-            <span className="product-label">สินค้า:</span> 
+            <span className="product-label">สินค้า:</span>
             <span className="product-name">{productName}</span>
-            {colorName && (
-              <span className="product-color">({colorName})</span>
-            )}
+            {colorName && <span className="product-color">({colorName})</span>}
           </h2>
         </div>
 
@@ -274,20 +319,15 @@ const PlanTimeTable = () => {
           <div className="current-step">
             <div className="current-step-label">ขั้นตอนปัจจุบัน:</div>
             <div className="current-step-value">
-              {currentRow.closestField && currentRow.closestField.replace('_', ' ')}
+              {currentRow.closestField &&
+                currentRow.closestField.replace("_", " ")}
             </div>
           </div>
         )}
       </div>
 
       {/* ใช้ CustomTable */}
-      <div className="table-responsive">
-        <CustomTable
-          data={planTimes}
-          formatTime={formatTime}
-          currentRow={currentRow}
-        />
-      </div>
+      <div className="table-responsive">{renderTable()}</div>
 
       <div className="footer-actions">
         <Button
@@ -301,7 +341,7 @@ const PlanTimeTable = () => {
           {isLoading ? "กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
         </Button>
       </div>
-      
+
       <ToastContainer position="top-right" limit={3} />
     </div>
   );

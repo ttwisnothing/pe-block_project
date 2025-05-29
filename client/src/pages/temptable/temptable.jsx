@@ -218,15 +218,19 @@ const TempTable = () => {
 
   return (
     <div className="table-container">
-      <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
-      <div className="top-buttons">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => window.close()}
-        >
-          Close Table
-        </Button>
+      <div className="table-header-section">
+        <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
+
+        <div className="top-buttons">
+          <Button
+            variant="contained"
+            startIcon={<CloseIcon />}
+            onClick={() => window.close()}
+            className="close-button"
+          >
+            ปิดตารางเวลา
+          </Button>
+        </div>
       </div>
 
       <div className="table-header">

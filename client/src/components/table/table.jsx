@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import "./table.css";
  
-const CustomTable = ({ data, formatTime, currentRow }) => {
+const CustomTable = ({ data, formatTime, }) => {
   // ฟังก์ชันตรวจสอบว่าเป็นแถวแรกของรอบการผลิตหรือไม่
   const isFirstRowForRun = (index, data) => {
     return index === 0 || data[index].run_no !== data[index - 1].run_no;
@@ -21,12 +21,6 @@ const CustomTable = ({ data, formatTime, currentRow }) => {
     const currentRunNo = data[index].run_no;
     return data.filter(p => p.run_no === currentRunNo).length;
   };
-  
-  // ฟังก์ชันตรวจสอบว่าเป็นแถวปัจจุบันหรือไม่
-  const isCurrentRow = (row) => {
-    if (!currentRow) return false;
-    return row.batch_no === currentRow.batch_no && row.run_no === currentRow.run_no;
-  };
 
   return (
     <TableContainer component={Paper} className="custom-table-container">
@@ -36,6 +30,7 @@ const CustomTable = ({ data, formatTime, currentRow }) => {
             <TableCell>Run No</TableCell>
             <TableCell>เครื่อง</TableCell>
             <TableCell>Batch No</TableCell>
+            <TableCell>Program</TableCell>
             <TableCell>เริ่มเดินงาน</TableCell>
             <TableCell>เวลาผสมเสร็จ</TableCell>
             <TableCell>ออกจาก เอ็กซ์ทรูดเดอร์</TableCell>
@@ -56,7 +51,6 @@ const CustomTable = ({ data, formatTime, currentRow }) => {
           {data.map((plan, index) => {
             const isFirst = isFirstRowForRun(index, data);
             const rowSpan = isFirst ? calculateRowSpan(data, index) : 1;
-            const isCurrent = isCurrentRow(plan);
 
             return (
               <React.Fragment key={index}>
@@ -68,7 +62,7 @@ const CustomTable = ({ data, formatTime, currentRow }) => {
                   </TableRow>
                 )}
 
-                <TableRow className={isCurrent ? "current-row" : ""}>
+                <TableRow>
                   {isFirst && (
                     <TableCell rowSpan={rowSpan}>
                       {plan.run_no}
@@ -80,6 +74,7 @@ const CustomTable = ({ data, formatTime, currentRow }) => {
                     </TableCell>
                   )}
                   <TableCell>{plan.batch_no}</TableCell>
+                  <TableCell>{plan.program}</TableCell>
                   {!plan.start_time && !plan.mixing && !plan.extruder_exit ? (
                     <TableCell colSpan={3} className="missing-time">
                     </TableCell>

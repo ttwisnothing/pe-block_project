@@ -52,30 +52,27 @@ const Home = () => {
         <Container maxWidth="lg">
           <Box className="hero-content">
             <Typography variant="h2" component="h1" className="hero-title">
-              ระบบจัดการ PE Block
+              PE-BLOCK DEPARTMENT
             </Typography>
             <Typography variant="h5" className="hero-subtitle">
-              จัดการการผลิตและแผนเวลาอย่างมีประสิทธิภาพ
-            </Typography>
-            <Typography variant="body1" className="hero-description">
-              ระบบที่ช่วยให้คุณสามารถวางแผนการผลิต ติดตามความคืบหน้า 
-              และจัดการสินค้าได้อย่างง่ายดายและแม่นยำ
+              จัดการแผนการผลิตและข้อมูลการผลิตอย่างมีประสิธิภาพ
             </Typography>
             <Box className="hero-buttons">
               <Button 
                 variant="contained" 
                 size="large" 
                 className="primary-button"
-                onClick={() => window.location.href = '/listplan'}
+                onClick={() => window.location.href = '/plantime'}
               >
-                เริ่มใช้งาน
+                สร้างแผนการผลิต
               </Button>
               <Button 
                 variant="outlined" 
                 size="large" 
                 className="secondary-button"
+                onClick={() => window.location.href = '/production-foam/create'}
               >
-                เรียนรู้เพิ่มเติม
+                บันทึกข้อมูลการผลิต
               </Button>
             </Box>
           </Box>
@@ -142,31 +139,11 @@ const Home = () => {
         </Container>
       </Box>
 
-      {/* CTA Section */}
-      <Box className="cta-section">
-        <Container maxWidth="md">
-          <Typography variant="h4" className="cta-title">
-            พร้อมเริ่มต้นแล้วหรือยัง?
-          </Typography>
-          <Typography variant="body1" className="cta-description">
-            เริ่มใช้ระบบจัดการ PE Block วันนี้ และเพิ่มประสิทธิภาพการผลิตของคุณ
-          </Typography>
-          <Button 
-            variant="contained" 
-            size="large" 
-            className="cta-button"
-            onClick={() => window.location.href = '/listplan'}
-          >
-            เริ่มใช้งานทันที
-          </Button>
-        </Container>
-      </Box>
-
       {/* Footer */}
       <Box className="home-footer">
         <Container maxWidth="lg">
           <Typography variant="body2">
-            &copy; 2025 PE Block Management System. สงวนลิขสิทธิ์.
+            &copy; 2025 PE Block Department, Inoac Industries (Thailand) co. ltd. สงวนลิขสิทธิ์.
           </Typography>
         </Container>
       </Box>

@@ -31,10 +31,7 @@ const Navbar = () => {
       {/* Logo */}
       <div className="navbar-logo">
         <Link to="/" onClick={closeMenu}>
-          <div className="logo-wrapper">
-            <img src={logo} alt="PE Block Logo" />
-          </div>
-          <span className="navbar-brand">PE Block</span>
+          <img src={logo} alt="PE Block Logo" className="full-logo" />
         </Link>
       </div>
 
@@ -53,7 +50,6 @@ const Navbar = () => {
           onMouseLeave={handleMouseLeave}
         >
           <button className="navbar-dropdown-button">
-            <span>📦</span>
             New Part
             <span className="dropdown-arrow">▼</span>
           </button>
@@ -61,13 +57,11 @@ const Navbar = () => {
             <ul className="navbar-dropdown-menu">
               <li>
                 <Link to="/product" className="navbar-dropdown-item" onClick={closeMenu}>
-                  <span>🏷️</span>
                   New Products
                 </Link>
               </li>
               <li>
                 <Link to="/config-time" className="navbar-dropdown-item" onClick={closeMenu}>
-                  <span>⚙️</span>
                   New Config Time
                 </Link>
               </li>
@@ -81,7 +75,6 @@ const Navbar = () => {
           onMouseLeave={handleMouseLeave}
         > 
           <button className="navbar-dropdown-button">
-            <span>📅</span>
             Plan Time
             <span className="dropdown-arrow">▼</span>
           </button>
@@ -89,14 +82,37 @@ const Navbar = () => {
             <ul className="navbar-dropdown-menu">
               <li>
                 <Link to="/plantime" className="navbar-dropdown-item" onClick={closeMenu}>
-                  <span>➕</span>
                   สร้างแผนเวลา
                 </Link>
               </li>
               <li>
                 <Link to="/plantime-list" className="navbar-dropdown-item" onClick={closeMenu}>
-                  <span>📋</span>
                   Plan Time List
+                </Link>
+              </li>
+            </ul>
+          )}
+        </li>
+
+        <li
+          className="navbar-dropdown"
+          onMouseEnter={() => handleMouseEnter('production')}
+          onMouseLeave={handleMouseLeave}
+        > 
+          <button className="navbar-dropdown-button">
+            Production
+            <span className="dropdown-arrow">▼</span>
+          </button>
+          {isDropdownOpen && activeDropdown === 'production' && (
+            <ul className="navbar-dropdown-menu">
+              <li>
+                <Link to="/production-foam" className="navbar-dropdown-item" onClick={closeMenu}>
+                  Foaming
+                </Link>
+              </li>
+              <li>
+                <Link to="/production-slice" className="navbar-dropdown-item" onClick={closeMenu}>
+                  Slice Baeumer
                 </Link>
               </li>
             </ul>
@@ -104,16 +120,8 @@ const Navbar = () => {
         </li>
         
         <li>
-          <Link to="/production" className="navbar-item" onClick={closeMenu}>
-            <span>🏭</span>
-            Production
-          </Link>
-        </li>
-        
-        <li>
           <Link to="/compare" className="navbar-item" onClick={closeMenu}>
-            <span>📊</span>
-            เปรียบเทียบเวลา
+            Status Report
           </Link>
         </li>
       </ul>

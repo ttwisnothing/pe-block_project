@@ -10,6 +10,7 @@ import Products from "./pages/product/product";
 import Config from './pages/config/config';
 import Production from './pages/productiondata/production';
 import ListPlan from './pages/plantimelist/listplan';
+import FoamRecord from './pages/foam-record/foam';
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
           <Route path="/plantime" element={ <> <Navbar /> <PlanTime /> </> } />
           <Route path="/product" element={ <> <Navbar /> <Products /> </> } />
           <Route path="/config-time" element={ <> <Navbar /> <Config /> </> } />
-          <Route path="/production" element={ <> <Navbar /> <Production /> </> } />
+          <Route path="/production-foam" element={ <> <Navbar /> <Production /> </> } />
+          <Route path="/production-foam/create" element={ <> <Navbar /> <FoamRecord /> </> } />
           <Route path="/plantime-list" element={ <> <Navbar /> <ListPlan /> </> } />
 
           {/* เส้นทางที่ไม่มี Navbar */}
