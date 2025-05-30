@@ -2,8 +2,8 @@ import express from 'express';
 import { getPlanTime, listPlantime } from './../controllers/plantimeController.js';
 import { getTempPlanTime, getTempPlanTimeASC } from '../controllers/tempController.js';
 import { getChemicals, getProducts, getProductsName } from './../controllers/productController.js';
-import { addPlantime } from '../models/plantimeModel.js';
 import { getProduction } from '../controllers/productionController.js';
+import { addProductRecord } from '../models/productionModel.js';
 // import { testPlantime } from '../models/plantimeModel.js';
 
 const router = express.Router();
@@ -16,6 +16,6 @@ router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
 router.get('/all-products', getProducts);
 router.get('/list-plantime', listPlantime);
 router.post('/production/all', getProduction);
-// router.get('/test-plantime/get/:product_name', addPlantime);
+router.get('/test-plantime/get/:proName', addProductRecord);
 
 export default router;

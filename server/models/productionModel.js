@@ -41,6 +41,104 @@ export const addProduction = async (req, res) => {
     }
 }
 
+export const addProductRecord = async (req, res) => {
+    const { proName } = req.params;
+    const { recordDate } = req.query; // รับวันที่จาก query parameter
+
+    const query = `
+        SELECT pt.product_id, CONCAT(rt.product_name, '(', rt.color_name, ')') AS production_name, 
+        start_time, secondary_press_exit, remove_work
+        FROM plan_time_mst pt
+        INNER JOIN product_mst rt ON pt.product_id = rt.product_id
+        WHERE rt.product_name = @proName
+        ORDER BY pt.run_no ASC, pt.batch_no ASC
+    `;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        request.input('proName', sql.VarChar, proName);
+
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: "ไม่พบข้อมูลสำหรับผลิตภัณฑ์นี้" });
+        }
+
+        // รับค่าวันที่จาก query หรือใช้วันที่ปัจจุบันถ้าไม่มี
+        const currentDate = recordDate || new Date().toISOString().split('T')[0];
+
+        // Find the last valid time value
+        let lastValidTime = null;
+        for (const record of result.recordset) {
+            if (record.remove_work) {
+                lastValidTime = record.remove_work;
+            } else if (record.secondary_press_exit) {
+                lastValidTime = record.secondary_press_exit;
+            }
+        }
+
+        // ตรวจสอบว่าเวลาเริ่มต้นและเวลาสิ้นสุดควรเป็นวันเดียวกันหรือไม่
+        const startTime = result.recordset[0].start_time;
+        let endDate = currentDate;
+
+        // ถ้ามีทั้งเวลาเริ่มต้นและเวลาสิ้นสุด ให้ตรวจสอบว่าเวลาสิ้นสุดควรเป็นวันถัดไปหรือไม่
+        if (startTime && lastValidTime) {
+            const startHour = parseInt(startTime.split(':')[0], 10);
+            const endHour = parseInt(lastValidTime.split(':')[0], 10);
+
+            // ถ้าเวลาสิ้นสุดน้อยกว่าเวลาเริ่มต้น แสดงว่าข้ามวัน
+            if (endHour < startHour) {
+                // สร้างวันถัดไป
+                const nextDay = new Date(currentDate);
+                nextDay.setDate(nextDay.getDate() + 1);
+                endDate = nextDay.toISOString().split('T')[0];
+            }
+        }
+
+        // รวมวันที่กับเวลา พร้อมระบุ timezone offset ให้ชัดเจน
+        const formattedStartTime = startTime ?
+            new Date(`${currentDate}T${startTime}+07:00`).toISOString() : null;
+
+        const formattedEndTime = lastValidTime ?
+            new Date(`${endDate}T${lastValidTime}+07:00`).toISOString() : null;
+
+        // Insert ข้อมูลลงในตาราง product_record
+        const queryIns = `
+            INSERT INTO production_record (
+                product_id, product_name, record_date, start_time, end_time
+            ) VALUES (
+                @productId, @productName, @recordDate, @startTime, @endTime
+            )
+        `;
+
+        const insertRequest = pool.request();
+        
+        // กำหนด Parameters สำหรับ INSERT
+        insertRequest.input('productId', sql.Int, result.recordset[0].product_id);
+        insertRequest.input('productName', sql.VarChar, result.recordset[0].production_name);
+        insertRequest.input('recordDate', sql.Date, currentDate);
+        insertRequest.input('startTime', sql.DateTimeOffset, formattedStartTime);
+        insertRequest.input('endTime', sql.DateTimeOffset, formattedEndTime);
+
+        await insertRequest.query(queryIns);
+
+        res.status(201).json({
+            message: "✅ บันทึกข้อมูลผลิตภัณฑ์สำเร็จ",
+            productId: result.recordset[0].product_id,
+            productName: result.recordset[0].production_name,
+            recordDate: currentDate,
+            startTime: formattedStartTime,
+            endTime: formattedEndTime
+        });
+
+    } catch (error) {
+        console.error("❌ Error in adding product record: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 export const addChemicalNameStep = async (req, res) => {
     const { batchNo, chemistryName } = req.body;
 
