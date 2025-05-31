@@ -4,7 +4,7 @@ import { Button } from "@mui/material";
 import axios from "axios";
 import "./temptable.css";
 import CustomTable from "../../components/table/table"; // นำเข้า CustomTable
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2"; // นำเข้า SweetAlert2
 import DigitalClock from "../../components/clock/digitalClock.jsx"; // นำเข้า DigitalClock
@@ -255,7 +255,6 @@ const TempTable = () => {
           ตรวจสอบเครื่องจักร
         </Button>
       </div>
-      <ToastContainer limit={2} />
     </div>
   );
 };

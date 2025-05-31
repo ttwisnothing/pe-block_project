@@ -3,7 +3,7 @@ import sql from 'mssql';
 
 // ดึงชื่อ Product ทั้งหมดจากฐานข้อมูล
 export const getProductsName = async (req, res) => {
-    const query = `SELECT DISTINCT product_name AS name FROM product_mst`;
+    const query = `SELECT DISTINCT product_name AS name FROM PT_product_mst`;
 
     try {
         const pool = await getPool();
@@ -26,7 +26,7 @@ export const getProducts = async (req, res) => {
         const columnQuery = `
             SELECT COLUMN_NAME
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_NAME = 'product_mst' AND COLUMN_NAME LIKE 'chemical_%'
+            WHERE TABLE_NAME = 'PT_product_mst' AND COLUMN_NAME LIKE 'chemical_%'
             ORDER BY COLUMN_NAME
         `
 
@@ -35,7 +35,7 @@ export const getProducts = async (req, res) => {
 
         const query = `
             SELECT ${chemicalColumns.join(', ')} 
-            FROM product_mst 
+            FROM PT_product_mst 
             WHERE product_name = @product_name AND color_name = @color
         `;
 
@@ -71,7 +71,7 @@ export const getProducts = async (req, res) => {
 export const getChemicals = async (req, res) => {
     try {
         const pool = await getPool();
-        const result = await pool.request().query(`SELECT chemical_name AS name, type_chem FROM chemical_mst`);
+        const result = await pool.request().query(`SELECT chemical_name AS name, type_chem FROM PT_chemical_mst`);
         const chemicals = result.recordset;
 
         // แยก chemicals ตาม type

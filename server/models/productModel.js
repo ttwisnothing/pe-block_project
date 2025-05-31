@@ -8,7 +8,7 @@ export const addProduct = async (req, res) => {
     const chemicalColumns = Array.from({ length: maxChemicals }, (_, i) => `chemical_${i + 1}`);
 
     const query = `
-        INSERT INTO product_mst (
+        INSERT INTO PT_product_mst (
             product_name, color_name, status, resin, foaming, color, bPerRound, bUse, ${chemicalColumns.join(", ")}
         ) VALUES (
             @product_name, @color_name, @status, @resin, @foaming, @color, @bPerRound, @bUse, ${chemicalColumns.map(col => `@${col}`).join(", ")}
@@ -44,7 +44,7 @@ export const addProduct = async (req, res) => {
 
 export const addChemical = async (req, res) => {
     const { chemical_name } = req.body;
-    const query = `INSERT INTO chemical_mst (chemical_name) VALUES (@chemical_name)`;
+    const query = `INSERT INTO PT_chemical_mst (chemical_name) VALUES (@chemical_name)`;
 
     try {
         const pool = await getPool();

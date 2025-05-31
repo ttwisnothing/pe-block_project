@@ -9,15 +9,15 @@ export const addTempPlanTime = async (req, res) => {
         const request = pool.request();
 
         // ลบข้อมูลทั้งหมดใน temp_plan_table
-        await request.query(`DELETE FROM temp_time_mst`);
+        await request.query(`DELETE FROM PT_temp_time_mst`);
 
         // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
-        await request.query(`DBCC CHECKIDENT ('temp_time_mst', RESEED, 0)`);
+        await request.query(`DBCC CHECKIDENT ('PT_temp_time_mst', RESEED, 0)`);
 
         const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
             SELECT pt.*
-            FROM plan_time_mst pt
-            INNER JOIN product_mst pm ON pt.product_id = pm.product_id
+            FROM PT_plan_time_mst pt
+            INNER JOIN PT_product_mst pm ON pt.product_id = pm.product_id
             WHERE pm.product_name = @product_name
         `);
         const planTimes = planTimesResult.recordset;
@@ -32,7 +32,7 @@ export const addTempPlanTime = async (req, res) => {
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
             const query = `
-                INSERT INTO temp_time_mst (
+                INSERT INTO PT_temp_time_mst (
                     product_id, run_no, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
@@ -72,8 +72,8 @@ export const addTempMB = async (req, res) => {
 
         const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
             SELECT tpt.*
-            FROM temp_time_mst tpt
-            INNER JOIN product_mst pm ON tpt.product_id = pm.product_id
+            FROM PT_temp_time_mst tpt
+            INNER JOIN PT_product_mst pm ON tpt.product_id = pm.product_id
             WHERE pm.product_name = @product_name
         `);
         const planTimes = planTimesResult.recordset;
@@ -83,10 +83,10 @@ export const addTempMB = async (req, res) => {
         }
 
         // ลบข้อมูลทั้งหมดใน temp_plan_table
-        await request.query(`DELETE FROM temp_time_mst`);
+        await request.query(`DELETE FROM PT_temp_time_mst`);
 
         // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
-        await request.query(`DBCC CHECKIDENT ('temp_time_mst', RESEED, 0)`);
+        await request.query(`DBCC CHECKIDENT ('PT_temp_time_mst', RESEED, 0)`);
 
         // INSERT ข้อมูลลงใน temp_plan_table
         for (const plan of planTimes) {
@@ -94,7 +94,7 @@ export const addTempMB = async (req, res) => {
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
             const query = `
-                INSERT INTO temp_time_mst (
+                INSERT INTO PT_temp_time_mst (
                     product_id, run_no, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
@@ -105,7 +105,7 @@ export const addTempMB = async (req, res) => {
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
-                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.block)}
+                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.foam_block)}
                 )
             `;
 
@@ -138,8 +138,8 @@ export const updateNewStartTime = async (req, res) => {
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
-            FROM temp_plan_table pt
-            INNER JOIN product_mst rt ON pt.product_id = rt.product_id
+            FROM PT_temp_plan_table pt
+            INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = @product_name
         `);
         const tempPlanTimes = tempPlanTimesResult.recordset;
@@ -151,7 +151,7 @@ export const updateNewStartTime = async (req, res) => {
         // ดึงข้อมูล Product จาก product_master
         const productsResult = await request.query(`
             SELECT *
-            FROM product_mst
+            FROM PT_product_mst
             WHERE product_name = @product_name
         `);
         const products = productsResult.recordset;
@@ -164,7 +164,7 @@ export const updateNewStartTime = async (req, res) => {
         request.input('product_name_like', sql.VarChar, `%${product_name}%`);
         const configResult = await request.query(`
                     SELECT *
-                    FROM config_time
+                    FROM PT_config_time
                     WHERE @product_name_like LIKE CONCAT('%', config_group, '%')
                 `);
         const config = configResult.recordset;
@@ -362,7 +362,7 @@ export const updateNewStartTime = async (req, res) => {
                 .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
                 .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
                 .query(`
-                    UPDATE temp_plan_table
+                    UPDATE PT_temp_plan_table
                     SET start_time = @start_time,
                         mixing = @mixing,
                         extruder_exit = @extruder_exit,
@@ -424,8 +424,8 @@ export const updateMac = async (req, res) => {
 
         const existingTempPlanTimesResult = await request.query(`
             SELECT pt.temp_id
-            FROM temp_plan_table pt
-            INNER JOIN product_mst pm ON pt.product_id = pm.product_id
+            FROM PT_temp_plan_table pt
+            INNER JOIN PT_product_mst pm ON pt.product_id = pm.product_id
             WHERE pm.product_name = @product_name AND pt.temp_id IN (${tempIdsString})
         `);
         const existingTempPlanTimes = existingTempPlanTimesResult.recordset;
@@ -441,7 +441,7 @@ export const updateMac = async (req, res) => {
             updateRequest.input('temp_id', sql.Int, machine.temp_id);
 
             await updateRequest.query(`
-                UPDATE temp_plan_table
+                UPDATE PT_temp_plan_table
                 SET machine = @new_machine_name
                 WHERE temp_id = @temp_id
             `);

@@ -1,47 +1,79 @@
 /* Container for the table */
 .table-container {
-  padding: 24px;
+  padding: 20px;
   background-color: #f9f9f9;
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  max-width: none;
   margin: 0;
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 100vh;
 }
 
-/* Header section with clock and buttons */
+/* Header Section */
 .table-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-}
-
-/* Product info section */
-.product-info-section {
-  background-color: #fff;
+  padding: 0 20px;
+  background-color: #ffffff;
   border-radius: 8px;
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 15px 20px;
 }
 
-/* Title for the table */
-.table-title {
+/* Top buttons container */
+.top-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.top-buttons button,
+.close-button {
+  background-color: #dc3545 !important;
+  color: white !important;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 200px;
+  height: 50px;
   text-align: center;
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.top-buttons button:hover,
+.close-button:hover {
+  background-color: #c82333 !important;
+  transform: scale(1.05);
+}
+
+/* Product Info Section */
+.product-info-section {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 20px;
   margin-bottom: 20px;
-  color: #333;
 }
 
 /* Header for Recipe */
 .table-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  justify-content: flex-start;
+  margin-bottom: 15px;
+  padding: 0;
 }
 
 .table-header h2 {
@@ -50,183 +82,235 @@
   margin: 0;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .product-label {
-  font-weight: 500;
-  color: #555;
+  color: #666;
+  font-weight: normal;
 }
 
 .product-name {
-  font-weight: 700;
-  color: #1976d2;
+  color: #007bff;
+  font-weight: bold;
 }
 
 .product-color {
-  font-weight: 500;
-  color: #666;
+  color: #28a745;
+  font-weight: normal;
+  font-style: italic;
 }
 
-.current-time {
-  font-size: 1rem;
-  color: #666;
-  background: rgba(25, 118, 210, 0.08);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-/* Current step indicator */
+/* Current Step Display */
 .current-step {
   display: flex;
-  gap: 12px;
   align-items: center;
-  background-color: #e8f4fd;
-  padding: 12px 16px;
-  border-radius: 6px;
-  border-left: 4px solid #1976d2;
-  margin-top: 12px;
+  gap: 15px;
+  padding: 15px;
+  background-color: #e8f4f8;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+  margin-top: 15px;
 }
 
 .current-step-label {
-  font-weight: 600;
-  color: #555;
+  font-weight: bold;
+  color: #333;
+  font-size: 1.1rem;
 }
 
 .current-step-value {
-  font-weight: 700;
-  color: #1976d2;
+  color: #007bff;
+  font-weight: bold;
+  font-size: 1.2rem;
   text-transform: capitalize;
-  font-size: 1.1rem;
 }
 
-/* Table responsive container */
+/* Table Responsive Container */
 .table-responsive {
-  overflow-x: auto;
-  background: #fff;
+  background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Footer actions */
+/* Footer Actions */
 .footer-actions {
   display: flex;
   justify-content: flex-start;
-  margin-top: 20px;
-  gap: 16px;
-}
-
-/* Button styles */
-.top-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.top-buttons button {
-  min-width: 160px;
-  height: 48px;
-}
-
-.close-button {
-  background-color: #f44336 !important;
-}
-
-.close-button:hover {
-  background-color: #d32f2f !important;
-}
-
-.print-button {
-  background-color: #673ab7 !important;
-}
-
-.print-button:hover {
-  background-color: #5e35b1 !important;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .machine-button {
-  background-color: #2196f3 !important;
+  background-color: #ffc107 !important;
+  color: #000 !important;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 200px;
-  height: 48px;
+  height: 50px;
 }
 
 .machine-button:hover {
-  background-color: #1976d2 !important;
+  background-color: #e0a800 !important;
+  transform: scale(1.05);
 }
 
-/* Alert styling */
-.alert-content {
-  text-align: left;
-  margin: 16px 0;
-  font-size: 1.1rem;
-  line-height: 1.6;
+.machine-button:disabled {
+  background-color: #6c757d !important;
+  color: #ffffff !important;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.alert-content p {
-  margin: 8px 0;
+/* Legacy Footer Button (สำหรับ backward compatibility) */
+.footer-button {
+  align-self: flex-start;
 }
 
-/* Print styles */
-@media print {
-  .top-buttons,
-  .footer-actions,
-  .Toastify,
-  .digital-clock {
-    display: none !important;
-  }
-  
-  .table-container {
-    padding: 0;
-    background: white;
-  }
-  
-  .table-responsive {
-    box-shadow: none;
-    border: 1px solid #ddd;
-  }
-  
-  .product-info-section {
-    box-shadow: none;
-    border: 1px solid #ddd;
-  }
-  
-  .current-step {
-    border: 1px solid #1976d2;
-  }
-  
-  @page {
-    size: landscape;
-    margin: 1cm;
-  }
+.footer-button button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-/* Responsive design */
+.footer-button button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* Digital Clock Styling */
+.digital-clock {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 2px solid #dee2e6;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .table-header {
+  .table-container {
+    padding: 10px;
+  }
+  
+  .table-header-section {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .top-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .top-buttons button,
+  .close-button,
+  .machine-button {
+    width: 100%;
+    max-width: 300px;
   }
   
   .table-header h2 {
     font-size: 1.5rem;
-  }
-  
-  .top-buttons {
+    text-align: center;
     flex-direction: column;
-    width: 100%;
+    gap: 5px;
   }
   
-  .top-buttons button {
-    width: 100%;
+  .current-step {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
   }
   
   .footer-actions {
     justify-content: center;
   }
+}
+
+@media (max-width: 480px) {
+  .table-container {
+    padding: 5px;
+  }
   
-  .machine-button {
-    width: 100%;
+  .product-info-section,
+  .table-header-section,
+  .footer-actions {
+    padding: 15px;
+  }
+  
+  .table-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .current-step-label,
+  .current-step-value {
+    font-size: 1rem;
+  }
+}
+
+/* Animation for Current Step */
+@keyframes pulse {
+  0% {
+    background-color: #e8f4f8;
+  }
+  50% {
+    background-color: #d1ecf1;
+  }
+  100% {
+    background-color: #e8f4f8;
+  }
+}
+
+.current-step {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Print Styles */
+@media print {
+  .table-header-section,
+  .footer-actions,
+  .top-buttons {
+    display: none !important;
+  }
+  
+  .table-container {
+    background-color: white;
+    box-shadow: none;
+    padding: 0;
+  }
+  
+  .product-info-section,
+  .table-responsive {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .current-step {
+    animation: none;
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

@@ -15,7 +15,7 @@ router.get('/tempplantime/:product_name', getTempPlanTime);
 router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
 router.get('/all-products', getProducts);
 router.get('/list-plantime', listPlantime);
-router.post('/production/all', getProduction);
-router.get('/test-plantime/get/:proName', addProductRecord);
+router.get('/production/all', getProduction);
+// router.get('/test-plantime/get/:proName', addProductRecord);
 
 export default router;

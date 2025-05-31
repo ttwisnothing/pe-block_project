@@ -7,6 +7,7 @@ import {
     addChemicalNameStep, addChemicalWeightStep,
     addCuttingStep, addMixingStep,
     addPrePress, addProduction,
+    addProductRecord,
     addSecondPrepress, foamCheck
 } from '../models/productionModel.js';
 
@@ -26,5 +27,6 @@ router.post('/production/cutting-step/add', addCuttingStep);
 router.post('/production/pre-press-step/add', addPrePress);
 router.post('/production/second-press/add', addSecondPrepress);
 router.post('/production/foam-check/add', foamCheck);
+router.post('/production/head/:proName', addProductRecord);
 
 export default router;

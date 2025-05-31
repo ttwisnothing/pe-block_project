@@ -1,55 +1,15 @@
 import { getPool } from "../config/db.js";
 import sql from "mssql";
 
-export const addProduction = async (req, res) => {
-    const { batchNo, recordDate, employeeShift, productStatus, weighingStaff, productName } = req.body;
-    const query = `
-        INSERT INTO production_record (
-            batch_no, record_date, employee_shift, product_status, weighing_staff, product_name
-        ) VALUES (
-            @batchNo, @recordDate, @employeeShift, @productStatus, @weighingStaff, @productName
-        )
-    `;
-
-    try {
-        const pool = await getPool();
-        const request = pool.request();
-
-        // กำหนด Parameters
-        request.input('batchNo', sql.Int, batchNo);
-        request.input('recordDate', sql.NVarChar, recordDate);
-        request.input('employeeShift', sql.VarChar, employeeShift);
-        request.input('productStatus', sql.VarChar, productStatus);
-        request.input('weighingStaff', sql.VarChar, weighingStaff);
-        request.input('productName', sql.VarChar, productName);
-
-        await request.query(query);
-        res.status(201).json({
-            message: "✅ Production added successfully",
-            data: {
-                batch_no: batchNo,
-                record_date: recordDate,
-                employee_shift: employeeShift,
-                product_status: productStatus,
-                weighing_staff: weighingStaff,
-                product_name: productName
-            }
-        });
-    } catch (error) {
-        console.error("❌ Error in adding production: ", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
-
 export const addProductRecord = async (req, res) => {
     const { proName } = req.params;
     const { recordDate } = req.query; // รับวันที่จาก query parameter
 
     const query = `
         SELECT pt.product_id, CONCAT(rt.product_name, '(', rt.color_name, ')') AS production_name, 
-        start_time, secondary_press_exit, remove_work
-        FROM plan_time_mst pt
-        INNER JOIN product_mst rt ON pt.product_id = rt.product_id
+        batch_no, start_time, secondary_press_exit, remove_work
+        FROM PT_plan_time_mst pt
+        INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
         WHERE rt.product_name = @proName
         ORDER BY pt.run_no ASC, pt.batch_no ASC
     `;
@@ -71,11 +31,18 @@ export const addProductRecord = async (req, res) => {
 
         // Find the last valid time value
         let lastValidTime = null;
+        let maxBatchNo = 0;
+
         for (const record of result.recordset) {
             if (record.remove_work) {
                 lastValidTime = record.remove_work;
             } else if (record.secondary_press_exit) {
                 lastValidTime = record.secondary_press_exit;
+            }
+
+            // หาค่า batc_no ที่สูงสุด
+            if (record.batch_no > maxBatchNo) {
+                maxBatchNo = record.batch_no;
             }
         }
 
@@ -99,17 +66,17 @@ export const addProductRecord = async (req, res) => {
 
         // รวมวันที่กับเวลา พร้อมระบุ timezone offset ให้ชัดเจน
         const formattedStartTime = startTime ?
-            new Date(`${currentDate}T${startTime}+07:00`).toISOString() : null;
+            `${currentDate} ${startTime}` : null;
 
         const formattedEndTime = lastValidTime ?
-            new Date(`${endDate}T${lastValidTime}+07:00`).toISOString() : null;
+            `${endDate} ${lastValidTime}` : null;
 
         // Insert ข้อมูลลงในตาราง product_record
         const queryIns = `
-            INSERT INTO production_record (
-                product_id, product_name, record_date, start_time, end_time
+            INSERT INTO FM_production_record (
+                product_id, product_name, create_date, start_time, end_time, total_batch
             ) VALUES (
-                @productId, @productName, @recordDate, @startTime, @endTime
+                @productId, @productName, @recordDate, @startTime, @endTime, @totalBatch
             )
         `;
 
@@ -121,6 +88,7 @@ export const addProductRecord = async (req, res) => {
         insertRequest.input('recordDate', sql.Date, currentDate);
         insertRequest.input('startTime', sql.DateTimeOffset, formattedStartTime);
         insertRequest.input('endTime', sql.DateTimeOffset, formattedEndTime);
+        insertRequest.input('totalBatch', sql.Int, maxBatchNo);
 
         await insertRequest.query(queryIns);
 
@@ -129,8 +97,9 @@ export const addProductRecord = async (req, res) => {
             productId: result.recordset[0].product_id,
             productName: result.recordset[0].production_name,
             recordDate: currentDate,
-            startTime: formattedStartTime,
-            endTime: formattedEndTime
+            startTime: formattedStartTime ? formattedStartTime.toLocaleString('th-TH') : null,
+            endTime: formattedEndTime ? formattedEndTime.toLocaleString('th-TH') : null,
+            totalBatch: maxBatchNo
         });
 
     } catch (error) {
@@ -139,13 +108,59 @@ export const addProductRecord = async (req, res) => {
     }
 };
 
+export const addProduction = async (req, res) => {
+    const { podId, batchNo, recordDate, productStatus, programNo, productName,shiftTime, operatorName } = req.body;
+    const query = `
+        INSERT INTO FM_first_step (
+            product_record_id, batch_no, record_date, product_status, program_no,
+            product_name, shift_time, operator_name
+        ) VALUES (
+            @podId, @batchNo, @recordDate, @productStatus, @programNo,
+            @productName, @shiftTime, @operatorName
+        )
+    `;
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+
+        // กำหนด Parameters
+        request.input("podId", sql.Int, podId);
+        request.input("batchNo", sql.Int, batchNo);
+        request.input("recordDate", sql.Date, recordDate);
+        request.input("productStatus", sql.NVarChar, productStatus);
+        request.input("programNo", sql.Int, programNo);
+        request.input("productName", sql.NVarChar, productName);
+        request.input("shiftTime", sql.NVarChar, shiftTime);
+        request.input("operatorName", sql.NVarChar, operatorName);
+
+        await request.query(query);
+        res.status(201).json({
+            message: "✅ Production added successfully",
+            data: {
+                productRecordId: podId,
+                batchNo: batchNo,
+                recordDate: recordDate,
+                productStatus: productStatus,
+                programNo: programNo,
+                productName: productName,
+                shiftTime: shiftTime,
+                operatorName: operatorName
+            }
+        });
+    } catch (error) {
+        console.error("❌ Error in adding production: ", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const addChemicalNameStep = async (req, res) => {
     const { batchNo, chemistryName } = req.body;
 
     const chemistryList = Array.from({ length: 15 }, (_, i) => `chemistry_${i + 1}`);
 
     const queryName = `
-        INSERT INTO chemical_name_step (
+        INSERT INTO FM_chemical_name_step (
             product_record_id, ${chemistryList.join(", ")}
         ) VALUES (
             @batchNo, ${chemistryList.map((_, i) => `@chemistry_${i + 1}`).join(", ")}
@@ -184,7 +199,7 @@ export const addChemicalWeightStep = async (req, res) => {
     const weightList = Array.from({ length: 15 }, (_, i) => `chemistry_${i + 1}`);
 
     const queryWeight = `
-        INSERT INTO chemical_weight_step (
+        INSERT INTO FM_chemical_weight_step (
             product_record_id, ref, ${weightList.join(", ")}
         ) VALUES (
             @product_record_id, @Ref, ${weightList.map((_, i) => `@chemistry_${i + 1}`).join(", ")}
@@ -225,7 +240,7 @@ export const addMixingStep = async (req, res) => {
         tempHopper, longScrew, shortScrew, waterHeat } = req.body;
 
     const query = `
-        INSERT INTO mixing_step (
+        INSERT INTO FM_mixing_step (
             product_record_id, program_no, hopper_weight, actual_press,
             mixing_finish, lip_heat, casing_a_heat, casing_b_heat,
             hopper_heat, long_screw, short_screw, water_heating
@@ -284,7 +299,7 @@ export const addCuttingStep = async (req, res) => {
         startPress, mixFinish } = req.body;
 
     const query = `
-        INSERT INTO cut_step (
+        INSERT INTO FM_cut_step (
             product_record_id, weight_block_1, weight_block_2, weight_block_3,
             weight_block_4, weight_block_5, weight_block_6,
             weight_block_7, weight_block_8, weight_block_9,
@@ -350,7 +365,7 @@ export const addPrePress = async (req, res) => {
     } = req.body;
 
     const query = `
-        INSERT INTO pre_press_step (
+        INSERT INTO FM_pre_press_step (
             product_record_id, pre_press_heat, water_heating_a, water_heating_b,
             bake_time_pre_press, top_heat, layer_a_heat, layer_b_heat,
             layer_c_heat, layer_d_heat, layer_e_heat, layer_f_heat,
@@ -415,7 +430,7 @@ export const addSecondPrepress = async (req, res) => {
     } = req.body;
 
     const query = `
-        INSERT INTO secondary_press_step (
+        INSERT INTO FM_secondary_press_step (
             product_record_id, machine_no, stream_in_press,
             foam_width, foam_length, bake_time_secondary,
             spray_agent, heat_check_a, heat_check_b, heat_exit
@@ -470,7 +485,7 @@ export const foamCheck = async (req, res) => {
     } = req.body;
 
     const query = `
-        INSERT INTO foam_check_step (
+        INSERT INTO FM_foam_check_step (
             product_record_id, run_no, layer_1,
             layer_2, layer_3, layer_4,
             layer_5, layer_6, clerk_entry_data

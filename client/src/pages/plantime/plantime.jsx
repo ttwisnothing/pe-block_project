@@ -46,13 +46,32 @@ const Plantime = () => {
         mcNames: machineNames.filter((name) => name !== ""),
         color_name: colorName,
       };
-      const response = await axios.post(
+
+      // Step 1: สร้างแผนเวลาก่อน
+      const planTimeResponse = await axios.post(
         `/api/post/plantime/add/${productName}`,
         payload
       );
-      toast.success(response.data.message || "✅ Plan Time calculated successfully");
-      setPlanTimes(response.data.planTimeList || []);
+      
+      toast.success(planTimeResponse.data.message || "✅ Plan Time calculated successfully");
+      setPlanTimes(planTimeResponse.data.planTimeList || []);
       setCalculated(true);
+
+      // Step 2: หลังจากสร้างแผนเวลาสำเร็จแล้ว ให้เพิ่ม Product Record
+      try {
+        const productRecordResponse = await axios.post(
+          `/api/post/production/head/${productName}`
+        );
+        
+        toast.success(productRecordResponse.data.message || "✅ Product Record added successfully");
+        console.log("Product Record created:", productRecordResponse.data);
+        
+      } catch (productRecordError) {
+        console.error("❌ Error adding product record:", productRecordError);
+        toast.warn("⚠️ แผนเวลาสร้างสำเร็จ แต่เกิดข้อผิดพลาดในการสร้าง Product Record");
+        // ไม่ throw error เพราะแผนเวลาสร้างสำเร็จแล้ว
+      }
+
     } catch (error) {
       console.error("❌ ERROR calculating Plan Time:", error);
       toast.error(error.response?.data?.message || "❌ เกิดข้อผิดพลาดในการคำนวณ");

@@ -15,7 +15,7 @@ export const addPlantime = async (req, res) => {
         // ดึงข้อมูล Product จาก product_master
         const productsResult = await request.query(`
             SELECT *
-            FROM product_mst
+            FROM PT_product_mst
             WHERE product_name = @product_name AND color_name = @color_name
         `);
         const products = productsResult.recordset;
@@ -28,7 +28,7 @@ export const addPlantime = async (req, res) => {
         request.input('product_name_like', sql.VarChar, `%${product_name}%`);
         const configResult = await request.query(`
             SELECT *
-            FROM config_time
+            FROM PT_config_time
             WHERE @product_name_like LIKE CONCAT('%', config_group, '%')
         `);
         const config = configResult.recordset;
@@ -40,7 +40,7 @@ export const addPlantime = async (req, res) => {
         const cGroup = config[0].config_group;
 
         // ลบค่า plantime_table ที่มี product_id ตรงกับ product_id ของ Product ที่เลือก
-        const deleteQuery = `DELETE FROM plan_time_mst WHERE product_id = @product_id`;
+        const deleteQuery = `DELETE FROM PT_plan_time_mst WHERE product_id = @product_id`;
         await request.input('product_id', sql.Int, products[0].product_id).query(deleteQuery);
 
         // กำหนดค่า mac จาก machine_name
@@ -431,7 +431,7 @@ export const addPlantime = async (req, res) => {
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
             const query = `
-                  INSERT INTO plan_time_mst (
+                  INSERT INTO PT_plan_time_mst (
                     product_id, run_no, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,

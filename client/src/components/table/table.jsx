@@ -5,7 +5,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
+  TableRow, 
   Paper,
 } from "@mui/material";
 import "./table.css";

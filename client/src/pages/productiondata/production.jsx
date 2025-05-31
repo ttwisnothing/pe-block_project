@@ -13,12 +13,10 @@ import {
   TableHead, 
   TableRow,
   CircularProgress,
-  Alert,
   Grid,
   Box,
   Chip,
-  IconButton,
-  Tooltip
+  IconButton
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -30,32 +28,42 @@ import FactoryIcon from '@mui/icons-material/Factory';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 import './production.css';
+import th from 'date-fns/locale/th';
 
 const Production = () => {
   const [productionData, setProductionData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
   const navigate = useNavigate();
 
-  const fetchProductionData = async () => {
+  const fetchProductionData = async (searchParams = {}) => {
     try {
       setLoading(true);
-      setError(null);
       
-      const payload = {};
-      if (dateFrom && dateTo) {
-        payload.dateFrom = dateFrom.toISOString();
-        payload.dateTo = dateTo.toISOString();
+      let url = '/api/get/production/all';
+      
+      // สร้าง query parameters สำหรับ GET request
+      if (searchParams.dateFrom && searchParams.dateTo) {
+        const params = new URLSearchParams({
+          dateFrom: format(searchParams.dateFrom, 'yyyy-MM-dd'),
+          dateTo: format(searchParams.dateTo, 'yyyy-MM-dd')
+        });
+        url += `?${params.toString()}`;
+        
+        console.log('Searching with URL:', url); // debug log
       }
       
-      const response = await axios.post('/api/get/production/all', payload);
-      setProductionData(response.data);
+      const response = await axios.get(url);
+      console.log('Response data:', response.data); // debug log
+      setProductionData(response.data || []);
+      
     } catch (err) {
       console.error('Failed to fetch production data:', err);
-      setError('เกิดข้อผิดพลาดในการดึงข้อมูล โปรดลองอีกครั้งในภายหลัง');
+      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล โปรดลองอีกครั้งในภายหลัง');
+      setProductionData([]);
     } finally {
       setLoading(false);
     }
@@ -66,36 +74,55 @@ const Production = () => {
   }, []);
 
   const handleSearch = () => {
+    // ตรวจสอบความถูกต้องของวันที่
     if (dateFrom && dateTo && dateFrom > dateTo) {
-      setError('วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด');
+      toast.error('วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด');
       return;
     }
-    fetchProductionData();
+    
+    // ตรวจสอบว่ามีการเลือกวันที่ทั้งคู่หรือไม่
+    if ((dateFrom && !dateTo) || (!dateFrom && dateTo)) {
+      toast.warning('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุดให้ครบถ้วน');
+      return;
+    }
+    
+    if (dateFrom && dateTo) {
+      fetchProductionData({ dateFrom, dateTo });
+      toast.success('ค้นหาข้อมูลสำเร็จ');
+    } else {
+      fetchProductionData();
+    }
   };
 
   const handleReset = () => {
     setDateFrom(null);
     setDateTo(null);
-    setError(null);
     fetchProductionData();
-  };
-
-  const getShiftColor = (shift) => {
-    switch (shift?.toLowerCase()) {
-      case 'day':
-      case 'กลางวัน':
-        return 'primary';
-      case 'night':
-      case 'กลางคืน':
-        return 'secondary';
-      default:
-        return 'default';
-    }
+    toast.info('รีเซ็ตการค้นหาเรียบร้อย');
   };
 
   const handleCreateRecord = () => {
     // เปลี่ยนไปหน้าสร้างการบันทึกใหม่
     navigate('/production-foam/create');
+  };
+
+  // ฟังก์ชันสำหรับตรวจสอบสถานะการผลิต
+  const getProductionStatus = (startTime, endTime) => {
+    if (!startTime) {
+      return { label: 'ไม่มีข้อมูล', color: 'default' };
+    }
+
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : null;
+
+    if (now < start) {
+      return { label: 'รอผลิต', color: 'warning' };
+    } else if (!end || now <= end) {
+      return { label: 'กำลังผลิต', color: 'primary' };
+    } else {
+      return { label: 'สิ้นสุดการผลิต', color: 'success' };
+    }
   };
 
   return (
@@ -120,21 +147,22 @@ const Production = () => {
           </Typography>
         </Box>
         
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={3}>
               <DatePicker
                 label="วันที่เริ่มต้น"
                 value={dateFrom}
                 onChange={(date) => setDateFrom(date)}
-                renderInput={(params) => (
-                  <TextField 
-                    {...params} 
-                    fullWidth 
-                    variant="outlined"
-                    className="date-field"
-                  />
-                )}
+                format="dd/MM/yyyy"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    variant: "outlined",
+                    className: "date-field",
+                    placeholder: "dd/mm/yyyy"
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -142,14 +170,15 @@ const Production = () => {
                 label="วันที่สิ้นสุด"
                 value={dateTo}
                 onChange={(date) => setDateTo(date)}
-                renderInput={(params) => (
-                  <TextField 
-                    {...params} 
-                    fullWidth 
-                    variant="outlined"
-                    className="date-field"
-                  />
-                )}
+                format="dd/MM/yyyy"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    variant: "outlined",
+                    className: "date-field",
+                    placeholder: "dd/mm/yyyy"
+                  }
+                }}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -163,15 +192,16 @@ const Production = () => {
                 >
                   ค้นหา
                 </Button>
-                <Tooltip title="รีเซ็ตการค้นหา">
-                  <IconButton
-                    onClick={handleReset}
-                    className="reset-button"
-                    disabled={loading}
-                  >
-                    <RefreshIcon />
-                  </IconButton>
-                </Tooltip>
+                
+                <IconButton
+                  onClick={handleReset}
+                  className="reset-button"
+                  disabled={loading}
+                  title="รีเซ็ตการค้นหา"
+                > 
+                  <RefreshIcon />
+                </IconButton>
+                
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
@@ -185,12 +215,6 @@ const Production = () => {
           </Grid>
         </LocalizationProvider>
       </Paper>
-
-      {error && (
-        <Alert severity="error" className="error-alert" onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
 
       <Paper elevation={0} className="data-card">
         {loading ? (
@@ -212,47 +236,47 @@ const Production = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell className="table-header-cell">No.</TableCell>
-                    <TableCell className="table-header-cell">Record Date</TableCell>
-                    <TableCell className="table-header-cell">Batch No</TableCell>
+                    <TableCell className="table-header-cell">Create Date</TableCell>
                     <TableCell className="table-header-cell">Product Name</TableCell>
+                    <TableCell className="table-header-cell">Start Time</TableCell>
+                    <TableCell className="table-header-cell">End Time</TableCell>
+                    <TableCell className="table-header-cell">Total Batch</TableCell>
                     <TableCell className="table-header-cell">Status</TableCell>
-                    <TableCell className="table-header-cell">Operator</TableCell>
-                    <TableCell className="table-header-cell">Shift</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {productionData.map((row, index) => (
-                    <TableRow key={row.id} className="table-row">
-                      <TableCell className="table-cell">{index + 1}</TableCell>
-                      <TableCell className="table-cell date-cell">
-                        {row.record_date ? format(new Date(row.record_date), 'dd/MM/yyyy') : '-'}
-                      </TableCell>
-                      <TableCell className="table-cell batch-cell">
-                        <Chip label={row.batch_no || '-'} variant="outlined" size="small" />
-                      </TableCell>
-                      <TableCell className="table-cell product-cell">
-                        {row.product_name || '-'}
-                      </TableCell>
-                      <TableCell className="table-cell">
-                        <Chip 
-                          label={row.product_status || 'Unknown'} 
-                          size="small"
-                          className="status-chip"
-                        />
-                      </TableCell>
-                      <TableCell className="table-cell operator-cell">
-                        {row.weighing_staff || '-'}
-                      </TableCell>
-                      <TableCell className="table-cell">
-                        <Chip 
-                          label={row.employee_shift || '-'} 
-                          color={getShiftColor(row.employee_shift)}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {productionData.map((row, index) => {
+                    const status = getProductionStatus(row.start_time, row.end_time);
+                    
+                    return (
+                      <TableRow key={row.id} className="table-row">
+                        <TableCell className="table-cell">{index + 1}</TableCell>
+                        <TableCell className="table-cell date-cell">
+                          {row.create_date ? format(new Date(row.create_date), 'dd/MM/yyyy') : '-'}
+                        </TableCell>
+                        <TableCell className="table-cell product-cell">
+                          {row.product_name || '-'}
+                        </TableCell>
+                        <TableCell className="table-cell">
+                          {row.start_time ? format(new Date(row.start_time), 'dd/MM/yyyy HH:mm:ss') : '-'}
+                        </TableCell>
+                        <TableCell className="table-cell">
+                          {row.end_time ? format(new Date(row.end_time), 'dd/MM/yyyy HH:mm:ss') : '-'}
+                        </TableCell>
+                        <TableCell className="table-cell batch-cell">
+                          <Chip label={row.total_batch || '0'} variant="outlined" size="small" />
+                        </TableCell>
+                        <TableCell className="table-cell">
+                          <Chip 
+                            label={status.label}
+                            color={status.color}
+                            size="small"
+                            className="status-chip"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
