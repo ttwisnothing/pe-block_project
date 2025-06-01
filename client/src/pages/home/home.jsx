@@ -97,7 +97,7 @@ const Home = () => {
   ];
 
   const scrollToFeatures = () => {
-    document.querySelector('.features-section').scrollIntoView({ 
+    document.querySelector('.home-features-section').scrollIntoView({ 
       behavior: 'smooth' 
     });
   };
@@ -120,39 +120,39 @@ const Home = () => {
   };
 
   return (
-    <Box className="home-container">
+    <Box className="home-page-container">
       {/* Hero Section */}
-      <Box className="hero-section">
+      <Box className="home-hero-section">
         <Container maxWidth="lg">
           <Fade in={loaded} timeout={1000}>
-            <Box className="hero-content">
-              <Typography variant="h1" component="h1" className="hero-title">
+            <Box className="home-hero-content">
+              <Typography variant="h1" component="h1" className="home-hero-title">
                 PE-BLOCK DEPARTMENT
               </Typography>
-              <Typography variant="h4" className="hero-subtitle">
+              <Typography variant="h4" className="home-hero-subtitle">
                 ระบบจัดการการผลิตที่ทันสมัยและมีประสิทธิภาพ
               </Typography>
-              <Typography variant="h6" className="hero-description">
+              <Typography variant="h6" className="home-hero-description">
                 จัดการแผนการผลิต ติดตามข้อมูล และวิเคราะห์ผลผลิตแบบเรียลไทม์
                 <br />
                 เพื่อประสิทธิภาพสูงสุดในการผลิต PE Block
               </Typography>
 
               {/* Digital Clock */}
-              <Box className="digital-clock-container">
-                <Typography variant="h5" className="current-time">
+              <Box className="home-digital-clock-container">
+                <Typography variant="h5" className="home-current-time">
                   {formatTime(currentTime)}
                 </Typography>
-                <Typography variant="body1" className="current-date">
+                <Typography variant="body1" className="home-current-date">
                   {formatDate(currentTime)}
                 </Typography>
               </Box>
 
-              <Box className="hero-buttons">
+              <Box className="home-hero-buttons">
                 <Button 
                   variant="contained" 
                   size="large" 
-                  className="primary-button"
+                  className="home-primary-button"
                   startIcon={<PlayArrow />}
                   onClick={() => window.location.href = '/plantime'}
                 >
@@ -161,7 +161,7 @@ const Home = () => {
                 <Button 
                   variant="outlined" 
                   size="large" 
-                  className="secondary-button"
+                  className="home-secondary-button"
                   startIcon={<Analytics />}
                   onClick={() => window.location.href = '/plantime-list'}
                 >
@@ -170,7 +170,7 @@ const Home = () => {
               </Box>
 
               <IconButton 
-                className="scroll-down-btn"
+                className="home-scroll-down-btn"
                 onClick={scrollToFeatures}
               >
                 <KeyboardArrowDown />
@@ -181,10 +181,10 @@ const Home = () => {
       </Box>
 
       {/* Stats Section */}
-      <Box className="stats-section">
+      <Box className="home-stats-section">
         <Container maxWidth="lg">
           <Fade in={loaded} timeout={1500}>
-            <Typography variant="h4" className="stats-title">
+            <Typography variant="h4" className="home-stats-title">
               สถิติการผลิต
             </Typography>
           </Fade>
@@ -193,18 +193,18 @@ const Home = () => {
             {stats.map((stat, index) => (
               <Grid item xs={6} md={3} key={index}>
                 <Grow in={loaded} timeout={1000 + (index * 200)}>
-                  <Card className="stat-card">
-                    <CardContent className="stat-content">
-                      <Box className="stat-icon">
+                  <Card className="home-stat-card">
+                    <CardContent className="home-stat-content">
+                      <Box className="home-stat-icon">
                         {stat.icon}
                       </Box>
-                      <Typography variant="h3" className="stat-value">
+                      <Typography variant="h3" className="home-stat-value">
                         {stat.value}
                       </Typography>
-                      <Typography variant="h6" className="stat-label">
+                      <Typography variant="h6" className="home-stat-label">
                         {stat.label}
                       </Typography>
-                      <Typography variant="body2" className="stat-description">
+                      <Typography variant="body2" className="home-stat-description">
                         {stat.description}
                       </Typography>
                     </CardContent>
@@ -217,42 +217,42 @@ const Home = () => {
       </Box>
 
       {/* Features Section */}
-      <Box className="features-section">
+      <Box className="home-features-section">
         <Container maxWidth="lg">
           <Fade in={loaded} timeout={2000}>
             <Box>
-              <Typography variant="h3" className="section-title">
+              <Typography variant="h3" className="home-section-title">
                 ฟีเจอร์หลัก
               </Typography>
-              <Typography variant="h6" className="section-subtitle">
+              <Typography variant="h6" className="home-section-subtitle">
                 เครื่องมือที่จำเป็นสำหรับการจัดการการผลิตที่มีประสิทธิภาพสูงสุด
               </Typography>
             </Box>
           </Fade>
           
-          <Grid container spacing={4} className="features-grid">
+          <Grid container spacing={4} className="home-features-grid">
             {features.map((feature, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
                 <Grow in={loaded} timeout={2000 + (index * 200)}>
                   <Card 
-                    className="feature-card"
+                    className="home-feature-card"
                     onClick={() => window.location.href = feature.link}
                   >
-                    <CardContent className="feature-content">
+                    <CardContent className="home-feature-content">
                       <Box 
-                        className="feature-icon" 
+                        className="home-feature-icon" 
                         style={{ backgroundColor: feature.color }}
                       >
                         {feature.icon}
                       </Box>
-                      <Typography variant="h6" className="feature-title">
+                      <Typography variant="h6" className="home-feature-title">
                         {feature.title}
                       </Typography>
-                      <Typography variant="body1" className="feature-description">
+                      <Typography variant="body1" className="home-feature-description">
                         {feature.description}
                       </Typography>
                       <Button 
-                        className="feature-button"
+                        className="home-feature-button"
                         size="small"
                         startIcon={<PlayArrow />}
                       >
@@ -268,22 +268,22 @@ const Home = () => {
       </Box>
 
       {/* Quick Actions Section */}
-      <Box className="quick-actions-section">
+      <Box className="home-quick-actions-section">
         <Container maxWidth="lg">
-          <Typography variant="h4" className="section-title">
+          <Typography variant="h4" className="home-section-title-footer">
             การดำเนินการด่วน
           </Typography>
           
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
-              <Card className="action-card production">
+              <Card className="home-action-card home-action-production">
                 <CardContent>
                   <Typography variant="h6">บันทึกข้อมูลการผลิต</Typography>
                   <Typography variant="body2">
                     บันทึกข้อมูลการผลิต Foaming และ Slice
                   </Typography>
                   <Button 
-                    className="action-button"
+                    className="home-action-button"
                     onClick={() => window.location.href = '/production-foam'}
                   >
                     เริ่มบันทึก
@@ -293,14 +293,14 @@ const Home = () => {
             </Grid>
             
             <Grid item xs={12} md={4}>
-              <Card className="action-card product">
+              <Card className="home-action-card home-action-product">
                 <CardContent>
                   <Typography variant="h6">จัดการผลิตภัณฑ์</Typography>
                   <Typography variant="body2">
                     เพิ่มผลิตภัณฑ์ใหม่และจัดการข้อมูลสินค้า
                   </Typography>
                   <Button 
-                    className="action-button"
+                    className="home-action-button"
                     onClick={() => window.location.href = '/product'}
                   >
                     จัดการสินค้า
@@ -310,14 +310,14 @@ const Home = () => {
             </Grid>
             
             <Grid item xs={12} md={4}>
-              <Card className="action-card report">
+              <Card className="home-action-card home-action-report">
                 <CardContent>
                   <Typography variant="h6">รายงานสถานะ</Typography>
                   <Typography variant="body2">
                     ดูรายงานและเปรียบเทียบข้อมูลการผลิต
                   </Typography>
                   <Button 
-                    className="action-button"
+                    className="home-action-button"
                     onClick={() => window.location.href = '/compare'}
                   >
                     ดูรายงาน
@@ -330,21 +330,21 @@ const Home = () => {
       </Box>
 
       {/* Footer */}
-      <Box className="home-footer">
+      <Box className="home-page-footer">
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" className="footer-title">
+              <Typography variant="h6" className="home-footer-title">
                 PE Block Department
               </Typography>
-              <Typography variant="body2" className="footer-text">
+              <Typography variant="body2" className="home-footer-text">
                 ระบบจัดการการผลิตที่ทันสมัยสำหรับแผนก PE Block
                 <br />
                 INOAC Industries (Thailand) Co., Ltd.
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" className="footer-copyright">
+              <Typography variant="body2" className="home-footer-copyright">
                 &copy; 2025 PE Block Department, Inoac Industries (Thailand) Co., Ltd.
                 <br />
                 สงวนลิขสิทธิ์ทุกประการ

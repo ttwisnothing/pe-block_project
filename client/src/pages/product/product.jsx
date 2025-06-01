@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './product.css';
- 
+
 const Products = () => {
   const [productName, setProductName] = useState('');
   const [productColor, setProductColor] = useState('');
@@ -125,379 +125,352 @@ const Products = () => {
 
   if (isLoading) {
     return (
-      <div className="product-container">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>กำลังโหลดข้อมูล...</p>
+      <div className="product-page-wrapper">
+        <div className="product-loading-screen">
+          <div className="product-loading-animation">
+            <div className="product-spinner"></div>
+            <h3 className="product-loading-text">กำลังโหลดข้อมูล...</h3>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="product-container">
-      <div className="header-section">
-        <div className="header-content">
-          <div className="header-icon">
-            📦
-          </div>
-          <div className="header-text">
-            <h1 className="product-title">เพิ่มผลิตภัณฑ์ใหม่</h1>
-            <p className="product-subtitle">กรอกข้อมูลผลิตภัณฑ์ที่ต้องการเพิ่มลงในระบบ PE Block</p>
-          </div>
-        </div>
+    <div className="product-page-wrapper">
+      <div className="product-main-container">
         
-        {/* Progress Indicator */}
-        <div className="progress-steps">
-          <div className="step active">
-            <span className="step-number">1</span>
-            <span className="step-label">ข้อมูลหลัก</span>
-          </div>
-          <div className="step-divider"></div>
-          <div className="step active">
-            <span className="step-number">2</span>
-            <span className="step-label">วัตถุดิบ</span>
-          </div>
-          <div className="step-divider"></div>
-          <div className="step active">
-            <span className="step-number">3</span>
-            <span className="step-label">การผลิต</span>
-          </div>
-        </div>
-      </div>
-
-      <form className="product-form" onSubmit={handleSubmit}>
-        {/* ข้อมูลหลัก */}
-        <div className="form-section">
-          <div className="section-header">
-            <h3 className="section-title">
-              <span className="section-icon">ℹ️</span>
-              ข้อมูลหลัก
-            </h3>
-            <div className="section-badge required">จำเป็น</div>
+        {/* Header Section */}
+        <header className="product-page-header">
+          <div className="product-header-background">
+            <div className="product-header-overlay"></div>
+            <div className="product-header-decoration"></div>
           </div>
           
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-label">
-                ชื่อผลิตภัณฑ์ 
-                <span className="required-mark">*</span>
-              </label>
-              <input
-                className="form-input"
-                type="text"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                required
-                placeholder="เช่น RP-300S, EP-200L"
-                maxLength="100"
-              />
-              <div className="input-helper">กรอกชื่อผลิตภัณฑ์ที่ชัดเจน</div>
+          <div className="product-header-content">
+            <div className="product-brand-icon">
+              <svg viewBox="0 0 24 24" className="product-icon-svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                <path d="M2 17L12 22L22 17" />
+                <path d="M2 12L12 17L22 12" />
+              </svg>
             </div>
             
-            <div className="form-group">
-              <label className="form-label">
-                สีผลิตภัณฑ์ 
-                <span className="required-mark">*</span>
-              </label>
-              <input
-                className="form-input"
-                type="text"
-                value={productColor}
-                onChange={(e) => setProductColor(e.target.value)}
-                required
-                placeholder="เช่น White, Black, Gray"
-                maxLength="50"
-              />
-              <div className="input-helper">ระบุสีของผลิตภัณฑ์</div>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">
-                สถานะ 
-                <span className="required-mark">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                required
-              >
-                <option value="">-- เลือกสถานะ --</option>
-                <option value="Mass">Mass Production</option>
-                <option value="R&D">Research & Development</option>
-              </select>
-              <div className="input-helper">เลือกสถานะการผลิต</div>
+            <div className="product-header-text">
+              <h1 className="product-main-title">เพิ่มผลิตภัณฑ์ PE Block</h1>
+              <p className="product-main-subtitle">
+                กรอกข้อมูลสำหรับสร้างผลิตภัณฑ์ใหม่ในระบบ
+              </p>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* วัตถุดิบ */}
-        <div className="form-section">
-          <div className="section-header">
-            <h3 className="section-title">
-              <span className="section-icon">🧪</span>
-              วัตถุดิบและสารเคมี
-            </h3>
-            <div className="section-badge">ส่วนผสม</div>
-          </div>
-          
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-label">
-                Resin 
-                <span className="required-mark">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={resin}
-                onChange={(e) => setResin(e.target.value)}
-                required
-              >
-                <option value="">-- เลือก Resin --</option>
-                {resinOptions.map((resinItem, index) => (
-                  <option key={index} value={resinItem.name}>
-                    {resinItem.name}
-                  </option>
-                ))}
-              </select>
-              <div className="input-helper">เลือกชนิด Resin ที่ใช้</div>
-            </div>
+        {/* Form Container */}
+        <main className="product-form-container">
+          <form onSubmit={handleSubmit} className="product-main-form">
             
-            <div className="form-group">
-              <label className="form-label">
-                Foaming Agent 
-                <span className="required-mark">*</span>
-              </label>
-              <select
-                className="form-select"
-                value={foaming}
-                onChange={(e) => setFoaming(e.target.value)}
-                required
-              >
-                <option value="">-- เลือก Foaming --</option>
-                {foamingOptions.map((foamingItem, index) => (
-                  <option key={index} value={foamingItem.name}>
-                    {foamingItem.name}
-                  </option>
-                ))}
-              </select>
-              <div className="input-helper">เลือกตัวก่อฟอง</div>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">Color Master Batch</label>
-              <select
-                className="form-select"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-              >
-                <option value="">-- เลือก Color (ถ้ามี) --</option>
-                {colorOptions.map((colorItem, index) => (
-                  <option key={index} value={colorItem.name}>
-                    {colorItem.name}
-                  </option>
-                ))}
-              </select>
-              <div className="input-helper">เลือกสีหากต้องการ (ไม่บังคับ)</div>
-            </div>
-          </div>
-        </div>
-
-        {/* ข้อมูลการผลิต */}
-        <div className="form-section">
-          <div className="section-header">
-            <h3 className="section-title">
-              <span className="section-icon">⚙️</span>
-              ข้อมูลการผลิต
-            </h3>
-            <div className="section-badge production">Block</div>
-          </div>
-          
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label className="form-label">
-                Kneader Block 
-                <span className="required-mark">*</span>
-              </label>
-              <div className="input-with-unit">
-                <input
-                  className="form-input"
-                  type="number"
-                  value={kneaderBlock}
-                  onChange={(e) => setKneaderBlock(e.target.value)}
-                  required
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-                <span className="input-unit">Block</span>
+            {/* Basic Information Section */}
+            <section className="product-form-section">
+              <div className="product-section-header">
+                <h2 className="product-section-title">
+                  <span className="product-section-icon">📋</span>
+                  ข้อมูลพื้นฐาน
+                </h2>
+                <span className="product-section-badge product-badge-required">
+                  จำเป็น
+                </span>
               </div>
-              <div className="input-helper">จำนวน Block ที่ใช้ใน Kneader</div>
-            </div>
-            
-            <div className="form-group">
-              <label className="form-label">
-                Foaming Block 
-                <span className="required-mark">*</span>
-              </label>
-              <div className="input-with-unit">
-                <input
-                  className="form-input"
-                  type="number"
-                  value={foamingBlock}
-                  onChange={(e) => setFoamingBlock(e.target.value)}
-                  required
-                  placeholder="0.00"
-                  min="0"
-                  step="0.01"
-                />
-                <span className="input-unit">Block</span>
-              </div>
-              <div className="input-helper">จำนวน Block ที่ได้จาก Foaming</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Chemicals */}
-        <div className="form-section">
-          <div className="section-header">
-            <h3 className="section-title">
-              <span className="section-icon">⚗️</span>
-              สารเคมีเพิ่มเติม
-            </h3>
-            <button
-              className="add-chemical-button"
-              type="button"
-              onClick={addChemicalField}
-            >
-              <span className="button-icon">➕</span>
-              เพิ่มสารเคมี
-            </button>
-          </div>
-          
-          <div className="chemicals-container">
-            {selectedChemicals.map((selectedChemical, index) => (
-              <div key={index} className="chemical-item">
-                <div className="chemical-header">
-                  <span className="chemical-number">#{index + 1}</span>
-                  <span className="chemical-label">สารเคมี {index + 1}</span>
-                  {selectedChemicals.length > 1 && (
-                    <button
-                      type="button"
-                      className="remove-chemical-button"
-                      onClick={() => removeChemicalField(index)}
-                      title="ลบสารเคมีนี้"
-                    >
-                      <span>🗑️</span>
-                    </button>
-                  )}
+              
+              <div className="product-form-grid">
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    ชื่อผลิตภัณฑ์ 
+                    <span className="product-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="product-text-input"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="เช่น PE Block Standard Grade A"
+                    required
+                  />
                 </div>
-                
-                <div className="form-group">
+
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    สีของผลิตภัณฑ์
+                    <span className="product-required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="product-text-input"
+                    value={productColor}
+                    onChange={(e) => setProductColor(e.target.value)}
+                    placeholder="เช่น สีขาวนวล, สีดำด้าน"
+                    required
+                  />
+                </div>
+
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    สถานะการใช้งาน
+                    <span className="product-required-asterisk">*</span>
+                  </label>
                   <select
-                    className="form-select"
-                    value={selectedChemical}
-                    onChange={(e) => handleChemicalChange(index, e.target.value)}
+                    className="product-select-input"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
                     required
                   >
-                    <option value="">-- เลือกสารเคมี --</option>
-                    {chemicals.map((chemical, idx) => (
-                      <option key={idx} value={chemical.name}>
-                        {chemical.name}
+                    <option value="">-- เลือกสถานะ --</option>
+                    <option value="active">🟢 ใช้งานปกติ</option>
+                    <option value="inactive">🔴 ไม่ใช้งาน</option>
+                    <option value="testing">🟡 ระหว่างทดสอบ</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* Chemical Formula Section */}
+            <section className="product-form-section">
+              <div className="product-section-header">
+                <h2 className="product-section-title">
+                  <span className="product-section-icon">🧪</span>
+                  สูตรเคมีหลัก
+                </h2>
+                <span className="product-section-badge product-badge-important">
+                  สำคัญ
+                </span>
+              </div>
+              
+              <div className="product-form-grid">
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    เรซิน (Resin)
+                    <span className="product-required-asterisk">*</span>
+                  </label>
+                  <select
+                    className="product-select-input"
+                    value={resin}
+                    onChange={(e) => setResin(e.target.value)}
+                    required
+                  >
+                    <option value="">-- เลือกเรซิน --</option>
+                    {resinOptions.map((option, index) => (
+                      <option key={`resin-${index}`} value={option.chemical_name}>
+                        {option.chemical_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    โฟมมิ่ง (Foaming Agent)
+                    <span className="product-required-asterisk">*</span>
+                  </label>
+                  <select
+                    className="product-select-input"
+                    value={foaming}
+                    onChange={(e) => setFoaming(e.target.value)}
+                    required
+                  >
+                    <option value="">-- เลือกโฟมมิ่ง --</option>
+                    {foamingOptions.map((option, index) => (
+                      <option key={`foaming-${index}`} value={option.chemical_name}>
+                        {option.chemical_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="product-input-group">
+                  <label className="product-input-label">
+                    สีเคมี (Color Additive)
+                    <span className="product-optional-text">(ถ้ามี)</span>
+                  </label>
+                  <select
+                    className="product-select-input"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                  >
+                    <option value="">-- ไม่ใช้สี --</option>
+                    {colorOptions.map((option, index) => (
+                      <option key={`color-${index}`} value={option.chemical_name}>
+                        {option.chemical_name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
-            ))}
-          </div>
-          
-          {selectedChemicals.length === 0 && (
-            <div className="empty-chemicals">
-              <span className="empty-icon">🧪</span>
-              <p>ยังไม่มีสารเคมีเพิ่มเติม</p>
-              <p className="empty-description">คลิก "เพิ่มสารเคมี" เพื่อเพิ่มสารเคมีที่ต้องการ</p>
-            </div>
-          )}
-        </div>
+            </section>
 
-        {/* Form Summary */}
-        <div className="form-summary">
-          <div className="summary-header">
-            <h4>สรุปข้อมูลผลิตภัณฑ์</h4>
-          </div>
-          <div className="summary-grid">
-            <div className="summary-item">
-              <span className="summary-label">ชื่อผลิตภัณฑ์:</span>
-              <span className="summary-value">{productName || '-'}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">สี:</span>
-              <span className="summary-value">{productColor || '-'}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">สถานะ:</span>
-              <span className="summary-value">{status || '-'}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Resin:</span>
-              <span className="summary-value">{resin || '-'}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">Foaming:</span>
-              <span className="summary-value">{foaming || '-'}</span>
-            </div>
-            <div className="summary-item">
-              <span className="summary-label">สารเคมี:</span>
-              <span className="summary-value">
-                {selectedChemicals.filter(c => c !== '').length} รายการ
-              </span>
-            </div>
-          </div>
-        </div>
+            {/* Production Parameters Section */}
+            <section className="product-form-section">
+              <div className="product-section-header">
+                <h2 className="product-section-title">
+                  <span className="product-section-icon">⚙️</span>
+                  พารามิเตอร์การผลิต
+                </h2>
+                <span className="product-section-badge product-badge-production">
+                  การผลิต
+                </span>
+              </div>
+              
+              <div className="product-production-grid">
+                <div className="product-measurement-card">
+                  <div className="product-card-header">
+                    <h3 className="product-card-title">บล็อกต่อรอบ</h3>
+                    <span className="product-card-icon">📦</span>
+                  </div>
+                  
+                  <div className="product-input-group">
+                    <label className="product-input-label">
+                      {/* น้ำหนัก (กิโลกรัม) */}
+                      <span className="product-required-asterisk">*</span>
+                    </label>
+                    <div className="product-number-input-wrapper">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="product-number-input"
+                        value={kneaderBlock}
+                        onChange={(e) => setKneaderBlock(e.target.value)}
+                        placeholder="0.00"
+                        required
+                      />
+                      <span className="product-input-unit">บล็อค</span>
+                    </div>
+                    <p className="product-input-description">
+                      น้ำหนักบล็อกที่ผลิตได้ในแต่ละรอบ
+                    </p>
+                  </div>
+                </div>
 
-        {/* ปุ่มบันทึก */}
-        <div className="form-actions">
-          <button 
-            className="new-reset-button" 
-            type="button" 
-            onClick={resetForm}
-            disabled={isSubmitting}
-          >
-            <span>🔄</span>
-            รีเซ็ต
-          </button>
-          
-          <button 
-            className="cancel-button" 
-            type="button" 
-            onClick={() => window.history.back()}
-            disabled={isSubmitting}
-          >
-            <span>↩️</span>
-            ยกเลิก
-          </button>
-          
-          <button 
-            className={`save-button ${!isFormValid() ? 'disabled' : ''}`}
-            type="submit"
-            disabled={!isFormValid() || isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="button-spinner"></div>
-                กำลังบันทึก...
-              </>
-            ) : (
-              <>
-                <span>💾</span>
-                บันทึกผลิตภัณฑ์
-              </>
-            )}
-          </button>
-        </div>
-      </form>
+                <div className="product-measurement-card">
+                  <div className="product-card-header">
+                    <h3 className="product-card-title">บล็อกที่ใช้</h3>
+                    <span className="product-card-icon">🔧</span>
+                  </div>
+                  
+                  <div className="product-input-group">
+                    <label className="product-input-label">
+                      {/* น้ำหนัก (กิโลกรัม) */}
+                      <span className="product-required-asterisk">*</span>
+                    </label>
+                    <div className="product-number-input-wrapper">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="product-number-input"
+                        value={foamingBlock}
+                        onChange={(e) => setFoamingBlock(e.target.value)}
+                        placeholder="0.00"
+                        required
+                      />
+                      <span className="product-input-unit">บล็อค</span>
+                    </div>
+                    <p className="product-input-description">
+                      น้ำหนักบล็อกที่ใช้ในกระบวนการผลิต
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Additional Chemicals Section */}
+            <section className="product-form-section">
+              <div className="product-section-header">
+                <h2 className="product-section-title">
+                  <span className="product-section-icon">🧬</span>
+                  เคมีเสริม
+                </h2>
+                <button
+                  type="button"
+                  className="product-add-chemical-button"
+                  onClick={addChemicalField}
+                >
+                  <span className="product-button-icon">➕</span>
+                  เพิ่มเคมี
+                </button>
+              </div>
+
+              <div className="product-chemicals-container">
+                {selectedChemicals.map((chemical, index) => (
+                  <div key={`chemical-${index}`} className="product-chemical-card">
+                    <div className="product-chemical-card-header">
+                      <div className="product-chemical-number-badge">
+                        {index + 1}
+                      </div>
+                      <h4 className="product-chemical-card-title">
+                        เคมีลำดับที่ {index + 1}
+                      </h4>
+                      {selectedChemicals.length > 1 && (
+                        <button
+                          type="button"
+                          className="product-remove-chemical-button"
+                          onClick={() => removeChemicalField(index)}
+                          title="ลบเคมีนี้"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="product-input-group">
+                      <select
+                        className="product-select-input"
+                        value={chemical}
+                        onChange={(e) => handleChemicalChange(index, e.target.value)}
+                      >
+                        <option value="">-- เลือกเคมีเสริม --</option>
+                        {chemicals.map((chem, chemIndex) => (
+                          <option key={`chem-${chemIndex}`} value={chem.chemical_name}>
+                            {chem.chemical_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Form Actions */}
+            <div className="product-form-actions">
+              <button
+                type="button"
+                className="product-reset-button"
+                onClick={resetForm}
+              >
+                <span className="product-button-icon">🔄</span>
+                รีเซ็ตฟอร์ม
+              </button>
+              
+              <button
+                type="submit"
+                className={`product-submit-button ${isSubmitting ? 'product-submitting' : ''}`}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="product-submit-spinner"></div>
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <span className="product-button-icon">💾</span>
+                    บันทึกผลิตภัณฑ์
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </main>
+      </div>
     </div>
   );
 };

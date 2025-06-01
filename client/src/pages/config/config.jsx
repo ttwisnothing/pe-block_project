@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./config.css";
-
+ 
 const Config = () => {
   const [formData, setFormData] = useState({
     config_group: "",
@@ -134,28 +134,28 @@ const Config = () => {
     {
       title: "ข้อมูลทั่วไป",
       icon: "⚙️",
-      color: "#004D8A",
+      color: "#3b82f6",
       description: "กำหนดชื่อกลุ่มการตั้งค่า",
       fields: ["config_group"]
     },
     {
       title: "ขั้นตอนการผสมและขึ้นรูป",
       icon: "🔄",
-      color: "#FFCD00",
+      color: "#f59e0b",
       description: "กระบวนการเตรียมวัตถุดิบและขึ้นรูปเบื้องต้น",
       fields: ["mixing_time", "extruder_exit_time", "pre_press_exit_time"]
     },
     {
       title: "Primary Press",
       icon: "🏭",
-      color: "#004D8A",
+      color: "#8b5cf6",
       description: "กระบวนการอัดรอบแรกและการไหลเข้า",
       fields: ["primary_press_start", "stream_in", "primary_press_exit"]
     },
     {
       title: "Secondary Press",
       icon: "🔧",
-      color: "#FFCD00",
+      color: "#ef4444",
       description: "กระบวนการอัดรอบสองและตรวจสอบอุณหภูมิ",
       fields: ["secondary_press_1_start", "temp_check_1", "secondary_press_2_start", "temp_check_2", "secondary_press_exit"]
     },
@@ -167,9 +167,15 @@ const Config = () => {
       fields: ["cooling_time", "adj_next_start", "solid_block", "remove_workpiece"]
     }
   ];
+
+  const getCompletionPercentage = () => {
+    const totalFields = Object.keys(formData).length;
+    const filledFields = Object.values(formData).filter(value => value.trim() !== '').length;
+    return Math.round((filledFields / totalFields) * 100);
+  };
  
   return (
-    <div className="config-container">
+    <div className="config-page-wrapper">
       <ToastContainer 
         position="top-right"
         autoClose={5000}
@@ -183,214 +189,213 @@ const Config = () => {
         theme="light"
       />
       
-      <div className="header-section">
-        <div className="header-content">
-          <div className="header-icon">⚙️</div>
-          <div className="header-text">
-            <h1 className="config-title">ตั้งค่าเวลาการผลิต</h1>
-            <p className="config-subtitle">กำหนดเวลาสำหรับแต่ละขั้นตอนการผลิต PE Block อย่างละเอียด</p>
+      <div className="config-main-container">
+        {/* Header Section */}
+        <header className="config-page-header">
+          <div className="config-header-background">
+            <div className="config-header-overlay"></div>
+            <div className="config-header-decoration"></div>
           </div>
-        </div>
-        
-        <div className="progress-indicator">
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: '20%' }}></div>
-          </div>
-          <p className="progress-text">การตั้งค่าใหม่ - ขั้นตอนที่ 1/5</p>
-        </div>
-      </div>
-
-      <form className="config-form" onSubmit={handleSubmit}>
-        {/* คอลัมน์ซ้าย - Sections 1-3 */}
-        <div className="form-left-column">
-          {fieldGroups.slice(0, 3).map((group, groupIndex) => (
-            <div key={groupIndex} className={`form-section ${group.fields.length > 3 ? 'large-section' : ''}`}>
-              <div className="section-header">
-                <div className="section-title-container">
-                  <div 
-                    className="icon-container" 
-                    style={{ backgroundColor: group.color }}
-                  >
-                    {group.icon}
-                  </div>
-                  <div className="section-info">
-                    <h3 className="section-title">{group.title}</h3>
-                    <p className="section-description">{group.description}</p>
-                  </div>
-                </div>
-                <div className="section-badge">
-                  {group.fields.length} ฟิลด์
-                </div>
-              </div>
-              
-              <div className="form-grid">
-                {group.fields.map((key) => (
-                  <div key={key} className="form-group">
-                    <label className="form-label" htmlFor={key}>
-                      {formatLabel(key)}
-                      {key !== 'config_group' && <span className="required">*</span>}
-                      {key !== 'config_group' && <span className="unit-label">(นาที)</span>}
-                    </label>
-                    <div className="input-container">
-                      <input
-                        className="form-input"
-                        type={getInputType(key)}
-                        id={key}
-                        name={key}
-                        value={formData[key]}
-                        onChange={handleChange}
-                        placeholder={getPlaceholder(key)}
-                        required
-                        min={key !== 'config_group' ? "0" : undefined}
-                        step={key !== 'config_group' ? "0.01" : undefined}
-                        maxLength={key === 'config_group' ? "50" : undefined}
-                      />
-                      {key !== 'config_group' && (
-                        <span className="input-unit">นาที</span>
-                      )}
-                    </div>
-                    <div className="input-helper">
-                      {key === 'config_group' 
-                        ? 'ระบุชื่อกลุ่มการตั้งค่าที่เป็นเอกลักษณ์' 
-                        : 'ระบุเวลาที่ใช้ในขั้นตอนนี้'
-                      }
-                    </div>
-                  </div>
-                ))}
-              </div>
+          
+          <div className="config-header-content">
+            <div className="config-brand-icon">
+              <svg viewBox="0 0 24 24" className="config-icon-svg">
+                <path d="M12 1L21 5V11C21 16.55 17.16 21.74 12 23C6.84 21.74 3 16.55 3 11V5L12 1M12 7C10.9 7 10 7.9 10 9S10.9 11 12 11 14 10.1 14 9 13.1 7 12 7M18 9C16.9 9 16 9.9 16 11S16.9 13 18 13 20 12.1 20 11 19.1 9 18 9M6 9C4.9 9 4 9.9 4 11S4.9 13 6 13 8 12.1 8 11 7.1 9 6 9Z"/>
+              </svg>
             </div>
-          ))}
-        </div>
-
-        {/* คอลัมน์ขวา - Sections 4-5 */}
-        <div className="form-right-column">
-          {fieldGroups.slice(3, 5).map((group, groupIndex) => (
-            <div key={groupIndex + 3} className={`form-section ${group.fields.length > 3 ? 'large-section' : ''}`}>
-              <div className="section-header">
-                <div className="section-title-container">
-                  <div 
-                    className="icon-container" 
-                    style={{ backgroundColor: group.color }}
-                  >
-                    {group.icon}
-                  </div>
-                  <div className="section-info">
-                    <h3 className="section-title">{group.title}</h3>
-                    <p className="section-description">{group.description}</p>
-                  </div>
-                </div>
-                <div className="section-badge">
-                  {group.fields.length} ฟิลด์
-                </div>
-              </div>
-              
-              <div className="form-grid">
-                {group.fields.map((key) => (
-                  <div key={key} className="form-group">
-                    <label className="form-label" htmlFor={key}>
-                      {formatLabel(key)}
-                      {key !== 'config_group' && <span className="required">*</span>}
-                      {key !== 'config_group' && <span className="unit-label">(นาที)</span>}
-                    </label>
-                    <div className="input-container">
-                      <input
-                        className="form-input"
-                        type={getInputType(key)}
-                        id={key}
-                        name={key}
-                        value={formData[key]}
-                        onChange={handleChange}
-                        placeholder={getPlaceholder(key)}
-                        required
-                        min={key !== 'config_group' ? "0" : undefined}
-                        step={key !== 'config_group' ? "0.01" : undefined}
-                        maxLength={key === 'config_group' ? "50" : undefined}
-                      />
-                      {key !== 'config_group' && (
-                        <span className="input-unit">นาที</span>
-                      )}
-                    </div>
-                    <div className="input-helper">
-                      {key === 'config_group' 
-                        ? 'ระบุชื่อกลุ่มการตั้งค่าที่เป็นเอกลักษณ์' 
-                        : 'ระบุเวลาที่ใช้ในขั้นตอนนี้'
-                      }
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Summary และ Actions */}
-        <div className="form-summary-actions">
-          {/* Form Summary */}
-          <div className="form-summary">
-            <div className="summary-header">
-              <h4>สรุปการตั้งค่า</h4>
-            </div>
-            <div className="summary-content">
-              <div className="summary-item">
-                <span className="summary-label">กลุ่มการตั้งค่า:</span>
-                <span className="summary-value">{formData.config_group || '-'}</span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-label">จำนวนฟิลด์ที่กรอก:</span>
-                <span className="summary-value">
-                  {Object.values(formData).filter(value => value.trim() !== '').length} / {Object.keys(formData).length}
-                </span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-label">สถานะ:</span>
-                <span className={`summary-status ${isFormValid() ? 'valid' : 'invalid'}`}>
-                  {isFormValid() ? '✅ พร้อมบันทึก' : '⚠️ ยังไม่พร้อม'}
-                </span>
-              </div>
+            
+            <div className="config-header-text">
+              <h1 className="config-main-title">ตั้งค่าเวลาการผลิต</h1>
+              <p className="config-main-subtitle">
+                กำหนดเวลาสำหรับแต่ละขั้นตอนการผลิต PE Block อย่างละเอียด
+              </p>
             </div>
           </div>
           
-          <div className="form-actions">
-            <button 
-              className="reset-button" 
-              type="button" 
-              onClick={resetForm}
-              disabled={isLoading}
-            >
-              <span>🧹</span>
-              รีเซ็ต
-            </button>
-            
-            <button 
-              className="cancel-button" 
-              type="button" 
-              onClick={() => window.history.back()}
-              disabled={isLoading}
-            >
-              <span>↩️</span>
-              ยกเลิก
-            </button>
-            
-            <button 
-              className={`form-submit-button ${!isFormValid() ? 'disabled' : ''}`}
-              type="submit"
-              disabled={!isFormValid() || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="loading-spinner"></span>
-                  กำลังบันทึก...
-                </>
-              ) : (
-                <>
-                  <span>💾</span>
-                  บันทึกการตั้งค่า
-                </>
-              )}
-            </button>
+          <div className="config-progress-indicator">
+            <div className="config-progress-bar">
+              <div 
+                className="config-progress-fill" 
+                style={{ width: `${getCompletionPercentage()}%` }}
+              ></div>
+            </div>
+            <p className="config-progress-text">
+              ความสมบูรณ์: {getCompletionPercentage()}% ({Object.values(formData).filter(v => v.trim()).length}/{Object.keys(formData).length} ฟิลด์)
+            </p>
           </div>
-        </div>
-      </form>
+        </header>
+
+        {/* Form Container */}
+        <main className="config-form-container">
+          <form className="config-main-form" onSubmit={handleSubmit}>
+            
+            {/* Form Sections Grid */}
+            <div className="config-sections-grid">
+              {fieldGroups.map((group, groupIndex) => (
+                <div 
+                  key={groupIndex} 
+                  className={`config-form-section ${group.fields.length > 3 ? 'config-large-section' : ''}`}
+                >
+                  <div className="config-section-header">
+                    <div className="config-section-title-container">
+                      <div 
+                        className="config-icon-container" 
+                        style={{ backgroundColor: group.color }}
+                      >
+                        <span className="config-section-emoji">{group.icon}</span>
+                      </div>
+                      <div className="config-section-info">
+                        <h3 className="config-section-title">{group.title}</h3>
+                        <p className="config-section-description">{group.description}</p>
+                      </div>
+                    </div>
+                    <div className="config-section-badge">
+                      <span className="config-badge-number">{group.fields.length}</span>
+                      <span className="config-badge-text">ฟิลด์</span>
+                    </div>
+                  </div>
+                  
+                  <div className="config-form-grid">
+                    {group.fields.map((key) => {
+                      const hasValue = formData[key].trim() !== '';
+                      return (
+                        <div key={key} className="config-form-group">
+                          <label className="config-form-label" htmlFor={key}>
+                            <span className="config-label-text">{formatLabel(key)}</span>
+                            {key !== 'config_group' && (
+                              <span className="config-required-asterisk">*</span>
+                            )}
+                            {key !== 'config_group' && (
+                              <span className="config-unit-label">(นาที)</span>
+                            )}
+                          </label>
+                          
+                          <div className="config-input-container">
+                            <input
+                              className={`config-form-input ${hasValue ? 'config-input-filled' : ''}`}
+                              type={getInputType(key)}
+                              id={key}
+                              name={key}
+                              value={formData[key]}
+                              onChange={handleChange}
+                              placeholder={getPlaceholder(key)}
+                              required
+                              min={key !== 'config_group' ? "0" : undefined}
+                              step={key !== 'config_group' ? "0.01" : undefined}
+                              maxLength={key === 'config_group' ? "50" : undefined}
+                            />
+                            {key !== 'config_group' && (
+                              <span className="config-input-unit">นาที</span>
+                            )}
+                            {hasValue && (
+                              <div className="config-input-check">✓</div>
+                            )}
+                          </div>
+                          
+                          <div className="config-input-helper">
+                            {key === 'config_group' 
+                              ? 'ระบุชื่อกลุ่มการตั้งค่าที่เป็นเอกลักษณ์' 
+                              : 'ระบุเวลาที่ใช้ในขั้นตอนนี้ (ทศนิยม 2 ตำแหน่ง)'
+                            }
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Summary และ Actions */}
+            <div className="config-form-summary-actions">
+              {/* Form Summary */}
+              <div className="config-form-summary">
+                <div className="config-summary-header">
+                  <div className="config-summary-icon">📊</div>
+                  <h4 className="config-summary-title">สรุปการตั้งค่า</h4>
+                </div>
+                
+                <div className="config-summary-content">
+                  <div className="config-summary-item">
+                    <span className="config-summary-label">กลุ่มการตั้งค่า:</span>
+                    <span className="config-summary-value">
+                      {formData.config_group || '-'}
+                    </span>
+                  </div>
+                  
+                  <div className="config-summary-item">
+                    <span className="config-summary-label">จำนวนฟิลด์ที่กรอก:</span>
+                    <span className="config-summary-value">
+                      <span className="config-count-highlight">
+                        {Object.values(formData).filter(value => value.trim() !== '').length}
+                      </span>
+                      <span className="config-count-total"> / {Object.keys(formData).length}</span>
+                    </span>
+                  </div>
+                  
+                  <div className="config-summary-item">
+                    <span className="config-summary-label">สถานะ:</span>
+                    <span className={`config-summary-status ${isFormValid() ? 'config-status-valid' : 'config-status-invalid'}`}>
+                      {isFormValid() ? '✅ พร้อมบันทึก' : '⚠️ ยังไม่พร้อม'}
+                    </span>
+                  </div>
+                  
+                  <div className="config-summary-progress">
+                    <div className="config-mini-progress-bar">
+                      <div 
+                        className="config-mini-progress-fill"
+                        style={{ width: `${getCompletionPercentage()}%` }}
+                      ></div>
+                    </div>
+                    <span className="config-mini-progress-text">{getCompletionPercentage()}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Form Actions */}
+              <div className="config-form-actions">
+                <button 
+                  className="config-reset-button" 
+                  type="button" 
+                  onClick={resetForm}
+                  disabled={isLoading}
+                >
+                  <span className="config-button-icon">🧹</span>
+                  <span className="config-button-text">รีเซ็ต</span>
+                </button>
+                
+                <button 
+                  className="config-cancel-button" 
+                  type="button" 
+                  onClick={() => window.history.back()}
+                  disabled={isLoading}
+                >
+                  <span className="config-button-icon">↩️</span>
+                  <span className="config-button-text">ยกเลิก</span>
+                </button>
+                
+                <button 
+                  className={`config-submit-button ${!isFormValid() ? 'config-submit-disabled' : ''}`}
+                  type="submit"
+                  disabled={!isFormValid() || isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="config-loading-spinner"></span>
+                      <span className="config-button-text">กำลังบันทึก...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="config-button-icon">💾</span>
+                      <span className="config-button-text">บันทึกการตั้งค่า</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </main>
+      </div>
     </div>
   );
 };
