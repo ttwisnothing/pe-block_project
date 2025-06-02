@@ -94,7 +94,7 @@ export const listPlantime = async (req, res) => {
                 start_time,
                 end_time
             FROM FM_production_record
-            ORDER BY create_date DESC, start_time ASC
+            ORDER BY id DESC
         `;
 
         const result = await request.query(query);

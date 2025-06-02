@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom"; // เพิ่ม useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -11,7 +11,19 @@ import {
   Paper,
   Button,
   TextField,
+  Typography,
+  Box,
+  Chip,
+  IconButton,
 } from "@mui/material";
+import {
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Visibility as VisibilityIcon,
+  Build as BuildIcon,
+  Schedule as ScheduleIcon,
+} from "@mui/icons-material";
 import axios from "axios";
 import "./temptime.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,15 +31,15 @@ import "react-toastify/dist/ReactToastify.css";
 
 const EditTemp = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // ใช้ useNavigate
+  const navigate = useNavigate();
   const { productName, colorName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
   const [newStartTime, setNewStartTime] = useState("");
-  const [editingMachineRow, setEditingMachineRow] = useState(false); // สำหรับโหมดแก้ไข Machine
-  const [newMachineValues, setNewMachineValues] = useState({}); // เก็บค่าที่แก้ไข
+  const [editingMachineRow, setEditingMachineRow] = useState(false);
+  const [newMachineValues, setNewMachineValues] = useState({});
 
   const formatTime = (time) => {
     if (!time) return "";
@@ -59,7 +71,7 @@ const EditTemp = () => {
     };
 
     fetchTempPlanTimes();
-  }, [ productName]);
+  }, [productName]);
 
   const handleEditStartTime = (tempId, currentStartTime) => {
     setEditingRow(tempId);
@@ -68,7 +80,6 @@ const EditTemp = () => {
 
   const handleSaveStartTime = async () => {
     try {
-      // ตรวจสอบว่าค่าที่กรอกมีวินาทีหรือไม่ ถ้าไม่มีให้เพิ่ม ":00"
       const formattedTime = newStartTime.includes(":")
         ? `${newStartTime}:00`
         : newStartTime;
@@ -76,7 +87,7 @@ const EditTemp = () => {
       await axios.put(
         `/api/put/tempplantime/update/${productName}/${editingRow}`,
         {
-          new_start_time: formattedTime, // ใช้เวลาที่ปรับรูปแบบแล้ว
+          new_start_time: formattedTime,
         }
       );
       toast.success("✅ Start Time updated successfully");
@@ -101,20 +112,18 @@ const EditTemp = () => {
     setEditingMachineRow(true);
     const initialValues = {};
     tempPlanTimes.forEach((plan) => {
-      initialValues[plan.temp_id] = plan.machine; // ตั้งค่าเริ่มต้นสำหรับ Machine
+      initialValues[plan.temp_id] = plan.machine;
     });
     setNewMachineValues(initialValues);
   };
 
   const handleSaveMachine = async () => {
     try {
-      // สร้าง payload สำหรับส่งไปยัง API
       const machines = Object.entries(newMachineValues).map(([tempId, newMachineName]) => ({
         temp_id: parseInt(tempId, 10),
         new_machine_name: newMachineName,
       }));
 
-      // ส่งคำขอ PUT ไปยัง API
       await axios.put(`/api/put/tempplantime/upmachine/${productName}`, {
         machines,
       });
@@ -141,137 +150,241 @@ const EditTemp = () => {
     }));
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>เกิดข้อผิดพลาดในการโหลดข้อมูล</div>;
+  if (loading) {
+    return (
+      <div className="temptime-loading-container">
+        <div className="temptime-loading-spinner"></div>
+        <Typography variant="h6">กำลังโหลดข้อมูล...</Typography>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="temptime-error-container">
+        <Typography variant="h6" color="error">
+          ❌ เกิดข้อผิดพลาดในการโหลดข้อมูล
+        </Typography>
+      </div>
+    );
+  }
 
   return (
-    <div className="temp-plan-table-container">
-      <h1>
-        Edit Temp Time fot Product: {productName}({colorName})
-      </h1>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Run No</TableCell>
-              <TableCell>Machine</TableCell>
-              <TableCell>Batch No</TableCell>
-              <TableCell>Start Time</TableCell>
-              <TableCell>Mixing</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {tempPlanTimes.map((plan) => (
-              <TableRow key={plan.temp_id}>
-                <TableCell>{plan.run_no}</TableCell>
-                <TableCell>
-                  {editingMachineRow ? (
-                    <TextField
-                      value={newMachineValues[plan.temp_id] || ""}
-                      onChange={(e) =>
-                        handleMachineChange(plan.temp_id, e.target.value)
-                      }
-                      placeholder="Machine Name"
-                      size="small"
+    <div className="temptime-main-container">
+      {/* Header Section */}
+      <div className="temptime-header-section">
+        <div className="temptime-title-wrapper">
+          <ScheduleIcon className="temptime-title-icon" />
+          <Typography variant="h4" className="temptime-main-title">
+            แก้ไขเวลาแผนชั่วคราว
+          </Typography>
+        </div>
+        
+        <div className="temptime-product-info">
+          <Chip 
+            label={`สินค้า: ${productName}`} 
+            className="temptime-product-chip"
+            icon={<BuildIcon />}
+          />
+          {colorName && (
+            <Chip 
+              label={`สี: ${colorName}`} 
+              className="temptime-color-chip"
+              variant="outlined"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="temptime-stats-section">
+        <div className="temptime-stat-card">
+          <Typography variant="h6" className="temptime-stat-number">
+            {tempPlanTimes.length}
+          </Typography>
+          <Typography variant="body2" className="temptime-stat-label">
+            จำนวนแผน
+          </Typography>
+        </div>
+        <div className="temptime-stat-card">
+          <Typography variant="h6" className="temptime-stat-number">
+            {editingMachineRow ? "แก้ไข" : "ปกติ"}
+          </Typography>
+          <Typography variant="body2" className="temptime-stat-label">
+            สถานะ
+          </Typography>
+        </div>
+      </div>
+
+      {/* Table Section */}
+      <div className="temptime-table-section">
+        <TableContainer component={Paper} className="temptime-table-container">
+          <Table className="temptime-table">
+            <TableHead>
+              <TableRow className="temptime-table-header">
+                <TableCell className="temptime-table-cell-header">Run No</TableCell>
+                <TableCell className="temptime-table-cell-header">Machine</TableCell>
+                <TableCell className="temptime-table-cell-header">Batch No</TableCell>
+                <TableCell className="temptime-table-cell-header">Start Time</TableCell>
+                <TableCell className="temptime-table-cell-header">Mixing</TableCell>
+                <TableCell className="temptime-table-cell-header">จัดการ</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tempPlanTimes.map((plan, index) => (
+                <TableRow 
+                  key={plan.temp_id} 
+                  className={`temptime-table-row ${index % 2 === 0 ? 'temptime-row-even' : 'temptime-row-odd'}`}
+                >
+                  <TableCell className="temptime-table-cell">
+                    <Chip 
+                      label={plan.run_no} 
+                      size="small" 
+                      className="temptime-run-chip"
                     />
-                  ) : (
-                    plan.machine
-                  )}
-                </TableCell>
-                <TableCell>{plan.batch_no}</TableCell>
-                <TableCell>
-                  {editingRow === plan.temp_id ? (
-                    <TextField
-                      value={newStartTime}
-                      onChange={(e) => setNewStartTime(e.target.value)}
-                      placeholder="HH:MM"
-                      size="small"
+                  </TableCell>
+                  <TableCell className="temptime-table-cell">
+                    {editingMachineRow ? (
+                      <TextField
+                        value={newMachineValues[plan.temp_id] || ""}
+                        onChange={(e) =>
+                          handleMachineChange(plan.temp_id, e.target.value)
+                        }
+                        placeholder="ชื่อเครื่องจักร"
+                        size="small"
+                        className="temptime-input-field"
+                        fullWidth
+                      />
+                    ) : (
+                      <div className="temptime-machine-name">{plan.machine}</div>
+                    )}
+                  </TableCell>
+                  <TableCell className="temptime-table-cell">
+                    <Chip 
+                      label={plan.batch_no} 
+                      size="small" 
+                      variant="outlined"
+                      className="temptime-batch-chip"
                     />
-                  ) : (
-                    formatTime(plan.start_time)
-                  )}
-                </TableCell>
-                <TableCell>{formatTime(plan.mixing)}</TableCell>
-                <TableCell>
-                  {editingRow === plan.temp_id ? (
-                    <>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        onClick={handleSaveStartTime}
-                        style={{ marginRight: "8px" }}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={handleCancelEdit}
-                      >
-                        Cancel
-                      </Button>
-                    </>
-                  ) : (
-                    plan.start_time && (
+                  </TableCell>
+                  <TableCell className="temptime-table-cell">
+                    {editingRow === plan.temp_id ? (
+                      <TextField
+                        value={newStartTime}
+                        onChange={(e) => setNewStartTime(e.target.value)}
+                        placeholder="HH:MM"
+                        size="small"
+                        className="temptime-input-field"
+                      />
+                    ) : (
+                      <div className="temptime-time-display">
+                        {formatTime(plan.start_time)}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="temptime-table-cell">
+                    <div className="temptime-time-display">
+                      {formatTime(plan.mixing)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="temptime-table-cell">
+                    <div className="temptime-action-buttons">
+                      {editingRow === plan.temp_id ? (
+                        <>
+                          <IconButton
+                            color="success"
+                            onClick={handleSaveStartTime}
+                            className="temptime-save-btn"
+                            size="small"
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton
+                            color="error"
+                            onClick={handleCancelEdit}
+                            className="temptime-cancel-btn"
+                            size="small"
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </>
+                      ) : (
+                        plan.start_time && (
+                          <IconButton
+                            color="primary"
+                            onClick={() =>
+                              handleEditStartTime(plan.temp_id, plan.start_time)
+                            }
+                            className="temptime-edit-btn"
+                            size="small"
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow className="temptime-table-footer">
+                <TableCell colSpan={6} className="temptime-footer-cell">
+                  <div className="temptime-footer-actions">
+                    {editingMachineRow ? (
+                      <div className="temptime-machine-edit-actions">
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={handleSaveMachine}
+                          startIcon={<SaveIcon />}
+                          className="temptime-save-all-btn"
+                        >
+                          บันทึกทั้งหมด
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={handleCancelEditMachine}
+                          startIcon={<CancelIcon />}
+                          className="temptime-cancel-all-btn"
+                        >
+                          ยกเลิก
+                        </Button>
+                      </div>
+                    ) : (
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={() =>
-                          handleEditStartTime(plan.temp_id, plan.start_time)
-                        }
+                        onClick={handleEditMachine}
+                        startIcon={<BuildIcon />}
+                        className="temptime-edit-machine-btn"
                       >
-                        แก้ไขเวลา
+                        แก้ไขเครื่องจักร
                       </Button>
-                    )
-                  )}
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell colSpan={6} align="right">
-                {editingMachineRow ? (
-                  <>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={handleSaveMachine}
-                      style={{ marginRight: "8px" }}
-                    >
-                      Save All
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      onClick={handleCancelEditMachine}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleEditMachine}
-                  >
-                    แก้ไข Machine
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
-      </TableContainer>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={() => navigate("/temp-table", { state: { productName, colorName } })} // ใช้ navigate
-        style={{ marginTop: "20px" }}
-      >
-        Show time table
-      </Button>
+            </TableFooter>
+          </Table>
+        </TableContainer>
+      </div>
+
+      {/* Bottom Actions */}
+      <div className="temptime-bottom-actions">
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => navigate("/temp-table", { state: { productName, colorName } })}
+          startIcon={<VisibilityIcon />}
+          className="temptime-show-table-btn"
+          size="large"
+        >
+          แสดงตารางเวลา
+        </Button>
+      </div>
+
       <ToastContainer limit={2} />
     </div>
   );

@@ -1,71 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { 
-  Container, 
-  Paper, 
-  Typography, 
-  TextField, 
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  Container,
+  Paper,
+  Typography,
   Button,
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
   TableRow,
   CircularProgress,
   Grid,
   Box,
   Chip,
-  IconButton
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { format } from 'date-fns';
-import SearchIcon from '@mui/icons-material/Search';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import FactoryIcon from '@mui/icons-material/Factory';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AddIcon from '@mui/icons-material/Add';
-import { useNavigate } from 'react-router-dom';
-import { toast } from "react-toastify";
-import './production.css';
-import th from 'date-fns/locale/th';
+  IconButton,
+  Fade,
+  Collapse,
+} from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { format } from "date-fns";
+import SearchIcon from "@mui/icons-material/Search";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import FactoryIcon from "@mui/icons-material/Factory";
+import AddIcon from "@mui/icons-material/Add";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import BatchPredictionIcon from "@mui/icons-material/BatchPrediction";
+import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./production.css";
+import th from "date-fns/locale/th";
 
 const Production = () => {
   const [productionData, setProductionData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [expandedRows, setExpandedRows] = useState({});
+  const [batchDetails, setBatchDetails] = useState({});
   const navigate = useNavigate();
 
   const fetchProductionData = async (searchParams = {}) => {
     try {
       setLoading(true);
-      
-      let url = '/api/get/production/all';
-      
-      // สร้าง query parameters สำหรับ GET request
+
+      let url = "/api/get/production/all";
+
       if (searchParams.dateFrom && searchParams.dateTo) {
         const params = new URLSearchParams({
-          dateFrom: format(searchParams.dateFrom, 'yyyy-MM-dd'),
-          dateTo: format(searchParams.dateTo, 'yyyy-MM-dd')
+          dateFrom: format(searchParams.dateFrom, "yyyy-MM-dd"),
+          dateTo: format(searchParams.dateTo, "yyyy-MM-dd"),
         });
         url += `?${params.toString()}`;
-        
-        console.log('Searching with URL:', url); // debug log
       }
-      
+
       const response = await axios.get(url);
-      console.log('Response data:', response.data); // debug log
       setProductionData(response.data || []);
-      
     } catch (err) {
-      console.error('Failed to fetch production data:', err);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล โปรดลองอีกครั้งในภายหลัง');
+      console.error("Failed to fetch production data:", err);
+      toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล โปรดลองอีกครั้งในภายหลัง");
       setProductionData([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBatchDetails = async (productionId) => {
+    try {
+      const response = await axios.get(
+        `/api/get/production/${productionId}/batches`
+      );
+      setBatchDetails((prev) => ({
+        ...prev,
+        [productionId]: response.data || [],
+      }));
+    } catch (err) {
+      console.error("Failed to fetch batch details:", err);
+      toast.error("ไม่สามารถดึงข้อมูล batch ได้");
+    }
+  };
+
+  const handleCreateRecord = (productionId, productName) => {
+    // ส่ง production ID ผ่าน state และใช้ product name ใน URL
+    navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
+      state: { 
+        productionId: productionId,
+        productName: productName 
+      }
+    });
+  };
+
+  const handleRowExpand = async (productionId) => {
+    const isExpanded = expandedRows[productionId];
+
+    setExpandedRows((prev) => ({
+      ...prev,
+      [productionId]: !isExpanded,
+    }));
+
+    if (!isExpanded && !batchDetails[productionId]) {
+      await fetchBatchDetails(productionId);
     }
   };
 
@@ -73,43 +115,49 @@ const Production = () => {
     fetchProductionData();
   }, []);
 
-  const handleSearch = () => {
-    // ตรวจสอบความถูกต้องของวันที่
+  const handleSearch = async () => {
     if (dateFrom && dateTo && dateFrom > dateTo) {
-      toast.error('วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด');
+      toast.error("วันที่เริ่มต้นต้องมาก่อนวันที่สิ้นสุด");
       return;
     }
-    
-    // ตรวจสอบว่ามีการเลือกวันที่ทั้งคู่หรือไม่
+
     if ((dateFrom && !dateTo) || (!dateFrom && dateTo)) {
-      toast.warning('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุดให้ครบถ้วน');
+      toast.warning("กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุดให้ครบถ้วน");
       return;
     }
-    
-    if (dateFrom && dateTo) {
-      fetchProductionData({ dateFrom, dateTo });
-      toast.success('ค้นหาข้อมูลสำเร็จ');
-    } else {
-      fetchProductionData();
+
+    setSearchLoading(true);
+
+    try {
+      if (dateFrom && dateTo) {
+        await fetchProductionData({ dateFrom, dateTo });
+        toast.success("ค้นหาข้อมูลสำเร็จ");
+      } else {
+        await fetchProductionData();
+      }
+    } finally {
+      setSearchLoading(false);
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setDateFrom(null);
     setDateTo(null);
-    fetchProductionData();
-    toast.info('รีเซ็ตการค้นหาเรียบร้อย');
+    setSearchLoading(true);
+    setExpandedRows({});
+    setBatchDetails({});
+
+    try {
+      await fetchProductionData();
+      toast.info("รีเซ็ตการค้นหาเรียบร้อย");
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
-  const handleCreateRecord = () => {
-    // เปลี่ยนไปหน้าสร้างการบันทึกใหม่
-    navigate('/production-foam/create');
-  };
-
-  // ฟังก์ชันสำหรับตรวจสอบสถานะการผลิต
   const getProductionStatus = (startTime, endTime) => {
     if (!startTime) {
-      return { label: 'ไม่มีข้อมูล', color: 'default' };
+      return { label: "ไม่มีข้อมูล", color: "default", icon: "❓" };
     }
 
     const now = new Date();
@@ -117,183 +165,424 @@ const Production = () => {
     const end = endTime ? new Date(endTime) : null;
 
     if (now < start) {
-      return { label: 'รอผลิต', color: 'warning' };
+      return { label: "รอผลิต", color: "warning", icon: "⏳" };
     } else if (!end || now <= end) {
-      return { label: 'กำลังผลิต', color: 'primary' };
+      return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
     } else {
-      return { label: 'สิ้นสุดการผลิต', color: 'success' };
+      return { label: "สิ้นสุดการผลิต", color: "success", icon: "✅" };
+    }
+  };
+
+  const getBatchStatus = (batchData) => {
+    if (!batchData.actual_start_time) {
+      return { label: "ยังไม่เริ่ม", color: "default", icon: "⭕" };
+    } else if (!batchData.actual_end_time) {
+      return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
+    } else {
+      return { label: "เสร็จสิ้น", color: "success", icon: "✅" };
+    }
+  };
+
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return "-";
+    try {
+      return format(new Date(dateTime), "dd/MM/yyyy HH:mm:ss");
+    } catch (error) {
+      return "-";
+    }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+    try {
+      return format(new Date(date), "dd/MM/yyyy");
+    } catch (error) {
+      return "-";
+    }
+  };
+
+  const formatTime = (time) => {
+    if (!time) return "-";
+    try {
+      return format(new Date(time), "HH:mm:ss");
+    } catch (error) {
+      return "-";
     }
   };
 
   return (
-    <Container maxWidth="xl" className="production-container">
-      <Box className="page-header">
-        <Box className="header-content">
-          <FactoryIcon className="header-icon" />
-          <Typography variant="h4" component="h1" className="page-title">
-            ข้อมูลการผลิต
-          </Typography>
-        </Box>
-        <Typography variant="subtitle1" className="page-subtitle">
-          ติดตามและจัดการข้อมูลการผลิต
-        </Typography>
-      </Box>
-
-      <Paper elevation={0} className="search-card">
-        <Box className="search-header">
-          <CalendarTodayIcon className="search-icon" />
-          <Typography variant="h6" className="search-title">
-            ค้นหาข้อมูล
-          </Typography>
-        </Box>
-        
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={3}>
-              <DatePicker
-                label="วันที่เริ่มต้น"
-                value={dateFrom}
-                onChange={(date) => setDateFrom(date)}
-                format="dd/MM/yyyy"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: "outlined",
-                    className: "date-field",
-                    placeholder: "dd/mm/yyyy"
-                  }
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <DatePicker
-                label="วันที่สิ้นสุด"
-                value={dateTo}
-                onChange={(date) => setDateTo(date)}
-                format="dd/MM/yyyy"
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    variant: "outlined",
-                    className: "date-field",
-                    placeholder: "dd/mm/yyyy"
-                  }
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box className="action-buttons">
-                <Button
-                  variant="contained"
-                  startIcon={<SearchIcon />}
-                  onClick={handleSearch}
-                  className="search-button"
-                  disabled={loading}
-                >
-                  ค้นหา
-                </Button>
-                
-                <IconButton
-                  onClick={handleReset}
-                  className="reset-button"
-                  disabled={loading}
-                  title="รีเซ็ตการค้นหา"
-                > 
-                  <RefreshIcon />
-                </IconButton>
-                
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleCreateRecord}
-                  className="create-button"
-                >
-                  สร้างการบันทึก
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-        </LocalizationProvider>
-      </Paper>
-
-      <Paper elevation={0} className="data-card">
-        {loading ? (
-          <Box className="loading-container">
-            <CircularProgress size={60} thickness={4} />
-            <Typography variant="h6" className="loading-text">
-              กำลังโหลดข้อมูล...
-            </Typography>
-          </Box>
-        ) : productionData.length > 0 ? (
-          <>
-            <Box className="table-header">
-              <Typography variant="h6" className="table-title">
-                ผลการค้นหา ({productionData.length} รายการ)
+    <div className="production-main-container">
+      <Container maxWidth="xl" className="production-container">
+        {/* Header Section */}
+        <Fade in={true} timeout={800}>
+          <Box className="production-page-header">
+            <Box className="production-header-content">
+              <FactoryIcon className="production-header-icon" />
+              <Typography
+                variant="h4"
+                component="h1"
+                className="production-page-title"
+              >
+                ข้อมูลการผลิต
               </Typography>
             </Box>
-            <TableContainer className="table-container">
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    <TableCell className="table-header-cell">No.</TableCell>
-                    <TableCell className="table-header-cell">Create Date</TableCell>
-                    <TableCell className="table-header-cell">Product Name</TableCell>
-                    <TableCell className="table-header-cell">Start Time</TableCell>
-                    <TableCell className="table-header-cell">End Time</TableCell>
-                    <TableCell className="table-header-cell">Total Batch</TableCell>
-                    <TableCell className="table-header-cell">Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {productionData.map((row, index) => {
-                    const status = getProductionStatus(row.start_time, row.end_time);
-                    
-                    return (
-                      <TableRow key={row.id} className="table-row">
-                        <TableCell className="table-cell">{index + 1}</TableCell>
-                        <TableCell className="table-cell date-cell">
-                          {row.create_date ? format(new Date(row.create_date), 'dd/MM/yyyy') : '-'}
-                        </TableCell>
-                        <TableCell className="table-cell product-cell">
-                          {row.product_name || '-'}
-                        </TableCell>
-                        <TableCell className="table-cell">
-                          {row.start_time ? format(new Date(row.start_time), 'dd/MM/yyyy HH:mm:ss') : '-'}
-                        </TableCell>
-                        <TableCell className="table-cell">
-                          {row.end_time ? format(new Date(row.end_time), 'dd/MM/yyyy HH:mm:ss') : '-'}
-                        </TableCell>
-                        <TableCell className="table-cell batch-cell">
-                          <Chip label={row.total_batch || '0'} variant="outlined" size="small" />
-                        </TableCell>
-                        <TableCell className="table-cell">
-                          <Chip 
-                            label={status.label}
-                            color={status.color}
-                            size="small"
-                            className="status-chip"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </>
-        ) : (
-          <Box className="no-data-container">
-            <FactoryIcon className="no-data-icon" />
-            <Typography variant="h6" className="no-data-title">
-              ไม่พบข้อมูล
-            </Typography>
-            <Typography variant="body2" className="no-data-subtitle">
-              ลองปรับเปลี่ยนช่วงวันที่หรือรีเซ็ตการค้นหา
+            <Typography
+              variant="subtitle1"
+              className="production-page-subtitle"
+            >
+              ติดตามและจัดการข้อมูลการผลิต
             </Typography>
           </Box>
-        )}
-      </Paper>
-    </Container>
+        </Fade>
+
+        {/* Search Section */}
+        <Fade in={true} timeout={1000}>
+          <Paper elevation={0} className="production-search-card">
+            <Box className="production-search-header">
+              <CalendarTodayIcon className="production-search-icon" />
+              <Typography variant="h6" className="production-search-title">
+                ค้นหาข้อมูล
+              </Typography>
+            </Box>
+
+            <LocalizationProvider
+              dateAdapter={AdapterDateFns}
+              adapterLocale={th}
+            >
+              <Grid container spacing={3} alignItems="center">
+                <Grid item xs={12} md={4}>
+                  <DatePicker
+                    label="วันที่เริ่มต้น"
+                    value={dateFrom}
+                    onChange={(date) => setDateFrom(date)}
+                    format="dd/MM/yyyy"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                        className: "production-date-field",
+                        placeholder: "dd/mm/yyyy",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <DatePicker
+                    label="วันที่สิ้นสุด"
+                    value={dateTo}
+                    onChange={(date) => setDateTo(date)}
+                    format="dd/MM/yyyy"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                        className: "production-date-field",
+                        placeholder: "dd/mm/yyyy",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Box className="production-action-buttons">
+                    <Button
+                      variant="contained"
+                      startIcon={
+                        searchLoading ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <SearchIcon />
+                        )
+                      }
+                      onClick={handleSearch}
+                      className="production-search-button"
+                      disabled={loading || searchLoading}
+                    >
+                      {searchLoading ? "กำลังค้นหา..." : "ค้นหา"}
+                    </Button>
+
+                    <IconButton
+                      onClick={handleReset}
+                      className="production-reset-button"
+                      disabled={loading || searchLoading}
+                      title="รีเซ็ตการค้นหา"
+                    >
+                      <RefreshIcon />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              </Grid>
+            </LocalizationProvider>
+          </Paper>
+        </Fade>
+
+        {/* Data Section */}
+        <Fade in={true} timeout={1200}>
+          <Paper elevation={0} className="production-data-card">
+            {loading ? (
+              <Box className="production-loading-container">
+                <CircularProgress
+                  size={60}
+                  thickness={4}
+                  className="production-loading-spinner"
+                />
+                <Typography variant="h6" className="production-loading-text">
+                  กำลังโหลดข้อมูล...
+                </Typography>
+              </Box>
+            ) : productionData.length > 0 ? (
+              <>
+                <Box className="production-table-header">
+                  <AssessmentIcon className="production-table-header-icon" />
+                  <Typography variant="h6" className="production-table-title">
+                    ผลการค้นหา ({productionData.length} รายการ)
+                  </Typography>
+                </Box>
+                <TableContainer className="production-table-container">
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell
+                          className="production-table-header-cell"
+                          style={{ width: "50px" }}
+                        >
+                          รายละเอียด
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          ลำดับ
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          วันที่สร้าง
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          ชื่อสินค้า
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          เวลาเริ่ม
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          เวลาสิ้นสุด
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          จำนวนแบทช์
+                        </TableCell>
+                        <TableCell className="production-table-header-cell">
+                          สถานะ
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productionData.map((row, index) => {
+                        const status = getProductionStatus(
+                          row.start_time,
+                          row.end_time
+                        );
+                        const isExpanded = expandedRows[row.id];
+                        const batches = batchDetails[row.id] || [];
+
+                        return (
+                          <React.Fragment key={row.id}>
+                            {/* Main Row */}
+                            <TableRow className="production-table-row">
+                              <TableCell className="production-table-cell">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRowExpand(row.id)}
+                                  className="production-expand-button"
+                                >
+                                  {isExpanded ? (
+                                    <KeyboardArrowUpIcon />
+                                  ) : (
+                                    <KeyboardArrowDownIcon />
+                                  )}
+                                </IconButton>
+                              </TableCell>
+                              <TableCell className="production-table-cell production-index-cell">
+                                {index + 1}
+                              </TableCell>
+                              <TableCell className="production-table-cell production-date-cell">
+                                {formatDate(row.create_date)}
+                              </TableCell>
+                              <TableCell className="production-table-cell production-product-cell">
+                                {row.product_name || "-"}
+                              </TableCell>
+                              <TableCell className="production-table-cell production-datetime-cell">
+                                {formatDateTime(row.start_time)}
+                              </TableCell>
+                              <TableCell className="production-table-cell production-datetime-cell">
+                                {formatDateTime(row.end_time)}
+                              </TableCell>
+                              <TableCell className="production-table-cell production-batch-cell">
+                                <Chip
+                                  label={row.total_batch || "0"}
+                                  variant="outlined"
+                                  size="small"
+                                  className="production-batch-chip"
+                                />
+                              </TableCell>
+                              <TableCell className="production-table-cell production-status-cell">
+                                <Chip
+                                  label={`${status.icon} ${status.label}`}
+                                  color={status.color}
+                                  size="small"
+                                  className="production-status-chip"
+                                />
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Expanded Row - Batch Details */}
+                            <TableRow>
+                              <TableCell
+                                style={{ paddingBottom: 0, paddingTop: 0 }}
+                                colSpan={8}
+                              >
+                                <Collapse
+                                  in={isExpanded}
+                                  timeout="auto"
+                                  unmountOnExit
+                                >
+                                  <Box className="production-batch-details">
+                                    <Box className="production-batch-details-header">
+                                      <Typography
+                                        variant="h6"
+                                        className="production-batch-details-title"
+                                      >
+                                        <BatchPredictionIcon className="production-batch-icon" />
+                                        รายละเอียด Batch ({batches.length} รายการ)
+                                      </Typography>
+                                      <Button
+                                        variant="contained"
+                                        startIcon={<AddIcon />}
+                                        onClick={() => handleCreateRecord(row.id, row.product_name)}
+                                        className="production-create-button"
+                                        size="small"
+                                      >
+                                        บันทึกข้อมูล
+                                      </Button>
+                                    </Box>
+
+                                    {batches.length > 0 ? (
+                                      <Table
+                                        size="small"
+                                        className="production-batch-table"
+                                      >
+                                        <TableHead>
+                                          <TableRow>
+                                            <TableCell className="production-batch-header-cell">
+                                              Batch No.
+                                            </TableCell>
+                                            <TableCell className="production-batch-header-cell">
+                                              วันที่บันทึก
+                                            </TableCell>
+                                            <TableCell className="production-batch-header-cell">
+                                              ชื่อผลิตภัณฑ์
+                                            </TableCell>
+                                            <TableCell className="production-batch-header-cell">
+                                              พนักงานที่บันทึก
+                                            </TableCell>
+                                            <TableCell className="production-batch-header-cell">
+                                              สถานะ
+                                            </TableCell>
+                                          </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                          {batches.map((batch) => {
+                                            const batchStatus =
+                                              getBatchStatus(batch);
+                                            return (
+                                              <TableRow
+                                                key={batch.id}
+                                                className="production-batch-row"
+                                              >
+                                                <TableCell className="production-batch-cell production-batch-number">
+                                                  <Chip
+                                                    label={batch.batch_no}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    className="production-batch-number-chip"
+                                                  />
+                                                </TableCell>
+                                                <TableCell className="production-batch-cell">
+                                                  {batch.record_date || "-"}
+                                                </TableCell>
+                                                <TableCell className="production-batch-cell">
+                                                  {batch.product_name || "-"}
+                                                </TableCell>
+                                                <TableCell className="production-batch-cell production-batch-time">
+                                                  {batch.operator_name || "-"}
+                                                </TableCell>
+                                                <TableCell className="production-batch-cell">
+                                                  <Chip
+                                                    label={`${batchStatus.icon} ${batchStatus.label}`}
+                                                    color={batchStatus.color}
+                                                    size="small"
+                                                    className="production-batch-status-chip"
+                                                  />
+                                                </TableCell>
+                                              </TableRow>
+                                            );
+                                          })}
+                                        </TableBody>
+                                      </Table>
+                                    ) : (
+                                      <Box className="production-no-batch-data">
+                                        <Typography
+                                          variant="body2"
+                                          color="textSecondary"
+                                        >
+                                          ไม่มีข้อมูล Batch
+                                        </Typography>
+                                      </Box>
+                                    )}
+                                  </Box>
+                                </Collapse>
+                              </TableCell>
+                            </TableRow>
+                          </React.Fragment>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            ) : (
+              <Box className="production-no-data-container">
+                <FactoryIcon className="production-no-data-icon" />
+                <Typography variant="h6" className="production-no-data-title">
+                  ไม่พบข้อมูลการผลิต
+                </Typography>
+                <Typography
+                  variant="body2"
+                  className="production-no-data-subtitle"
+                >
+                  ลองปรับเปลี่ยนช่วงวันที่หรือรีเซ็ตการค้นหา
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={handleReset}
+                  className="production-no-data-button"
+                  startIcon={<RefreshIcon />}
+                >
+                  รีเซ็ตการค้นหา
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        </Fade>
+
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </Container>
+    </div>
   );
 };
 

@@ -19,7 +19,7 @@ router.post('/chemical/add', addChemical);
 router.post('/plantime/add/:product_name', addPlantime);
 router.post('/plantime/temp/add/:product_name', addTempPlanTime);
 router.post('/plantime/temp-mb/add/:product_name', addTempMB);
-router.post('/production/add', addProduction);
+router.post('/production/:podId/add', addProduction);
 router.post('/production/chemical-name/add', addChemicalNameStep);
 router.post('/production/chemical-weight/add', addChemicalWeightStep);
 router.post('/production/mixing-step/add', addMixingStep);

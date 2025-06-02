@@ -109,7 +109,8 @@ export const addProductRecord = async (req, res) => {
 };
 
 export const addProduction = async (req, res) => {
-    const { podId, batchNo, recordDate, productStatus, programNo, productName,shiftTime, operatorName } = req.body;
+    const { podId } = req.params; // รับ podId จาก URL parameters
+    const { batchNo, recordDate, productStatus, programNo, productName,shiftTime, operatorName } = req.body;
     const query = `
         INSERT INTO FM_first_step (
             product_record_id, batch_no, record_date, product_status, program_no,

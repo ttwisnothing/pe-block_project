@@ -8,7 +8,7 @@ export const addTempPlanTime = async (req, res) => {
         const pool = await getPool();
         const request = pool.request();
 
-        // ลบข้อมูลทั้งหมดใน temp_plan_table
+        // ลบข้อมูลทั้งหมดใน temp_time_mst
         await request.query(`DELETE FROM PT_temp_time_mst`);
 
         // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
@@ -26,7 +26,7 @@ export const addTempPlanTime = async (req, res) => {
             return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
         }
 
-        // INSERT ข้อมูลลงใน temp_plan_table
+        // INSERT ข้อมูลลงใน temp_time_mst
         for (const plan of planTimes) {
             const sqlValue = (val) =>
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
@@ -55,7 +55,7 @@ export const addTempPlanTime = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: '✅ Plan Times inserted into temp_plan_table successfully',
+            message: '✅ Plan Times inserted into temp_time_mst successfully',
         });
     } catch (error) {
         console.error('❌ ERROR:', error);
@@ -82,13 +82,13 @@ export const addTempMB = async (req, res) => {
             return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
         }
 
-        // ลบข้อมูลทั้งหมดใน temp_plan_table
+        // ลบข้อมูลทั้งหมดใน temp_time_mst
         await request.query(`DELETE FROM PT_temp_time_mst`);
 
         // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
         await request.query(`DBCC CHECKIDENT ('PT_temp_time_mst', RESEED, 0)`);
 
-        // INSERT ข้อมูลลงใน temp_plan_table
+        // INSERT ข้อมูลลงใน temp_time_mst
         for (const plan of planTimes) {
             const sqlValue = (val) =>
                 val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
@@ -117,7 +117,7 @@ export const addTempMB = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: '✅ Plan Times inserted into temp_plan_table successfully',
+            message: '✅ Plan Times inserted into temp_time_mst successfully',
         });
     } catch (error) {
         console.error('❌ ERROR:', error);
@@ -138,7 +138,7 @@ export const updateNewStartTime = async (req, res) => {
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
-            FROM PT_temp_plan_table pt
+            FROM PT_temp_time_mst pt
             INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = @product_name
         `);
@@ -362,7 +362,7 @@ export const updateNewStartTime = async (req, res) => {
                 .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
                 .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
                 .query(`
-                    UPDATE PT_temp_plan_table
+                    UPDATE PT_temp_time_mst
                     SET start_time = @start_time,
                         mixing = @mixing,
                         extruder_exit = @extruder_exit,
@@ -424,7 +424,7 @@ export const updateMac = async (req, res) => {
 
         const existingTempPlanTimesResult = await request.query(`
             SELECT pt.temp_id
-            FROM PT_temp_plan_table pt
+            FROM PT_temp_time_mst pt
             INNER JOIN PT_product_mst pm ON pt.product_id = pm.product_id
             WHERE pm.product_name = @product_name AND pt.temp_id IN (${tempIdsString})
         `);
@@ -441,7 +441,7 @@ export const updateMac = async (req, res) => {
             updateRequest.input('temp_id', sql.Int, machine.temp_id);
 
             await updateRequest.query(`
-                UPDATE PT_temp_plan_table
+                UPDATE PT_temp_time_mst
                 SET machine = @new_machine_name
                 WHERE temp_id = @temp_id
             `);

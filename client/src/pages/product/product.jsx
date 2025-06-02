@@ -25,10 +25,11 @@ const Products = () => {
     const fetchChemicals = async () => {
       try {
         const response = await axios.get(`/api/get/chemicals`);
-        setResinOptions(response.data.resin);
-        setFoamingOptions(response.data.foaming);
-        setColorOptions(response.data.color);
-        setChemicals(response.data.chemicals);
+
+          setResinOptions(response.data.resin);
+          setFoamingOptions(response.data.foaming);
+          setColorOptions(response.data.color);
+          setChemicals(response.data.chemicals);
       } catch (error) {
         console.error('❌ Error fetching chemicals:', error);
         toast.error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
@@ -224,9 +225,9 @@ const Products = () => {
                     required
                   >
                     <option value="">-- เลือกสถานะ --</option>
-                    <option value="active">🟢 ใช้งานปกติ</option>
-                    <option value="inactive">🔴 ไม่ใช้งาน</option>
-                    <option value="testing">🟡 ระหว่างทดสอบ</option>
+                    <option value="Mass">🏭 Mass Production (การผลิตจำนวนมาก)</option>
+                    <option value="R&D">🔬 R&D (วิจัยและพัฒนา)</option>
+                    <option value="Cleaning">🧹 Cleaning (ล้างระบบ)</option>
                   </select>
                 </div>
               </div>
@@ -257,11 +258,15 @@ const Products = () => {
                     required
                   >
                     <option value="">-- เลือกเรซิน --</option>
-                    {resinOptions.map((option, index) => (
-                      <option key={`resin-${index}`} value={option.chemical_name}>
-                        {option.chemical_name}
-                      </option>
-                    ))}
+                    {resinOptions.length > 0 ? (
+                      resinOptions.map((option, index) => (
+                        <option key={`resin-${index}`} value={option.name}>
+                          {option.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>ไม่พบข้อมูลเรซิน</option>
+                    )}
                   </select>
                 </div>
 
@@ -277,11 +282,15 @@ const Products = () => {
                     required
                   >
                     <option value="">-- เลือกโฟมมิ่ง --</option>
-                    {foamingOptions.map((option, index) => (
-                      <option key={`foaming-${index}`} value={option.chemical_name}>
-                        {option.chemical_name}
-                      </option>
-                    ))}
+                    {foamingOptions.length > 0 ? (
+                      foamingOptions.map((option, index) => (
+                        <option key={`foaming-${index}`} value={option.name}>
+                          {option.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>ไม่พบข้อมูลโฟมมิ่ง</option>
+                    )}
                   </select>
                 </div>
 
@@ -296,11 +305,15 @@ const Products = () => {
                     onChange={(e) => setColor(e.target.value)}
                   >
                     <option value="">-- ไม่ใช้สี --</option>
-                    {colorOptions.map((option, index) => (
-                      <option key={`color-${index}`} value={option.chemical_name}>
-                        {option.chemical_name}
-                      </option>
-                    ))}
+                    {colorOptions.length > 0 ? (
+                      colorOptions.map((option, index) => (
+                        <option key={`color-${index}`} value={option.name}>
+                          {option.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>ไม่พบข้อมูลสี</option>
+                    )}
                   </select>
                 </div>
               </div>
@@ -427,11 +440,15 @@ const Products = () => {
                         onChange={(e) => handleChemicalChange(index, e.target.value)}
                       >
                         <option value="">-- เลือกเคมีเสริม --</option>
-                        {chemicals.map((chem, chemIndex) => (
-                          <option key={`chem-${chemIndex}`} value={chem.chemical_name}>
-                            {chem.chemical_name}
-                          </option>
-                        ))}
+                        {chemicals.length > 0 ? (
+                          chemicals.map((chem, chemIndex) => (
+                            <option key={`chem-${chemIndex}`} value={chem.name}>
+                              {chem.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>ไม่พบข้อมูลเคมีเสริม</option>
+                        )}
                       </select>
                     </div>
                   </div>

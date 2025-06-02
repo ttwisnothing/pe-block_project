@@ -56,7 +56,7 @@ const CustomTable = ({ data, formatTime, }) => {
               <React.Fragment key={index}>
                 {index === data.length - 1 && (
                   <TableRow>
-                    <TableCell colSpan={17} className="adj-stop-row">
+                    <TableCell colSpan={18} className="adj-stop-row">
                       กด ADJ STOP
                     </TableCell>
                   </TableRow>

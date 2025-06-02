@@ -12,6 +12,7 @@ import DigitalClock from "../../components/clock/digitalClock";
 import Swal from "sweetalert2";
 import CloseIcon from "@mui/icons-material/Close";
 import BuildIcon from "@mui/icons-material/Build";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 let alertAudio = null;
 
@@ -38,6 +39,7 @@ const PlanTimeTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [tableType, setTableType] = useState("default");
+  const [refreshing, setRefreshing] = useState(false);
 
   // เพิ่ม effect เพื่ออัปเดตเวลาปัจจุบันทุกวินาที
   useEffect(() => {
@@ -139,7 +141,7 @@ const PlanTimeTable = () => {
 
             Swal.fire({
               title: "🚨 ถึงเวลาดำเนินการ!",
-              html: `<div class="alert-content">
+              html: `<div class="plantimetable-alert-content">
                      <p><strong>ขั้นตอน:</strong> ${key.replace("_", " ")}</p>
                      <p><strong>เวลา:</strong> ${eventTime.toLocaleTimeString(
                        "th-TH",
@@ -287,59 +289,110 @@ const PlanTimeTable = () => {
     }
   };
 
+  // ฟังก์ชันสำหรับรีเฟรชข้อมูล
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const response = await axios.get(`/api/get/plantime/${productName}`);
+      
+      if (response.data && response.data.planTimes) {
+        const sortedPlanTimes = [...response.data.planTimes].sort((a, b) => {
+          if (a.run_no !== b.run_no) {
+            return a.run_no - b.run_no;
+          }
+          return a.batch_no - b.batch_no;
+        });
+        
+        setPlanTimes(sortedPlanTimes);
+        toast.success("✅ ข้อมูลถูกอัพเดทแล้ว");
+      }
+    } catch (error) {
+      toast.error("❌ ไม่สามารถอัพเดทข้อมูลได้");
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
-    <div className="table-container">
-      <div className="table-header-section">
-        <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
+    <div className="plantimetable-container">
+      <div className="plantimetable-header-section">
+        <div className="plantimetable-clock-wrapper">
+          <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
+        </div>
 
-        <div className="top-buttons">
+        <div className="plantimetable-top-buttons">
+          <Button
+            variant="contained"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="plantimetable-refresh-button"
+          >
+            {refreshing ? "กำลังอัพเดท..." : "รีเฟรช"}
+          </Button>
           <Button
             variant="contained"
             startIcon={<CloseIcon />}
             onClick={() => window.close()}
-            className="close-button"
+            className="plantimetable-close-button"
           >
             ปิดตารางเวลา
           </Button>
         </div>
       </div>
-
-      <div className="product-info-section">
-        <div className="table-header">
+ 
+      <div className="plantimetable-product-info-section">
+        <div className="plantimetable-table-header">
           <h2>
-            <span className="product-label">สินค้า:</span>
-            <span className="product-name">{productName}</span>
-            {colorName && <span className="product-color">({colorName})</span>}
+            <span className="plantimetable-product-label">สินค้า:</span>
+            <span className="plantimetable-product-name">{productName}</span>
+            {colorName && <span className="plantimetable-product-color">({colorName})</span>}
           </h2>
         </div>
 
         {/* แสดงแถวปัจจุบันที่ใกล้เวลาปัจจุบันที่สุด */}
         {currentRow && (
-          <div className="current-step">
-            <div className="current-step-label">ขั้นตอนปัจจุบัน:</div>
-            <div className="current-step-value">
-              {currentRow.closestField &&
-                currentRow.closestField.replace("_", " ")}
+          <div className="plantimetable-current-step">
+            <div className="plantimetable-current-step-icon"></div>
+            <div className="plantimetable-current-step-content">
+              <div className="plantimetable-current-step-label">ขั้นตอนปัจจุบัน:</div>
+              <div className="plantimetable-current-step-value">
+                {currentRow.closestField &&
+                  currentRow.closestField.replace("_", " ")}
+              </div>
+            </div>
+            <div className="plantimetable-current-step-time">
+              {currentTime.toLocaleTimeString("th-TH", { hour12: false })}
             </div>
           </div>
         )}
       </div>
 
       {/* ใช้ CustomTable */}
-      <div className="table-responsive">{renderTable()}</div>
+      <div className="plantimetable-table-responsive">{renderTable()}</div>
 
-      <div className="footer-actions">
+      <div className="plantimetable-footer-actions">
         <Button
           variant="contained"
           color="primary"
           startIcon={<BuildIcon />}
           onClick={handleMachineBreakdown}
           disabled={isLoading}
-          className="machine-button"
+          className="plantimetable-machine-button"
         >
-          {isLoading ? "กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
+          {isLoading ? "⏳ กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
         </Button>
+        
+        <div className="plantimetable-status-info">
+          <div className="plantimetable-status-item">
+            <span className="plantimetable-status-label">จำนวนแผน:</span>
+            <span className="plantimetable-status-value">{planTimes.length} รายการ</span>
+          </div>
+          <div className="plantimetable-status-item">
+            <span className="plantimetable-status-label">วันที่:</span>
+            <span className="plantimetable-status-value">{currentTime.toLocaleDateString("th-TH")}</span>
+          </div>
+        </div>
       </div>
 
       <ToastContainer position="top-right" limit={3} />

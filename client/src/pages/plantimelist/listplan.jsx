@@ -71,15 +71,17 @@ const ListPlan = () => {
   };
 
   // ฟังก์ชันสำหรับคำนวณสถานะ
-  const calculateStatus = (startTime, endTime) => {
+  const calculateStatus = (startTime, endTime, createDate) => {
     if (!startTime || !endTime) return 'pending';
     
     const now = new Date();
-    const today = new Date().toDateString();
     
-    // แปลง time string เป็น Date object สำหรับวันนี้
-    const start = new Date(`${today} ${startTime}`);
-    const end = new Date(`${today} ${endTime}`);
+    // ใช้วันที่จาก create_date หรือวันปัจจุบัน
+    const planDate = createDate ? new Date(createDate).toDateString() : new Date().toDateString();
+    
+    // แปลง time string เป็น Date object สำหรับวันที่ของ plan
+    const start = new Date(`${planDate} ${startTime}`);
+    const end = new Date(`${planDate} ${endTime}`);
     
     if (now < start) {
       return 'pending'; // รอผลิต
@@ -141,7 +143,7 @@ const ListPlan = () => {
       // ประมวลผลสถานะตามเวลา
       const processedData = response.data.map(plan => ({
         ...plan,
-        status: calculateStatus(plan.startTime, plan.endTime)
+        status: calculateStatus(plan.startTime, plan.endTime, plan.create_date)
       }));
       
       setPlanTimes(processedData);
@@ -170,7 +172,7 @@ const ListPlan = () => {
       setPlanTimes(prevPlans => 
         prevPlans.map(plan => ({
           ...plan,
-          status: calculateStatus(plan.startTime, plan.endTime)
+          status: calculateStatus(plan.startTime, plan.endTime, plan.create_date)
         }))
       );
     }, 60000);
@@ -212,62 +214,62 @@ const ListPlan = () => {
   }, [planTimes]);
 
   if (loading) return (
-    <div className="loading-container">
-      <div className="loading-spinner"></div>
+    <div className="listplan-loading-container">
+      <div className="listplan-loading-spinner"></div>
       <p>กำลังโหลดข้อมูล...</p>
     </div>
   )
    
   if (error) return (
-    <div className="error-container">
-      <div className="error-icon">⚠️</div>
+    <div className="listplan-error-container">
+      <div className="listplan-error-icon">⚠️</div>
       <p>{error}</p>
       <button onClick={() => fetchPlanTimes()}>ลองใหม่</button>
     </div>
   )
 
   return (
-    <div className="container-listplan">
-      <div className="header-section">
+    <div className="listplan-container">
+      <div className="listplan-header-section">
         <h2>รายการ Plan Time ของโปรดักส์</h2>
-        <div className="status-summary">
-          <div className="status-card">
-            <span className="status-count">{statusCounts.pending || 0}</span>
-            <span className="status-label">รอผลิต</span>
+        <div className="listplan-status-summary">
+          <div className="listplan-status-card">
+            <span className="listplan-status-count">{statusCounts.pending || 0}</span>
+            <span className="listplan-status-label">รอผลิต</span>
           </div>
-          <div className="status-card">
-            <span className="status-count">{statusCounts['in-progress'] || 0}</span>
-            <span className="status-label">กำลังผลิต</span>
+          <div className="listplan-status-card">
+            <span className="listplan-status-count">{statusCounts['in-progress'] || 0}</span>
+            <span className="listplan-status-label">กำลังผลิต</span>
           </div>
-          <div className="status-card">
-            <span className="status-count">{statusCounts.completed || 0}</span>
-            <span className="status-label">เสร็จสิ้น</span>
+          <div className="listplan-status-card">
+            <span className="listplan-status-count">{statusCounts.completed || 0}</span>
+            <span className="listplan-status-label">เสร็จสิ้น</span>
           </div>
-          <div className="status-card total">
-            <span className="status-count">{planTimes.length}</span>
-            <span className="status-label">รวมทั้งหมด</span>
+          <div className="listplan-status-card listplan-status-total">
+            <span className="listplan-status-count">{planTimes.length}</span>
+            <span className="listplan-status-label">รวมทั้งหมด</span>
           </div>
         </div>
       </div>
 
-      <div className="controls-section">
-        <div className="search-controls">
-          <div className="search-box">
+      <div className="listplan-controls-section">
+        <div className="listplan-search-controls">
+          <div className="listplan-search-box">
             <input
               type="text"
               placeholder="ค้นหาชื่อโปรดักส์หรือสี..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="listplan-search-input"
             />
-            <span className="search-icon">🔍</span>
+            <span className="listplan-search-icon">🔍</span>
           </div>
           
-          <div className="filter-controls">
+          <div className="listplan-filter-controls">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
+              className="listplan-filter-select"
             >
               <option value="all">ทุกสถานะ</option>
               <option value="pending">รอผลิต</option>
@@ -282,7 +284,7 @@ const ListPlan = () => {
                 setSortBy(field);
                 setSortOrder(order);
               }}
-              className="sort-select"
+              className="listplan-sort-select"
             >
               <option value="create_date-desc">วันที่สร้างล่าสุด</option>
               <option value="create_date-asc">วันที่สร้างเก่าสุด</option>
@@ -292,15 +294,15 @@ const ListPlan = () => {
           </div>
         </div>
         
-        <div className="action-controls">
+        <div className="listplan-action-controls">
           <button 
-            className="refresh-btn"
+            className="listplan-refresh-btn"
             onClick={() => fetchPlanTimes(true)}
             disabled={refreshing}
           >
             {refreshing ? (
               <>
-                <span className="loading-spinner small"></span>
+                <span className="listplan-loading-spinner listplan-small"></span>
                 กำลังอัพเดท...
               </>
             ) : (
@@ -312,8 +314,8 @@ const ListPlan = () => {
         </div>
       </div>
       
-      <div className="table-wrapper">
-        <table className='table-listplan'>
+      <div className="listplan-table-wrapper">
+        <table className='listplan-table'>
           <thead>
             <tr>
               <th>ลำดับ</th>
@@ -327,8 +329,8 @@ const ListPlan = () => {
           <tbody>
             {filteredAndSortedPlans.length === 0 ? (
               <tr>
-                <td colSpan="6" className="no-data">
-                  <div className="no-data-content">
+                <td colSpan="6" className="listplan-no-data">
+                  <div className="listplan-no-data-content">
                     <span>📋</span>
                     <p>
                       {searchTerm || statusFilter !== 'all' 
@@ -338,7 +340,7 @@ const ListPlan = () => {
                     </p>
                     {(searchTerm || statusFilter !== 'all') && (
                       <button 
-                        className="clear-filters-btn"
+                        className="listplan-clear-filters-btn"
                         onClick={() => {
                           setSearchTerm('');
                           setStatusFilter('all');
@@ -355,15 +357,15 @@ const ListPlan = () => {
                 const colorCode = getColorCode(plan.product_name, plan.color_name);
                 
                 return (
-                  <tr key={`${plan.product_id}-${idx}`} className="data-row">
-                    <td className="index-cell">{idx + 1}</td>
-                    <td className="product-cell">
-                      <div className="product-info">
-                        <span className="product-name">{plan.product_name}</span>
+                  <tr key={`${plan.product_id}-${idx}`} className="listplan-data-row">
+                    <td className="listplan-index-cell">{idx + 1}</td>
+                    <td className="listplan-product-cell">
+                      <div className="listplan-product-info">
+                        <span className="listplan-product-name">{plan.product_name}</span>
                         {plan.color_name && (
-                          <span className="color-tag">
+                          <span className="listplan-color-tag">
                             <span 
-                              className="color-indicator" 
+                              className="listplan-color-indicator" 
                               style={getColorStyle(colorCode)}
                               title={`Color: ${plan.color_name}`}
                             >
@@ -373,30 +375,30 @@ const ListPlan = () => {
                         )}
                       </div>
                     </td>
-                    <td className="time-cell">
+                    <td className="listplan-time-cell">
                       {plan.startTime ? (
-                        <span className="time-value">{plan.startTime}</span>
+                        <span className="listplan-time-value">{plan.startTime}</span>
                       ) : (
-                        <span className="no-time">-</span>
+                        <span className="listplan-no-time">-</span>
                       )}
                     </td>
-                    <td className="time-cell">
+                    <td className="listplan-time-cell">
                       {plan.endTime ? (
-                        <span className="time-value">{plan.endTime}</span>
+                        <span className="listplan-time-value">{plan.endTime}</span>
                       ) : (
-                        <span className="no-time">-</span>
+                        <span className="listplan-no-time">-</span>
                       )}
                     </td>
-                    <td className="status-cell">
-                      <span className={`status-badge ${plan.status || 'pending'}`}>
+                    <td className="listplan-status-cell">
+                      <span className={`listplan-status-badge listplan-status-${plan.status || 'pending'}`}>
                         {plan.status === 'completed' ? '✅ เสร็จสิ้น' : 
                          plan.status === 'in-progress' ? '🔄 กำลังผลิต' : 
                          plan.status === 'pending' ? '⏳ รอผลิต' : '❓ ไม่ระบุ'}
                       </span>
                     </td>
-                    <td className="action-cell">
+                    <td className="listplan-action-cell">
                       <button 
-                        className='btn-show' 
+                        className='listplan-btn-show' 
                         onClick={() => handleShowPlanTimeDetail(plan.product_name, plan.color_name)} 
                         title="แสดงแผนเวลาผลิตแบบละเอียด"
                       >
@@ -412,10 +414,10 @@ const ListPlan = () => {
         </table>
       </div>
       
-      <div className="results-info">
+      <div className="listplan-results-info">
         แสดง {filteredAndSortedPlans.length} จาก {planTimes.length} รายการ
         {(searchTerm || statusFilter !== 'all') && (
-          <span className="filter-indicator">
+          <span className="listplan-filter-indicator">
             (มีการกรองข้อมูล)
           </span>
         )}

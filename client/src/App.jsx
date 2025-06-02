@@ -26,7 +26,7 @@ function App() {
           <Route path="/product" element={ <> <Navbar /> <Products /> </> } />
           <Route path="/config-time" element={ <> <Navbar /> <Config /> </> } />
           <Route path="/production-foam" element={ <> <Navbar /> <Production /> </> } />
-          <Route path="/production-foam/create" element={ <> <Navbar /> <FoamRecord /> </> } />
+          <Route path="/production-foam/create/:productName" element={ <> <Navbar /> <FoamRecord /> </> } />
           <Route path="/plantime-list" element={ <> <Navbar /> <ListPlan /> </> } />
 
           {/* เส้นทางที่ไม่มี Navbar */}
