@@ -99,33 +99,3 @@ export const getChemicals = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
-export const getBatchDetails = async (req, res) => {
-    const { productionId } = req.params;
-
-    const query = `
-        SELECT 
-            fs.batch_no,
-            fs.record_date,
-            fs.operator_name,
-            pr.id,
-            pr.product_name
-        FROM FM_production_record pr
-        JOIN FM_first_step fs ON pr.id = fs.product_record_id
-        WHERE pr.id = @productionId
-        ORDER BY fs.batch_no
-    `;
-
-    try {
-        const pool = await getPool();
-        const request = pool.request();
-        request.input('productionId', sql.Int, productionId);
-        
-        const result = await request.query(query);
-        
-        return res.status(200).json(result.recordset || []);
-    } catch (error) {
-        console.error("❌ Error in fetching batch details: ", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-};

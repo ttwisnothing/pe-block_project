@@ -203,6 +203,21 @@
   }
 }
 
+/* Disabled field styling for view mode */
+.foam-disabled-field.Mui-disabled {
+  background-color: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.foam-disabled-field.Mui-disabled .MuiOutlinedInput-notchedOutline {
+  border-color: #ddd !important;
+  background-color: #f9f9f9 !important;
+}
+
+.foam-disabled-field.Mui-disabled .MuiInputLabel-root {
+  color: #999 !important;
+}
+
 .foam-ref-field {
   .MuiOutlinedInput-root {
     background: rgba(25, 118, 210, 0.05) !important;

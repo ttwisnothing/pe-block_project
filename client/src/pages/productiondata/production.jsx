@@ -88,14 +88,69 @@ const Production = () => {
     }
   };
 
-  const handleCreateRecord = (productionId, productName) => {
-    // ส่ง production ID ผ่าน state และใช้ product name ใน URL
-    navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
-      state: { 
-        productionId: productionId,
-        productName: productName 
+  const handleCreateBatchRecord = async (productionId, productName, batchNo, batchId) => {
+    try {
+      // ดึงข้อมูลเดิม (ถ้ามี)
+      const dataResponse = await axios.get(`/api/get/production/record-data/batches/${batchId}`);
+      const existingData = dataResponse.data?.[0];
+
+      // เช็คว่ามีข้อมูลสำคัญหรือไม่เพื่อตัดสินใจ mode
+      const hasBasicData = existingData && (
+        existingData.operator_name || 
+        existingData.product_status || 
+        existingData.program_no ||
+        existingData.shift_time
+      );
+
+      // เช็คว่ามี chemical data หรือไม่
+      const hasChemicalData = existingData && (
+        existingData.chemistry_1 || existingData.chemistry_2 || 
+        existingData.chemistry_3 || existingData.chemistry_4 || 
+        existingData.chemistry_5
+      );
+
+      // ถ้ามีข้อมูลครบถ้วน = view mode, ถ้าไม่ครบ = edit mode
+      const isCompleteData = hasBasicData && hasChemicalData;
+
+      navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
+        state: { 
+          productionId,
+          productName,
+          batchNo,
+          batchId,
+          existingData: existingData || null,
+          isEdit: isCompleteData, // view mode เมื่อข้อมูลครบ
+          hasExistingData: !!existingData
+        }
+      });
+
+      // แสดง toast ตามสถานะ
+      if (isCompleteData) {
+        toast.info(`Batch ${batchNo} บันทึกครบแล้ว - โหมดดูข้อมูล`);
+      } else if (hasBasicData) {
+        toast.info(`Batch ${batchNo} มีข้อมูลบางส่วน - ดำเนินการบันทึกต่อ`);
+      } else {
+        toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
       }
-    });
+      
+    } catch (err) {
+      console.error("Failed to fetch batch data:", err);
+      
+      // ถ้า error = ไม่มีข้อมูลเดิม ให้สร้างใหม่
+      navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
+        state: { 
+          productionId,
+          productName,
+          batchNo,
+          batchId,
+          existingData: null,
+          isEdit: false,
+          hasExistingData: false
+        }
+      });
+      
+      toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
+    }
   };
 
   const handleRowExpand = async (productionId) => {
@@ -174,12 +229,23 @@ const Production = () => {
   };
 
   const getBatchStatus = (batchData) => {
-    if (!batchData.actual_start_time) {
+    // เช็คข้อมูลพื้นฐาน
+    const hasBasicData = batchData.operator_name || 
+                        batchData.product_status || 
+                        batchData.program_no ||
+                        batchData.shift_time;
+
+    // เช็คข้อมูล chemistry (ใช้ดู chemistry ที่อาจมีจาก join)
+    const hasChemicalData = batchData.chemistry_1 || batchData.chemistry_2;
+
+    if (!hasBasicData) {
       return { label: "ยังไม่เริ่ม", color: "default", icon: "⭕" };
-    } else if (!batchData.actual_end_time) {
-      return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
+    } else if (hasBasicData && !hasChemicalData) {
+      return { label: "กำลังบันทึก", color: "warning", icon: "⚠️" };
+    } else if (hasBasicData && hasChemicalData) {
+      return { label: "บันทึกครบแล้ว", color: "success", icon: "✅" };
     } else {
-      return { label: "เสร็จสิ้น", color: "success", icon: "✅" };
+      return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
     }
   };
 
@@ -449,15 +515,6 @@ const Production = () => {
                                         <BatchPredictionIcon className="production-batch-icon" />
                                         รายละเอียด Batch ({batches.length} รายการ)
                                       </Typography>
-                                      <Button
-                                        variant="contained"
-                                        startIcon={<AddIcon />}
-                                        onClick={() => handleCreateRecord(row.id, row.product_name)}
-                                        className="production-create-button"
-                                        size="small"
-                                      >
-                                        บันทึกข้อมูล
-                                      </Button>
                                     </Box>
 
                                     {batches.length > 0 ? (
@@ -482,17 +539,18 @@ const Production = () => {
                                             <TableCell className="production-batch-header-cell">
                                               สถานะ
                                             </TableCell>
+                                            <TableCell className="production-batch-header-cell" style={{ width: "120px" }}>
+                                              การจัดการ
+                                            </TableCell>
                                           </TableRow>
                                         </TableHead>
                                         <TableBody>
                                           {batches.map((batch) => {
-                                            const batchStatus =
-                                              getBatchStatus(batch);
+                                            const batchStatus = getBatchStatus(batch);
+                                            const isCompleteData = batchStatus.label === "บันทึกครบแล้ว";
+                                            
                                             return (
-                                              <TableRow
-                                                key={batch.id}
-                                                className="production-batch-row"
-                                              >
+                                              <TableRow key={batch.id} className="production-batch-row">
                                                 <TableCell className="production-batch-cell production-batch-number">
                                                   <Chip
                                                     label={batch.batch_no}
@@ -502,7 +560,7 @@ const Production = () => {
                                                   />
                                                 </TableCell>
                                                 <TableCell className="production-batch-cell">
-                                                  {batch.record_date || "-"}
+                                                  {formatDate(batch.record_date) || "-"}
                                                 </TableCell>
                                                 <TableCell className="production-batch-cell">
                                                   {batch.product_name || "-"}
@@ -517,6 +575,18 @@ const Production = () => {
                                                     size="small"
                                                     className="production-batch-status-chip"
                                                   />
+                                                </TableCell>
+                                                <TableCell className="production-batch-cell">
+                                                  <Button
+                                                    variant={isCompleteData ? "text" : "outlined"}
+                                                    size="small"
+                                                    startIcon={isCompleteData ? <AssessmentIcon /> : <AddIcon />}
+                                                    onClick={() => handleCreateBatchRecord(row.id, row.product_name, batch.batch_no, batch.id)}
+                                                    className="production-batch-create-button"
+                                                    color={isCompleteData ? "info" : "primary"}
+                                                  >
+                                                    {isCompleteData ? "ดูข้อมูล" : "บันทึก"}
+                                                  </Button>
                                                 </TableCell>
                                               </TableRow>
                                             );

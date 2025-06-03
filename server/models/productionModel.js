@@ -156,7 +156,8 @@ export const addProduction = async (req, res) => {
 }
 
 export const addChemicalNameStep = async (req, res) => {
-    const { batchNo, chemistryName } = req.body;
+    const { podId } = req.params;
+    const { chemistryName } = req.body;
 
     const chemistryList = Array.from({ length: 15 }, (_, i) => `chemistry_${i + 1}`);
 
@@ -164,7 +165,7 @@ export const addChemicalNameStep = async (req, res) => {
         INSERT INTO FM_chemical_name_step (
             product_record_id, ${chemistryList.join(", ")}
         ) VALUES (
-            @batchNo, ${chemistryList.map((_, i) => `@chemistry_${i + 1}`).join(", ")}
+            @podId, ${chemistryList.map((_, i) => `@chemistry_${i + 1}`).join(", ")}
         )
     `
 
@@ -173,7 +174,7 @@ export const addChemicalNameStep = async (req, res) => {
         const request = pool.request();
 
         // กำหนด Parameters
-        request.input('batchNo', sql.Int, batchNo);
+        request.input('podId', sql.Int, podId);
 
         // กำหนด Chemistry Parameters
         for (let i = 0; i < 15; i++) {
@@ -184,7 +185,7 @@ export const addChemicalNameStep = async (req, res) => {
         res.status(201).json({
             message: "✅ Chemical Step added successfully",
             data: {
-                batch_no: batchNo,
+                podId: podId,
                 chemistry_name: chemistryName
             }
         });

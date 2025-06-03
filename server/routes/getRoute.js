@@ -1,8 +1,8 @@
 import express from 'express';
 import { getPlanTime, listPlantime } from './../controllers/plantimeController.js';
 import { getTempPlanTime, getTempPlanTimeASC } from '../controllers/tempController.js';
-import { getBatchDetails, getChemicals, getProducts, getProductsName } from './../controllers/productController.js';
-import { getProduction } from '../controllers/productionController.js';
+import { getChemicals, getProducts, getProductsName } from './../controllers/productController.js';
+import { getBatchHeader, getBatchRecordData, getProduction } from '../controllers/productionController.js';
 // import { testPlantime } from '../models/plantimeModel.js';
 
 const router = express.Router();
@@ -15,6 +15,7 @@ router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
 router.get('/all-products', getProducts);
 router.get('/list-plantime', listPlantime);
 router.get('/production/all', getProduction);
-router.get('/production/:productionId/batches', getBatchDetails)
+router.get('/production/:productionId/batches', getBatchHeader);
+router.get('/production/record-data/batches/:recordId', getBatchRecordData)
 
 export default router;
