@@ -9,7 +9,8 @@ import {
   Container,
   Fade,
   Grow,
-  IconButton
+  IconButton,
+  Chip
 } from '@mui/material';
 import { 
   Timeline, 
@@ -19,7 +20,8 @@ import {
   Schedule,
   Assessment,
   PlayArrow,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  AutoAwesome
 } from '@mui/icons-material';
 import './home.css';
 
@@ -126,6 +128,11 @@ const Home = () => {
         <Container maxWidth="lg">
           <Fade in={loaded} timeout={1000}>
             <Box className="home-hero-content">
+              <Chip 
+                label="INOAC Production System v2.0" 
+                className="home-hero-chip"
+                icon={<AutoAwesome />}
+              />
               <Typography variant="h1" component="h1" className="home-hero-title">
                 PE-BLOCK DEPARTMENT
               </Typography>
