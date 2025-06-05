@@ -90,65 +90,130 @@ const Production = () => {
 
   const handleCreateBatchRecord = async (productionId, productName, batchNo, batchId) => {
     try {
-      // ดึงข้อมูลเดิม (ถ้ามี)
       const dataResponse = await axios.get(`/api/get/production/record-data/batches/${batchId}`);
       const existingData = dataResponse.data?.[0];
 
-      // เช็คว่ามีข้อมูลสำคัญหรือไม่เพื่อตัดสินใจ mode
-      const hasBasicData = existingData && (
-        existingData.operator_name || 
-        existingData.product_status || 
-        existingData.program_no ||
+      if (!existingData) {
+        navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
+          state: { 
+            productionId, productName, batchNo, batchId,
+            existingData: null, isEdit: false, hasExistingData: false
+          }
+        });
+        toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
+        return;
+      }
+
+      // เช็คข้อมูลแบบชาญฉลาด - เพิ่มการเช็คประเภทข้อมูล
+      const hasBasicData = [
+        existingData.operator_name,
+        existingData.product_status, 
+        existingData.program_no,
         existingData.shift_time
-      );
+      ].filter(val => val && typeof val === 'string' && val.trim() !== "").length > 0;
 
-      // เช็คว่ามี chemical data หรือไม่
-      const hasChemicalData = existingData && (
-        existingData.chemistry_1 || existingData.chemistry_2 || 
-        existingData.chemistry_3 || existingData.chemistry_4 || 
-        existingData.chemistry_5
-      );
+      // เช็ค Chemistry - นับจำนวนที่มีค่าจริง
+      const chemNameCount = Array.from({length: 15}, (_, i) => 
+        existingData[`FMCN_chemicalName_${i + 1}`]
+      ).filter(val => val && typeof val === 'string' && val.trim() !== "").length;
+      const hasChemicalNameData = chemNameCount > 0;
 
-      // ถ้ามีข้อมูลครบถ้วน = view mode, ถ้าไม่ครบ = edit mode
-      const isCompleteData = hasBasicData && hasChemicalData;
+      const chemWeightCount = Array.from({length: 15}, (_, i) => 
+        existingData[`FMCW_chemicalWeight_${i + 1}`]
+      ).filter(val => {
+        // เช็คว่ามีค่าจริงและมากกว่า 0
+        if (val === null || val === undefined || val === "") return false;
+        
+        if (typeof val === 'string') {
+          if (val.trim() === "") return false;
+          const numVal = parseFloat(val);
+          return !isNaN(numVal) && numVal > 0;
+        }
+        
+        if (typeof val === 'number') {
+          return val > 0;
+        }
+        
+        return false;
+      }).length;
+
+      const hasChemicalWeightData = chemWeightCount > 0; // ลบการเช็ค ref
+
+      // เช็ค Steps อื่นๆ - เพิ่มการเช็คประเภทข้อมูล
+      const hasMixingData = [
+        existingData.hopper_weight, existingData.actual_press, 
+        existingData.mixing_finish_mix, existingData.lip_heat
+      ].filter(val => val && (typeof val === 'string' ? val.trim() !== "" : val !== null)).length > 0;
+
+      const hasCuttingData = [
+        existingData.weight_block_1, existingData.weight_block_2,
+        existingData.weight_remain, existingData.staff_data_save
+      ].filter(val => val && (typeof val === 'string' ? val.trim() !== "" : val !== null)).length > 0;
+
+      const hasPrePressData = [
+        existingData.pre_press_heat, existingData.water_heating_a,
+        existingData.top_heat, existingData.layer_a_heat
+      ].filter(val => val && (typeof val === 'string' ? val.trim() !== "" : val !== null)).length > 0;
+
+      const hasSecondaryPressData = [
+        existingData.machine_no, existingData.stream_in_press,
+        existingData.foam_width, existingData.foam_length
+      ].filter(val => val && (typeof val === 'string' ? val.trim() !== "" : val !== null)).length > 0;
+
+      const hasFoamCheckData = [
+        existingData.run_no, existingData.layer_1,
+        existingData.layer_2, existingData.clerk_entry_data
+      ].filter(val => val && (typeof val === 'string' ? val.trim() !== "" : val !== null)).length > 0;
+
+      // นับจำนวน step ที่มีข้อมูลจริง
+      const completedSteps = [
+        hasBasicData,
+        hasChemicalNameData,
+        hasChemicalWeightData,
+        hasMixingData,
+        hasCuttingData,
+        hasPrePressData,
+        hasSecondaryPressData,
+        hasFoamCheckData
+      ].filter(Boolean).length;
+
+      // เกณฑ์การตัดสินใจที่ยืดหยุ่น
+      const isCompleteData = completedSteps >= 6; // ลดเกณฑ์เป็น 6 steps
+      const hasSignificantData = completedSteps >= 3;
 
       navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
         state: { 
-          productionId,
-          productName,
-          batchNo,
+          productionId, 
+          productName, 
+          batchNo, 
           batchId,
-          existingData: existingData || null,
-          isEdit: isCompleteData, // view mode เมื่อข้อมูลครบ
-          hasExistingData: !!existingData
+          existingData: existingData, 
+          isEdit: isCompleteData,
+          hasExistingData: true, 
+          completedSteps, 
+          totalSteps: 8,
+          // *** เพิ่ม flag เพื่อให้ foam.jsx รู้ว่าต้องไปหา step ที่ยังไม่เสร็จ ***
+          autoNavigateToIncomplete: true
         }
       });
 
-      // แสดง toast ตามสถานะ
+      // Toast messages ปรับปรุง
       if (isCompleteData) {
-        toast.info(`Batch ${batchNo} บันทึกครบแล้ว - โหมดดูข้อมูล`);
-      } else if (hasBasicData) {
-        toast.info(`Batch ${batchNo} มีข้อมูลบางส่วน - ดำเนินการบันทึกต่อ`);
+        toast.success(`Batch ${batchNo} บันทึกครบแล้ว (${completedSteps}/8 steps) - โหมดดูข้อมูล`);
+      } else if (hasSignificantData) {
+        toast.info(`Batch ${batchNo} มีข้อมูลบางส่วน (${completedSteps}/8 steps) - ไปยัง step ที่ยังไม่เสร็จ`);
       } else {
-        toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
+        toast.info(`Batch ${batchNo} เพิ่งเริ่มบันทึก (${completedSteps}/8 steps) - เริ่มจากขั้นตอนแรก`);
       }
       
     } catch (err) {
       console.error("Failed to fetch batch data:", err);
-      
-      // ถ้า error = ไม่มีข้อมูลเดิม ให้สร้างใหม่
       navigate(`/production-foam/create/${encodeURIComponent(productName)}`, { 
         state: { 
-          productionId,
-          productName,
-          batchNo,
-          batchId,
-          existingData: null,
-          isEdit: false,
-          hasExistingData: false
+          productionId, productName, batchNo, batchId,
+          existingData: null, isEdit: false, hasExistingData: false
         }
       });
-      
       toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
     }
   };
@@ -161,8 +226,39 @@ const Production = () => {
       [productionId]: !isExpanded,
     }));
 
-    if (!isExpanded && !batchDetails[productionId]) {
-      await fetchBatchDetails(productionId);
+    if (!isExpanded) {
+      // ถ้ายังไม่มี batch details ให้ดึงข้อมูลมาก่อน
+      if (!batchDetails[productionId]) {
+        await fetchBatchDetails(productionId);
+      }
+
+      // รอให้ state อัปเดตแล้วเช็คจาก response โดยตรง
+      try {
+        const response = await axios.get(`/api/get/production/${productionId}/batches`);
+        const currentBatches = response.data || [];
+        
+        // เช็คจาก response ล่าสุด แทนการเช็คจาก state
+        if (currentBatches.length === 0) {         
+          // เรียก API เพื่อสร้าง batch records
+          const createResponse = await axios.post(`/api/post/production/${productionId}/batch-record/add`);
+          
+          if (createResponse.status === 201) {
+            toast.success(`✅ สร้าง Batch Records สำเร็จ (${createResponse.data.totalBatchesCreated} รายการ)`);
+            
+            // ดึงข้อมูล batch details ใหม่หลังจากสร้างเสร็จ
+            await fetchBatchDetails(productionId);
+          }
+        } else {
+          console.log("ℹ️ Batches already exist:", currentBatches.length); // Debug log
+        }
+      } catch (error) {
+        console.error("Failed to check/create batch records:", error);
+        if (error.response?.status === 404) {
+          toast.error("ไม่พบข้อมูลการผลิตที่ระบุ");
+        } else {
+          toast.error("เกิดข้อผิดพลาดในการสร้าง Batch Records");
+        }
+      }
     }
   };
 
@@ -235,17 +331,29 @@ const Production = () => {
                         batchData.program_no ||
                         batchData.shift_time;
 
-    // เช็คข้อมูล chemistry (ใช้ดู chemistry ที่อาจมีจาก join)
-    const hasChemicalData = batchData.chemistry_1 || batchData.chemistry_2;
+    // เช็คข้อมูล chemistry จาก API response ที่มี JOIN
+    // ใช้ฟิลด์ที่เป็นไปได้จาก JOIN หรือ nested data
+    const hasChemicalData = batchData.chem_name_1 ||
+                         batchData.chem_name_2 ||
+                         batchData.ref ||
+                         batchData.chem_weight_1;
+
+    // เช็คข้อมูล steps อื่นๆ
+    const hasProcessData = batchData.hopper_weight ||
+                        batchData.weight_block_1 ||
+                        batchData.pre_press_heat ||
+                        batchData.machine_no ||
+                        batchData.run_no;
 
     if (!hasBasicData) {
       return { label: "ยังไม่เริ่ม", color: "default", icon: "⭕" };
-    } else if (hasBasicData && !hasChemicalData) {
+    } else if (hasBasicData && !hasChemicalData && !hasProcessData) {
       return { label: "กำลังบันทึก", color: "warning", icon: "⚠️" };
-    } else if (hasBasicData && hasChemicalData) {
+    } else if (hasBasicData && (hasChemicalData || hasProcessData)) {
+      // ถ้ามีข้อมูลขั้นตอนอื่นๆ แสดงว่าบันทึกครบแล้ว
       return { label: "บันทึกครบแล้ว", color: "success", icon: "✅" };
     } else {
-      return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
+      return { label: "กำลังบันทึก", color: "warning", icon: "⚠️" };
     }
   };
 

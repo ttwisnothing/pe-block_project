@@ -31,79 +31,30 @@ export const getProduction = async (req, res) => {
     }
 };
 
-export const getBatchHeader = async (req, res) => {
+export const getBatchRecord = async (req, res) => {
     const { productionId } = req.params;
 
     try {
         const pool = await getPool();
         
-        // ตรวจสอบว่ามี batch records อยู่แล้วหรือไม่
-        const checkBatchQuery = `
+        const query = `
             SELECT 
-                fs.id,
-                fs.batch_no,
-                fs.record_date,
-                fs.operator_name,
-                fs.product_status,
-                pr.product_name
-            FROM FM_production_record pr
-            LEFT JOIN FM_first_step fs ON pr.id = fs.product_record_id
-            WHERE pr.id = @productionId
-            ORDER BY fs.batch_no
+                id, batch_no, record_date, program_no, product_name, operator_name
+            FROM FM_batch_record
+            WHERE production_record_id = @productionId
+            ORDER BY batch_no ASC
         `;
         
-        const checkRequest = pool.request();
-        checkRequest.input('productionId', sql.Int, productionId);
-        const checkResult = await checkRequest.query(checkBatchQuery);
-
-        // ถ้าไม่มี batch records หรือมีแค่ row เดียวที่ batch_no เป็น null
-        if (checkResult.recordset.length === 0 || 
-            (checkResult.recordset.length === 1 && checkResult.recordset[0].batch_no === null)) {
-            
-            // ดึงข้อมูล production_record เพื่อหา total_batch
-            const productionQuery = `
-                SELECT id, product_name, total_batch, create_date 
-                FROM FM_production_record 
-                WHERE id = @productionId
-            `;
-            
-            const prodRequest = pool.request();
-            prodRequest.input('productionId', sql.Int, productionId);
-            const prodResult = await prodRequest.query(productionQuery);
-            
-            if (prodResult.recordset.length > 0) {
-                const { id, product_name, total_batch, create_date } = prodResult.recordset[0];
-                
-                // สร้าง batch records ตามจำนวน total_batch
-                for (let i = 1; i <= total_batch; i++) {
-                    const insertQuery = `
-                        INSERT INTO FM_first_step (
-                            product_record_id, batch_no, product_name, record_date
-                        ) VALUES (
-                            @productRecordId, @batchNo, @productName, @recordDate
-                        )
-                    `;
-                    
-                    const insertRequest = pool.request();
-                    insertRequest.input('productRecordId', sql.Int, id);
-                    insertRequest.input('batchNo', sql.Int, i);
-                    insertRequest.input('productName', sql.NVarChar, product_name);
-                    insertRequest.input('recordDate', sql.Date, create_date);
-                    
-                    await insertRequest.query(insertQuery);
-                }
-                
-                // ดึงข้อมูลใหม่หลังสร้าง batch records
-                const newResult = await checkRequest.query(checkBatchQuery);
-                return res.status(200).json(newResult.recordset || []);
-            }
-        }
-
-        // ถ้ามี batch records อยู่แล้ว ส่งข้อมูลกลับไปตามปกติ
-        return res.status(200).json(checkResult.recordset || []);
+        const request = pool.request();
+        request.input('productionId', sql.Int, productionId);
+        const result = await request.query(query);
+        const record = result.recordset || [];
         
+        // ส่ง array โดยตรง แทนที่จะ wrap ใน object
+        return res.status(200).json(record);
+         
     } catch (error) {
-        console.error("❌ Error in fetching/creating batch details: ", error);
+        console.error("❌ Error in fetching batch details: ", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -112,18 +63,36 @@ export const getBatchRecordData = async (req, res) => {
     const { recordId } = req.params;
 
     const query = `
-        SELECT
-            t2.id, t2.product_record_id, t2.batch_no, t2.record_date, t2.product_status, t2.program_no, t2.product_name,
-            t2.shift_time, t2.operator_name, t1.chemistry_1, t1.chemistry_2, t1.chemistry_3, t1.chemistry_4,
-            t1.chemistry_5, t1.chemistry_6, t1.chemistry_7, t1.chemistry_8, t1.chemistry_9, t1.chemistry_10,
-            t1.chemistry_11, t1.chemistry_12, t1.chemistry_13, t1.chemistry_14, t1.chemistry_15
-        FROM
-            FM_first_step AS t2
-        LEFT JOIN
-            FM_chemical_name_step AS t1 ON t2.product_record_id = t1.product_record_id
-        WHERE
-            t2.id = @recordId;
-    `
+        SELECT 
+        	-- Prodcution Record Table
+            FMPR.id AS FMPR_id, FMPR.product_name AS FMPR_productName,
+
+        	-- Batch Record Table
+        	FMBR.id as FMBR_id,
+            FMBR.batch_no as FMBR_batchNo, FMBR.record_date as FMBR_recDate, FMBR.product_status as FMBR_productStatus,
+            FMBR.program_no as FMBR_programNo, FMBR.emp_shift as FMBR_shift, FMBR.operator_name as FMBR_operator,
+
+        	-- Chemical Name Table
+        	FMCN.chemical_name_1 AS FMCN_chemicalName_1, FMCN.chemical_name_2 AS FMCN_chemicalName_2, FMCN.chemical_name_3 AS FMCN_chemicalName_3, FMCN.chemical_name_4 AS FMCN_chemicalName_4, FMCN.chemical_name_5 AS FMCN_chemicalName_5,
+        	FMCN.chemical_name_6 AS FMCN_chemicalName_6, FMCN.chemical_name_7 AS FMCN_chemicalName_7, FMCN.chemical_name_8 AS FMCN_chemicalName_8, FMCN.chemical_name_9 AS FMCN_chemicalName_9, FMCN.chemical_name_10 AS FMCN_chemicalName_10,
+        	FMCN.chemical_name_11 AS FMCN_chemicalName_11, FMCN.chemical_name_12 AS FMCN_chemicalName_12, FMCN.chemical_name_13 AS FMCN_chemicalName_13, FMCN.chemical_name_14 AS FMCN_chemicalName_14, FMCN.chemical_name_15 AS FMCN_chemicalName_15,
+
+            -- Chemical Weight Table
+	        FMCW.chemical_weight_1 AS FMCW_chemicalWeight_1, FMCW.chemical_weight_2 AS FMCW_chemicalWeight_2, FMCW.chemical_weight_3 AS FMCW_chemicalWeight_3, FMCW.chemical_weight_4 AS FMCW_chemicalWeight_4, FMCW.chemical_weight_5 AS FMCW_chemicalWeight_5,
+	        FMCW.chemical_weight_6 AS FMCW_chemicalWeight_6, FMCW.chemical_weight_7 AS FMCW_chemicalWeight_7, FMCW.chemical_weight_8 AS FMCW_chemicalWeight_8, FMCW.chemical_weight_9 AS FMCW_chemicalWeight_9, FMCW.chemical_weight_10 AS FMCW_chemicalWeight_10,
+	        FMCW.chemical_weight_11 AS FMCW_chemicalWeight_11, FMCW.chemical_weight_12 AS FMCW_chemicalWeight_12, FMCW.chemical_weight_13 AS FMCW_chemicalWeight_13, FMCW.chemical_weight_14 AS FMCW_chemicalWeight_14, FMCW.chemical_weight_15 AS FMCW_chemicalWeight_15,
+
+            -- Mix Table
+            FMMX.program_no AS FMMX_programNo, FMMX.hopper_weight AS FMMX_hopperWeight, FMMX.actual_start AS FMMX_actualStart, FMMX.mix_finish AS FMMX_mixFinish,FMMX.lip AS FMMX_lip,
+            FMMX.casing_a AS FMMX_cassingA, FMMX.casing_b AS FMMX_cassingB, FMMX.temp_hopper AS FMMX_tempHopper, FMMX.long_screw AS FMMX_longScrew, FMMX.short_screw AS FMMX_shortScrew, FMMX.water_heat AS FMMX_waterHeat
+
+            FROM FM_production_record FMPR
+            LEFT JOIN FM_batch_record AS FMBR ON FMPR.id = FMBR.production_record_id
+        	LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.batch_record_id
+            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.batch_record_id
+            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.batch_record_id
+        WHERE FMBR.id = @recordId
+    `;
 
     try {
         const pool = await getPool();
@@ -132,48 +101,35 @@ export const getBatchRecordData = async (req, res) => {
 
         const result = await request.query(query);
 
-        // Format record_date และกรอง chemistry ที่ไม่เป็น null
+        // Format ข้อมูลแบบครบถ้วน - ส่งทุกฟิลด์รวม null
         const formatted = (result.recordset || []).map(row => {
-            // แยกข้อมูล chemistry ออกมา
-            const chemistryFields = {};
-            const otherFields = {};
-
+            const formattedRow = {};
+            
             Object.keys(row).forEach(key => {
-                if (key.startsWith('chemistry_')) {
-                    // เก็บเฉพาะ chemistry ที่ไม่เป็น null และไม่เป็น empty string
-                    if (row[key] !== null && row[key] !== '') {
-                        chemistryFields[key] = row[key];
-                    }
+                if (key === 'FMBR_recDate' && row[key]) {
+                    const d = new Date(row[key]);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    formattedRow[key] = `${day}/${month}/${year}`;
                 } else {
-                    if (key === 'record_date' && row[key]) {
-                        // แปลงวันที่เป็น dd/MM/yyyy ปี ค.ศ.
-                        const d = new Date(row[key]);
-                        const day = String(d.getDate()).padStart(2, '0');
-                        const month = String(d.getMonth() + 1).padStart(2, '0');
-                        const year = d.getFullYear(); // ปี ค.ศ.
-                        otherFields[key] = `${day}/${month}/${year}`;
-                    } else {
-                        otherFields[key] = row[key];
-                    }
+                    // ส่งทุกฟิลด์ แม้ที่เป็น null (จะแปลงเป็น "" สำหรับ frontend)
+                    formattedRow[key] = row[key] || "";
                 }
             });
 
-            return {
-                ...otherFields,
-                ...chemistryFields
-            };
+            return formattedRow;
         });
 
         return res.status(200).json(formatted);
-    }
-    catch (error) {
+    } catch (error) {
         console.error("❌ Error in fetching record data: ", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
 
 export const upFirstStep = async (req, res) => {
-    const { productStatus, programNo, shiftTime, operatorName } = req.body;
+    const { recordDate, productStatus, programNo, shiftTime, operatorName } = req.body;
     const { recordId } = req.params;
 
     try {
@@ -182,14 +138,16 @@ export const upFirstStep = async (req, res) => {
 
         // Update the first step with the provided data
         const query = `
-            UPDATE FM_first_step
-            SET product_status = @productStatus,
+            UPDATE FM_batch_record
+            SET record_date = @recordDate,
+                product_status = @productStatus,
                 program_no = @programNo,
-                shift_time = @shiftTime,
+                emp_shift = @shiftTime,
                 operator_name = @operatorName
             WHERE id = @recordId;
         `;
 
+        request.input('recordDate', sql.Date, recordDate);
         request.input('productStatus', sql.NVarChar, productStatus);
         request.input('programNo', sql.NVarChar, programNo);
         request.input('shiftTime', sql.NVarChar, shiftTime);

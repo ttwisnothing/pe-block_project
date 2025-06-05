@@ -225,13 +225,6 @@
   }
 }
 
-.foam-textarea {
-  .MuiOutlinedInput-root {
-    min-height: 120px !important;
-    align-items: flex-start !important;
-  }
-}
-
 /* Section Title */
 .foam-section-title {
   font-weight: 700 !important;
@@ -492,4 +485,20 @@
 
 .foam-step-content-container::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+.completed-step .MuiStepLabel-root {
+  color: #4caf50 !important;
+}
+
+.completed-step .MuiStepIcon-root {
+  color: #4caf50 !important;
+}
+
+.foam-step.completed-step {
+  opacity: 0.8;
+}
+
+.foam-step:not(.completed-step) .MuiStepIcon-root {
+  color: #ff9800 !important;
 }
