@@ -533,18 +533,18 @@ export const foamCheck = async (req, res) => {
     const { 
         runNo, foamBlock1, foamBlock2,
         foamBlock3, foamBlock4, foamBlock5,
-        foamBlock6, entryData
+        foamBlock6, employeeRecord
     } = req.body;
 
     const query = `
         INSERT INTO FM_foam_check_step (
-            product_record_id, run_no, foam_block_1,
+            batch_record_id, run_no, foam_block_1,
             foam_block_2, foam_block_3, foam_block_4,
             foam_block_5, foam_block_6, employee_record
         ) VALUES (
             @batchId, @runNo, @foamBlock1,
             @foamBlock2, @foamBlock3, @foamBlock4,
-            @foamBlock5, @foamBlock6, @entryData
+            @foamBlock5, @foamBlock6, @employeeRecord
         )
     `
 
@@ -560,7 +560,7 @@ export const foamCheck = async (req, res) => {
         request.input("foamBlock4", sql.Float, foamBlock4);
         request.input("foamBlock5", sql.Float, foamBlock5);
         request.input("foamBlock6", sql.Float, foamBlock6);
-        request.input("entryData", sql.NVarChar, entryData);
+        request.input("entryData", sql.NVarChar, employeeRecord);
 
         await request.query(query);
         res.status(201).json({
@@ -574,7 +574,7 @@ export const foamCheck = async (req, res) => {
                 foam_block_4: foamBlock4,
                 foam_block_5: foamBlock5,
                 foam_block_6: foamBlock6,
-                employee_record: entryData
+                employee_record: employeeRecord
             }
         });
     } catch (error) {

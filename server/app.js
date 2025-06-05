@@ -8,10 +8,11 @@ import connectDB from './config/db.js';
 import client from 'prom-client';
 
 dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 6090;
 
-// Setup Prometheus Registry
+// Prometheus setup
 const register = new client.Registry();
 client.collectDefaultMetrics({
     app: 'pe-block-api',
@@ -21,7 +22,6 @@ client.collectDefaultMetrics({
     register,
 });
 
-// Define Metrics
 const httpRequestCounter = new client.Counter({
     name: 'http_request_count',
     help: 'Total number of HTTP requests',
@@ -34,11 +34,10 @@ const httpRequestDurationHistogram = new client.Histogram({
     buckets: [0.1, 0.5, 1, 2, 5, 10],
 });
 
-// Register custom metrics
 register.registerMetric(httpRequestCounter);
 register.registerMetric(httpRequestDurationHistogram);
 
-// Middleware for metrics
+// Metrics middleware
 app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
@@ -57,7 +56,6 @@ app.use('/api/post', postRoutes);
 app.use('/api/get', getRoutes);
 app.use('/api/put', putRoutes);
 
-// Prometheus endpoint
 app.get('/metrics', async (req, res) => {
     try {
         res.setHeader('Content-Type', register.contentType);
@@ -68,10 +66,7 @@ app.get('/metrics', async (req, res) => {
     }
 });
 
-// Health check endpoint
-app.get('/healthz', (req, res) => {
-    res.status(200).send('OK');
-});
+app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
