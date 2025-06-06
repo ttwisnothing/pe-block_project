@@ -73,16 +73,21 @@ const ListPlan = () => {
   // ฟังก์ชันสำหรับคำนวณสถานะ
   const calculateStatus = (startTime, endTime, createDate) => {
     if (!startTime || !endTime) return 'pending';
-    
+
     const now = new Date();
-    
+
     // ใช้วันที่จาก create_date หรือวันปัจจุบัน
     const planDate = createDate ? new Date(createDate).toDateString() : new Date().toDateString();
-    
-    // แปลง time string เป็น Date object สำหรับวันที่ของ plan
+
+    // สร้าง start date
     const start = new Date(`${planDate} ${startTime}`);
-    const end = new Date(`${planDate} ${endTime}`);
-    
+    let end = new Date(`${planDate} ${endTime}`);
+
+    // ถ้า endTime < startTime แสดงว่าข้ามวัน ให้ end เป็นวันถัดไป
+    if (end <= start) {
+      end.setDate(end.getDate() + 1);
+    }
+
     if (now < start) {
       return 'pending'; // รอผลิต
     } else if (now >= start && now < end) {
@@ -90,7 +95,7 @@ const ListPlan = () => {
     } else if (now >= end) {
       return 'completed'; // เสร็จสิ้น
     }
-    
+
     return 'pending';
   };
 

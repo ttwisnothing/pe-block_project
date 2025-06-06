@@ -152,8 +152,8 @@ const Products = () => {
             <div className="product-brand-icon">
               <svg viewBox="0 0 24 24" className="product-icon-svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                <path d="M2 17L12 22L22 17" />
                 <path d="M2 12L12 17L22 12" />
+                <path d="M2 17L12 22L22 17" />
               </svg>
             </div>
             
@@ -193,7 +193,7 @@ const Products = () => {
                     className="product-text-input"
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
-                    placeholder="เช่น PE Block Standard Grade A"
+                    placeholder="ชื่อผลิตภัณฑ์"
                     required
                   />
                 </div>
@@ -208,7 +208,7 @@ const Products = () => {
                     className="product-text-input"
                     value={productColor}
                     onChange={(e) => setProductColor(e.target.value)}
-                    placeholder="เช่น สีขาวนวล, สีดำด้าน"
+                    placeholder="WH, BL, GY"
                     required
                   />
                 </div>
@@ -225,9 +225,9 @@ const Products = () => {
                     required
                   >
                     <option value="">-- เลือกสถานะ --</option>
-                    <option value="Mass">🏭 Mass Production (การผลิตจำนวนมาก)</option>
-                    <option value="R&D">🔬 R&D (วิจัยและพัฒนา)</option>
-                    <option value="Cleaning">🧹 Cleaning (ล้างระบบ)</option>
+                    <option value="Mass">Mass Production (การผลิตจำนวนมาก)</option>
+                    <option value="R&D">R&D (วิจัยและพัฒนา)</option>
+                    <option value="Cleaning">Cleaning (ล้างระบบ)</option>
                   </select>
                 </div>
               </div>
@@ -335,12 +335,10 @@ const Products = () => {
                 <div className="product-measurement-card">
                   <div className="product-card-header">
                     <h3 className="product-card-title">บล็อกต่อรอบ</h3>
-                    <span className="product-card-icon">📦</span>
                   </div>
                   
                   <div className="product-input-group">
                     <label className="product-input-label">
-                      {/* น้ำหนัก (กิโลกรัม) */}
                       <span className="product-required-asterisk">*</span>
                     </label>
                     <div className="product-number-input-wrapper">
@@ -357,7 +355,7 @@ const Products = () => {
                       <span className="product-input-unit">บล็อค</span>
                     </div>
                     <p className="product-input-description">
-                      น้ำหนักบล็อกที่ผลิตได้ในแต่ละรอบ
+                      จำนวนบล็อกที่ผลิตได้ในแต่ละรอบการผลิต
                     </p>
                   </div>
                 </div>
@@ -365,12 +363,10 @@ const Products = () => {
                 <div className="product-measurement-card">
                   <div className="product-card-header">
                     <h3 className="product-card-title">บล็อกที่ใช้</h3>
-                    <span className="product-card-icon">🔧</span>
                   </div>
                   
                   <div className="product-input-group">
                     <label className="product-input-label">
-                      {/* น้ำหนัก (กิโลกรัม) */}
                       <span className="product-required-asterisk">*</span>
                     </label>
                     <div className="product-number-input-wrapper">
@@ -387,7 +383,7 @@ const Products = () => {
                       <span className="product-input-unit">บล็อค</span>
                     </div>
                     <p className="product-input-description">
-                      น้ำหนักบล็อกที่ใช้ในกระบวนการผลิต
+                      จำนวนบล็อคที่ใช้ Foaming
                     </p>
                   </div>
                 </div>

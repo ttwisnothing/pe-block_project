@@ -16,7 +16,68 @@ export const getProduction = async (req, res) => {
         query += " ORDER BY create_date DESC";
 
         const result = await request.query(query);
-        return res.status(200).json(result.recordset);
+        
+        // Format ข้อมูลใน server
+        const formattedData = result.recordset.map(row => {
+            // Format วันที่และเวลา
+            const formatDateTime = (dateTime) => {
+                if (!dateTime) return "-";
+                try {
+                    const date = new Date(dateTime);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                } catch (error) {
+                    return "-";
+                }
+            };
+
+            const formatDate = (date) => {
+                if (!date) return "-";
+                try {
+                    const d = new Date(date);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    return `${day}/${month}/${year}`;
+                } catch (error) {
+                    return "-";
+                }
+            };
+
+            // คำนวณสถานะการผลิต
+            const getProductionStatus = (startTime, endTime) => {
+                if (!startTime) {
+                    return { label: "ไม่มีข้อมูล", color: "default", icon: "❓" };
+                }
+
+                const now = new Date();
+                const start = new Date(startTime);
+                const end = endTime ? new Date(endTime) : null;
+
+                if (now < start) {
+                    return { label: "รอผลิต", color: "warning", icon: "⏳" };
+                } else if (!end || now <= end) {
+                    return { label: "กำลังผลิต", color: "primary", icon: "🔄" };
+                } else {
+                    return { label: "สิ้นสุดการผลิต", color: "success", icon: "✅" };
+                }
+            };
+
+            return {
+                ...row,
+                formatted_create_date: formatDate(row.create_date),
+                formatted_start_time: formatDateTime(row.start_time),
+                formatted_end_time: formatDateTime(row.end_time),
+                production_status: getProductionStatus(row.start_time, row.end_time)
+            };
+        });
+
+        return res.status(200).json(formattedData);
     } catch (error) {
         console.error("Error fetching production data:", error);
         return res.status(500).json({
@@ -135,6 +196,97 @@ export const getBatchRecordData = async (req, res) => {
         return res.status(200).json(formatted);
     } catch (error) {
         console.error("❌ Error in fetching record data:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const getBatchStatus = async (req, res) => {
+    const { productionId } = req.params;
+    if (!productionId) {
+        return res.status(400).json({ message: "Missing productionId parameter." });
+    }
+
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('productionId', sql.Int, productionId);
+
+        const query = `
+            SELECT 
+                FMBR.id as FMBR_id,
+                FMBR.batch_no as FMBR_batchNo,
+                FMCN.id AS FMCN_Id,
+                FMCW.id AS FMCW_Id,
+                FMMX.id AS FMMX_Id,
+                FMCU.id AS FMCU_Id,
+                FMPP.id AS FMPP_Id,
+                FMPMP.id AS FMPMP_Id,
+                FMSP.id AS FMSP_Id,
+                FMFC.id AS FMFC_id
+            FROM FM_batch_record FMBR
+            LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.batch_record_id
+            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.batch_record_id
+            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.batch_record_id
+            LEFT JOIN FM_cut_step AS FMCU ON FMBR.id = FMCU.batch_record_id
+            LEFT JOIN FM_pre_press_step AS FMPP ON FMBR.id = FMPP.batch_record_id
+            LEFT JOIN FM_primary_press_step AS FMPMP ON FMBR.id = FMPMP.batch_record_id
+            LEFT JOIN FM_secondary_press_step AS FMSP ON FMBR.id = FMSP.batch_record_id
+            LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.batch_record_id
+            WHERE FMBR.production_record_id = @productionId
+        `;
+
+        const result = await request.query(query);
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: "No batch records found for this production." });
+        }
+
+        const totalSteps = 8;
+        const statusList = result.recordset.map(row => {
+            const stepIds = [
+                row.FMCN_Id,
+                row.FMCW_Id,
+                row.FMMX_Id,
+                row.FMCU_Id,
+                row.FMPP_Id,
+                row.FMPMP_Id,
+                row.FMSP_Id,
+                row.FMFC_id
+            ];
+            const completedSteps = stepIds.filter(id => id !== null).length;
+            const allNull = completedSteps === 0;
+            const allNotNull = completedSteps === totalSteps;
+            
+            let status = "ยังไม่เริ่มผลิต";
+            let statusDisplay = { label: "ยังไม่เริ่ม", color: "default", icon: "⭕" };
+            
+            if (allNotNull) {
+                status = "บันทึกครบแล้ว";
+                statusDisplay = { label: "บันทึกครบแล้ว", color: "success", icon: "✅" };
+            } else if (!allNull) {
+                status = `กำลังผลิต ${completedSteps}/${totalSteps}`;
+                statusDisplay = {
+                    label: `กำลังบันทึก ${completedSteps}/${totalSteps}`,
+                    color: "warning",
+                    icon: "⚠️"
+                };
+            }
+
+            return {
+                batchId: row.FMBR_id,
+                batchNo: row.FMBR_batchNo,
+                status,
+                statusDisplay,
+                completedSteps,
+                totalSteps,
+                isCompleteData: allNotNull,
+                hasSignificantData: completedSteps >= 3
+            };
+        });
+
+        return res.status(200).json(statusList);
+    }
+    catch (error) {
+        console.error("❌ Error in fetching batch status:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };

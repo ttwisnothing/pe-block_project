@@ -2,7 +2,7 @@ import express from 'express';
 import { getPlanTime, listPlantime } from './../controllers/plantimeController.js';
 import { getTempPlanTime, getTempPlanTimeASC } from '../controllers/tempController.js';
 import { getChemicals, getProducts, getProductsName } from './../controllers/productController.js';
-import { getBatchRecord, getBatchRecordData, getProduction } from '../controllers/productionController.js';
+import { getBatchRecord, getBatchRecordData, getBatchStatus, getProduction } from '../controllers/productionController.js';
 // import { testPlantime } from '../models/plantimeModel.js';
 
 const router = express.Router();
@@ -17,5 +17,6 @@ router.get('/list-plantime', listPlantime);
 router.get('/production/all', getProduction);
 router.get('/production/:productionId/batches', getBatchRecord);
 router.get('/production/record-data/batches/:recordId', getBatchRecordData)
+router.get('/production/batches/status/:productionId', getBatchStatus);
 
 export default router;

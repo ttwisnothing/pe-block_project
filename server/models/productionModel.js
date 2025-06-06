@@ -556,7 +556,6 @@ export const foamCheck = async (req, res) => {
 
         request.input("batchId", sql.Int, batchId);
         request.input("runNo", sql.Int, runNo);
-        // เปลี่ยนจาก sql.Float เป็น sql.NVarChar เพื่อเก็บ "OK"/"NG"
         request.input("foamBlock1", sql.NVarChar, foamBlock1);
         request.input("foamBlock2", sql.NVarChar, foamBlock2);
         request.input("foamBlock3", sql.NVarChar, foamBlock3);

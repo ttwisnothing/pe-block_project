@@ -220,11 +220,11 @@ const FoamRecord = () => {
   const [foamCheckData, setFoamCheckData] = useState({
     runNo: "",
     foamBlock1: "", // เปลี่ยนเป็น "OK" หรือ "NG"
-    foamBlock2: "", 
-    foamBlock3: "", 
-    foamBlock4: "", 
-    foamBlock5: "", 
-    foamBlock6: "", 
+    foamBlock2: "",
+    foamBlock3: "",
+    foamBlock4: "",
+    foamBlock5: "",
+    foamBlock6: "",
     employeeRecord: "",
   });
 
@@ -247,7 +247,6 @@ const FoamRecord = () => {
       if (isEdit && existingData) {
         loadExistingData(existingData);
 
-        // *** เพิ่มการเซ็ต active step ไปที่ step ที่ยังไม่เสร็จ ***
         const incompleteStep = findFirstIncompleteStep(existingData);
         setActiveStep(incompleteStep);
         console.log(
@@ -672,7 +671,7 @@ const FoamRecord = () => {
                       </InputLabel>
                       <Select
                         labelId={`chemistry-${index}-label`}
-                        value={Object.values(item)[0]}
+                        value={Object.values(item)[0] === " " ? "" : Object.values(item)[0]}
                         label={`Chemistry ${index + 1}`}
                         onChange={(e) => {
                           if (!isEdit) {
@@ -933,11 +932,11 @@ const FoamRecord = () => {
                       }`}
                       disabled={isEdit}
                       InputProps={{
-                        inputProps: { 
-                          min: 0, 
+                        inputProps: {
+                          min: 0,
                           step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
-                          placeholder: "0.00"
-                        }
+                          placeholder: "0.00",
+                        },
                       }}
                     />
                   </Grid>
@@ -950,39 +949,37 @@ const FoamRecord = () => {
                     Additional Information
                   </Typography>
                 </Grid>
-                {["weightRemain"].map(
-                  (key) => (
-                    <Grid item xs={12} md={6} key={key}>
-                      <TextField
-                        fullWidth
-                        label={key
-                          .replace(/([A-Z])/g, " $1")
-                          .replace(/^./, (str) => str.toUpperCase())}
-                        type={key === "weightRemain" ? "number" : "text"}
-                        value={cuttingData[key]}
-                        onChange={(e) => {
-                          if (!isEdit) {
-                            setCuttingData({
-                              ...cuttingData,
-                              [key]: e.target.value,
-                            });
-                          }
-                        }}
-                        className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
-                        }`}
-                        disabled={isEdit}
-                        InputProps={{
-                        inputProps: { 
-                          min: 0, 
-                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
-                          placeholder: "0.00"
+                {["weightRemain"].map((key) => (
+                  <Grid item xs={12} md={6} key={key}>
+                    <TextField
+                      fullWidth
+                      label={key
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (str) => str.toUpperCase())}
+                      type={key === "weightRemain" ? "number" : "text"}
+                      value={cuttingData[key]}
+                      onChange={(e) => {
+                        if (!isEdit) {
+                          setCuttingData({
+                            ...cuttingData,
+                            [key]: e.target.value,
+                          });
                         }
-                        }}
-                      />
-                    </Grid>
-                  )
-                )}
+                      }}
+                      className={`foam-text-field ${
+                        isEdit ? "foam-disabled-field" : ""
+                      }`}
+                      disabled={isEdit}
+                      InputProps={{
+                        inputProps: {
+                          min: 0,
+                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
+                          placeholder: "0.00",
+                        },
+                      }}
+                    />
+                  </Grid>
+                ))}
               </Grid>
             </Paper>
           </Fade>
@@ -1303,7 +1300,7 @@ const FoamRecord = () => {
                 {/* Foam Blocks 1-6 - เปลี่ยนเป็น Dropdown */}
                 {[
                   "foamBlock1",
-                  "foamBlock2", 
+                  "foamBlock2",
                   "foamBlock3",
                   "foamBlock4",
                   "foamBlock5",
@@ -1333,19 +1330,29 @@ const FoamRecord = () => {
                         }}
                         disabled={isEdit}
                         sx={{
-                          '& .MuiSelect-select': {
-                            color: foamCheckData[key] === 'OK' ? 'green' : 
-                                   foamCheckData[key] === 'NG' ? 'red' : 'inherit'
-                          }
+                          "& .MuiSelect-select": {
+                            color:
+                              foamCheckData[key] === "OK"
+                                ? "green"
+                                : foamCheckData[key] === "NG"
+                                ? "red"
+                                : "inherit",
+                          },
                         }}
                       >
                         <MenuItem value="">
                           <em>-- เลือกสถานะ --</em>
                         </MenuItem>
-                        <MenuItem value="OK" sx={{ color: 'green', fontWeight: 'bold' }}>
+                        <MenuItem
+                          value="OK"
+                          sx={{ color: "green", fontWeight: "bold" }}
+                        >
                           ✓ OK
                         </MenuItem>
-                        <MenuItem value="NG" sx={{ color: 'red', fontWeight: 'bold' }}>
+                        <MenuItem
+                          value="NG"
+                          sx={{ color: "red", fontWeight: "bold" }}
+                        >
                           ✗ NG
                         </MenuItem>
                       </Select>
@@ -1399,52 +1406,48 @@ const FoamRecord = () => {
         operatorName: data.FMBR_operator || prev.operatorName,
       }));
 
-      // โหลด chemical names - ป้องกันการเขียนทับ
+      // โหลด chemical names - *** เปลี่ยนให้แสดง " " แทน "-- ไม่ได้เลือก --" ***
       const chemicalNames = [];
       let hasChemicalData = false;
 
       for (let i = 1; i <= 15; i++) {
         const chemicalValue = data[`FMCN_chemicalName_${i}`] || "";
-        const cleanValue = chemicalValue === " " ? "" : chemicalValue;
+        let displayValue = chemicalValue;
+        if (chemicalValue === " " || chemicalValue.trim() === "") {
+          displayValue = " ";
+        }
 
-        if (cleanValue.trim() !== "") {
+        if (chemicalValue.trim() !== "" && chemicalValue !== " ") {
           hasChemicalData = true;
         }
 
-        chemicalNames.push({ [`chemistry_${i}`]: cleanValue });
+        chemicalNames.push({ [`chemistry_${i}`]: displayValue });
       }
 
-      if (hasChemicalData) {
+      if (hasChemicalData || data.FMCN_chemicalName_1) {
         setChemicalNames(chemicalNames);
       }
 
-      // โหลด chemical weights - แสดงช่องว่างถ้า null หรือ 0
+      // โหลด chemical weights - แสดง "0.00" แทนช่องว่าง
       const weights = [];
-      let hasWeightData = false;
 
       for (let i = 1; i <= 15; i++) {
         const weightValue = data[`FMCW_chemicalWeight_${i}`];
-        let finalWeight = "";
+        let finalWeight = "0.00";
 
         // เช็คว่ามีค่าจริงหรือไม่
-        if (
-          weightValue !== null &&
-          weightValue !== undefined &&
-          weightValue !== ""
-        ) {
+        if (weightValue !== null && weightValue !== undefined && weightValue !== "") {
           const numWeight = parseFloat(weightValue);
-          if (!isNaN(numWeight) && numWeight > 0) {
-            finalWeight = numWeight.toString();
-            hasWeightData = true;
+          if (!isNaN(numWeight)) {
+            finalWeight = numWeight.toFixed(2);
           }
-          // ถ้าเป็น 0 ให้เป็นช่องว่าง
         }
 
         weights.push(finalWeight);
       }
 
       setChemicalWeights({
-        weights: weights, // จะเป็น "" หรือ ค่าจริง ไม่มี 0
+        weights: weights,
       });
 
       // โหลด mixing step
@@ -1563,19 +1566,27 @@ const FoamRecord = () => {
   // เพิ่มฟังก์ชันเช็คว่า step ไหนยังไม่บันทึก
   const checkStepCompletion = (stepIndex, data) => {
     switch (stepIndex) {
-      case 0: // ข้อมูลพื้นฐาน
-        return !!(data.FMBR_operator && data.FMBR_shift && data.FMBR_programNo);
+      case 0:
+        return !!(
+          data.FMBR_operator && 
+          data.FMBR_shift && 
+          data.FMBR_programNo &&
+          data.FMBR_batchNo &&
+          data.FMBR_recDate &&
+          data.FMBR_productStatus &&
+          data.FMPR_productName
+        );
 
-      case 1: // Chemical Names
+      case 1:
         for (let i = 1; i <= 15; i++) {
           const chemValue = data[`FMCN_chemicalName_${i}`];
-          if (chemValue && chemValue.trim() !== "" && chemValue !== " ") {
+          if (chemValue && (chemValue.trim() !== "" || chemValue === " ")) {
             return true;
           }
         }
         return false;
 
-      case 2: { // Chemical Weights
+      case 2: {
         let hasWeights = false;
         for (let i = 1; i <= 15; i++) {
           const weightValue = data[`FMCW_chemicalWeight_${i}`];
@@ -1585,7 +1596,7 @@ const FoamRecord = () => {
             weightValue !== ""
           ) {
             const numWeight = parseFloat(weightValue);
-            if (!isNaN(numWeight) && numWeight > 0) {
+            if (!isNaN(numWeight) && numWeight >= 0) { // *** เปลี่ยนจาก > 0 เป็น >= 0 ***
               hasWeights = true;
               break;
             }
@@ -1594,44 +1605,80 @@ const FoamRecord = () => {
         return hasWeights;
       }
 
-      case 3: // Mixing
+      case 3:
         return !!(
           data.FMMX_programNo ||
           data.FMMX_hopperWeight ||
-          data.FMMX_actualStart
+          data.FMMX_actualStart ||
+          data.FMMX_mixFinish ||
+          data.FMMX_lip ||
+          data.FMMX_casingA ||
+          data.FMMX_casingB ||
+          data.FMMX_tempHopper ||
+          data.FMMX_longScrew ||
+          data.FMMX_shortScrew ||
+          data.FMMX_waterHeat
         );
 
-      case 4: // Cutting
+      case 4:
         return !!(
-          data.FMCU_weightBlock_1 ||
+          data.FMCU_weightBlock_1 || 
+          data.FMCU_weightBlock_2 ||
+          data.FMCU_weightBlock_3 ||
+          data.FMCU_weightBlock_4 ||
+          data.FMCU_weightBlock_5 ||
+          data.FMCU_weightBlock_6 ||
+          data.FMCU_weightBlock_7 ||
+          data.FMCU_weightBlock_8 ||
+          data.FMCU_weightBlock_9 ||
           data.FMCU_weightBlockRemain
         );
 
-      case 5: // Pre Press
+      case 5:
         return !!(
           data.FMPP_tempPrePress ||
           data.FMPP_waterHeat_1 ||
-          data.FMPP_waterHeat_2
+          data.FMPP_waterHeat_2 ||
+          data.FMPP_bakeTimePrePress
         );
 
-      case 6: // Primary Press
+      case 6:
         return !!(
           data.FMPMP_programNo ||
           data.FMPMP_topTemp ||
-          data.FMPMP_tempBlock_1
+          data.FMPMP_tempBlock_1 ||
+          data.FMPMP_tempBlock_2 ||
+          data.FMPMP_tempBlock_3 ||
+          data.FMPMP_tempBlock_4 ||
+          data.FMPMP_tempBlock_5 ||
+          data.FMPMP_tempBlock_6 ||
+          data.FMPMP_empSpray ||
+          data.FMPMP_bakeTimePrimary
         );
 
-      case 7: // Secondary Press
+      case 7:
         return !!(
           data.FMSP_machineNo ||
+          data.FMSP_programNo ||
+          data.FMSP_steamInPress ||
           data.FMSP_widthFoam ||
-          data.FMSP_lengthFoam
+          data.FMSP_lengthFoam ||
+          data.FMSP_bakeSecondaryTime ||
+          data.FMSP_injectEmp ||
+          data.FMSP_tempCheck_1 ||
+          data.FMSP_tempCheck_2 ||
+          data.FMSP_tempOut
         );
 
-      case 8: // Foam Check
+      case 8:
         return !!(
-          data.FMFC_runNo || 
-          data.FMFC_foamBlock_1 || 
+          data.FMFC_runNo ||
+          data.FMFC_foamBlock_1 ||
+          data.FMFC_foamBlock_2 ||
+          data.FMFC_foamBlock_3 ||
+          data.FMFC_foamBlock_4 ||
+          data.FMFC_foamBlock_5 ||
+          data.FMFC_foamBlock_6 ||
           data.FMFC_employeeRecord
         );
 
@@ -1643,16 +1690,18 @@ const FoamRecord = () => {
   // เพิ่มฟังก์ชันหา step แรกที่ยังไม่บันทึก
   const findFirstIncompleteStep = (existingData) => {
     if (!existingData) return 0;
-
+    
     for (let i = 0; i < steps.length; i++) {
-      if (!checkStepCompletion(i, existingData)) {
+      const isCompleted = checkStepCompletion(i, existingData);
+      
+      if (!isCompleted) {
         return i;
       }
     }
-    return 0; // ถ้าทุก step เสร็จแล้วก็กลับไป step แรก
+    
+    return 0;
   };
 
-  // เพิ่มฟังก์ชันเช็คสถานะของแต่ละ step
   const getStepStatus = (stepIndex) => {
     if (!existingData) return "pending";
 
