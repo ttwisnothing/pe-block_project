@@ -362,6 +362,7 @@ const Production = () => {
     try {
       return format(new Date(dateTime), "dd/MM/yyyy HH:mm:ss");
     } catch (error) {
+      console.log("Error formatting dateTime:", error);
       return "-";
     }
   };
@@ -371,6 +372,7 @@ const Production = () => {
     try {
       return format(new Date(date), "dd/MM/yyyy");
     } catch (error) {
+      console.log("Error formatting date:", error);
       return "-";
     }
   };
@@ -380,6 +382,7 @@ const Production = () => {
     try {
       return format(new Date(time), "HH:mm:ss");
     } catch (error) {
+      console.log("Error formatting time:", error);
       return "-";
     }
   };

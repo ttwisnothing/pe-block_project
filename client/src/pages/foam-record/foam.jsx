@@ -32,6 +32,8 @@ import {
   CheckCircle as CheckIcon,
   AccountBox as AccountIcon,
   Inventory as InventoryIcon,
+  Scale as ScaleIcon,
+  Verified as VerifiedIcon,
 } from "@mui/icons-material";
 import axios from "axios";
 import "./foam.css";
@@ -43,6 +45,7 @@ const steps = [
   "Mixing Step",
   "Cutting Step",
   "Pre Press",
+  "Primary Press", // เพิ่ม step ใหม่
   "Secondary Press",
   "Foam Check",
 ];
@@ -149,9 +152,9 @@ const FoamRecord = () => {
   const [mixingData, setMixingData] = useState({
     programNo: "",
     hopperWeight: "",
-    actualTime: "",
-    mixingFinish: "",
-    lipHeat: "",
+    actualStart: "",
+    mixFinish: "",
+    lip: "",
     casingA: "",
     casingB: "",
     tempHopper: "",
@@ -179,44 +182,50 @@ const FoamRecord = () => {
 
   // Pre Press State
   const [prePressData, setPrePressData] = useState({
-    prePressHeat: "",
+    tempPrePress: "",
     waterHeat1: "",
     waterHeat2: "",
-    bakeTimePre: "",
-    topHeat: "",
-    layerHeat1: "",
-    layerHeat2: "",
-    layerHeat3: "",
-    layerHeat4: "",
-    layerHeat5: "",
-    layerHeat6: "",
-    injectorStaff: "",
+    bakeTimePrePress: "",
+  });
+
+  // Primary Press State
+  const [primaryPressData, setPrimaryPressData] = useState({
+    programNo: "",
+    topTemp: "",
+    tempBlock1: "",
+    tempBlock2: "",
+    tempBlock3: "",
+    tempBlock4: "",
+    tempBlock5: "",
+    tempBlock6: "",
+    empSpray: "",
     bakeTimePrimary: "",
   });
 
-  // Secondary Press State
+  // Secondary Press State - แก้ไขให้ตรงกับ model
   const [secondaryPressData, setSecondaryPressData] = useState({
     machineNo: "",
+    programNo: "",
     streamInPress: "",
     foamWidth: "",
     foamLength: "",
-    bakeTimeSecondary: "",
-    sprayAgent: "",
-    heatCheckA: "",
-    heatCheckB: "",
-    heatExit: "",
+    bakeSecondaryTime: "",
+    injectEmp: "",
+    tempCheck1: "",
+    tempCheck2: "",
+    tempOut: "",
   });
 
-  // Foam Check State
+  // Foam Check State - แก้ไขให้ตรงกับ model
   const [foamCheckData, setFoamCheckData] = useState({
     runNo: "",
-    layer1: "",
-    layer2: "",
-    layer3: "",
-    layer4: "",
-    layer5: "",
-    layer6: "",
-    entryData: "",
+    foamBlock1: "", // เปลี่ยนเป็น "OK" หรือ "NG"
+    foamBlock2: "", 
+    foamBlock3: "", 
+    foamBlock4: "", 
+    foamBlock5: "", 
+    foamBlock6: "", 
+    employeeRecord: "",
   });
 
   // เพิ่ม state สำหรับเก็บข้อมูล chemicals
@@ -322,9 +331,8 @@ const FoamRecord = () => {
       switch (stepIndex) {
         case 0:
           if (batchId) {
-            // ใช้ batchId ตรงๆ
             response = await axios.put(
-              `/api/put/production/update/record/${batchId}`, // ใช้ batchId ตรงๆ
+              `/api/put/production/update/record/${batchId}`,
               {
                 batchNo: productionData.batchNo,
                 recordDate: productionData.recordDate,
@@ -358,10 +366,9 @@ const FoamRecord = () => {
         }
 
         case 2: {
-          // ประมวลผล chemicalWeights ให้เป็น number และ default เป็น 0 เฉพาะตอนส่ง
           const processedWeights = chemicalWeights.weights.map((w) => {
             if (w === "" || w === null || w === undefined) {
-              return 0.0; // ส่งเป็น 0 ไปยัง database เฉพาะตอนบันทึก
+              return 0.0;
             }
             const numValue = parseFloat(w);
             return isNaN(numValue) ? 0.0 : numValue;
@@ -371,7 +378,7 @@ const FoamRecord = () => {
             `/api/post/production/${batchId}/chemical-weight/add`,
             {
               productionId: productionId,
-              chemistryWeight: processedWeights, // ส่งครบ 15 ตัว
+              chemistryWeight: processedWeights,
             }
           );
           break;
@@ -409,6 +416,16 @@ const FoamRecord = () => {
 
         case 6:
           response = await axios.post(
+            `/api/post/production/${batchId}/primary-press/add`,
+            {
+              productionId: productionId,
+              ...primaryPressData,
+            }
+          );
+          break;
+
+        case 7:
+          response = await axios.post(
             `/api/post/production/${batchId}/second-press/add`,
             {
               productionId: productionId,
@@ -417,7 +434,7 @@ const FoamRecord = () => {
           );
           break;
 
-        case 7:
+        case 8:
           response = await axios.post(
             `/api/post/production/${batchId}/foam-check/add`,
             {
@@ -444,12 +461,13 @@ const FoamRecord = () => {
     const icons = [
       <AccountIcon />,
       <ScienceIcon />,
-      <InventoryIcon />,
+      <ScaleIcon />,
       <BlenderIcon />,
       <CutIcon />,
       <CompressIcon />,
       <CompressIcon />,
-      <CheckIcon />,
+      <CompressIcon />,
+      <VerifiedIcon />,
     ];
     return icons[step];
   };
@@ -701,7 +719,7 @@ const FoamRecord = () => {
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
               <Box className="foam-step-header">
-                <InventoryIcon className="foam-step-icon" />
+                <ScaleIcon className="foam-step-icon" />
                 <Typography variant="h6" className="foam-step-title">
                   Chemical Weights
                   {isEdit && (
@@ -721,22 +739,26 @@ const FoamRecord = () => {
               </Box>
 
               {/* เพิ่ม Ref Chip */}
-              <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+              <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
                 <Chip
-                  label={`Ref: ${productionData.batchNo ? (parseFloat(productionData.batchNo) + 0.3).toFixed(1) : '0.3'}`}
+                  label={`Ref: ${
+                    productionData.batchNo
+                      ? (parseFloat(productionData.batchNo) + 0.3).toFixed(1)
+                      : "0.3"
+                  }`}
                   color="primary"
                   variant="outlined"
                   size="large"
-                  sx={{ 
-                    fontSize: '1.1rem', 
-                    fontWeight: 'bold',
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: "bold",
                     py: 2,
                     px: 3,
-                    height: 'auto',
-                    '& .MuiChip-label': {
+                    height: "auto",
+                    "& .MuiChip-label": {
                       px: 2,
-                      py: 1
-                    }
+                      py: 1,
+                    },
                   }}
                 />
               </Box>
@@ -764,13 +786,13 @@ const FoamRecord = () => {
                       }`}
                       disabled={isEdit}
                       InputProps={{
-                        inputProps: { 
-                          min: 0, 
+                        inputProps: {
+                          min: 0,
                           step: "0.01",
-                          style: { 
-                            color: weight === "" ? "#999" : "inherit" // สีอ่อนถ้าเป็นช่องว่าง
-                          }
-                        }
+                          style: {
+                            color: weight === "" ? "#999" : "inherit", // สีอ่อนถ้าเป็นช่องว่าง
+                          },
+                        },
                       }}
                     />
                   </Grid>
@@ -910,6 +932,13 @@ const FoamRecord = () => {
                         isEdit ? "foam-disabled-field" : ""
                       }`}
                       disabled={isEdit}
+                      InputProps={{
+                        inputProps: { 
+                          min: 0, 
+                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
+                          placeholder: "0.00"
+                        }
+                      }}
                     />
                   </Grid>
                 ))}
@@ -921,7 +950,7 @@ const FoamRecord = () => {
                     Additional Information
                   </Typography>
                 </Grid>
-                {["weightRemain", "staffSave", "startPress", "mixFinish"].map(
+                {["weightRemain"].map(
                   (key) => (
                     <Grid item xs={12} md={6} key={key}>
                       <TextField
@@ -943,6 +972,13 @@ const FoamRecord = () => {
                           isEdit ? "foam-disabled-field" : ""
                         }`}
                         disabled={isEdit}
+                        InputProps={{
+                        inputProps: { 
+                          min: 0, 
+                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
+                          placeholder: "0.00"
+                        }
+                        }}
                       />
                     </Grid>
                   )
@@ -969,15 +1005,114 @@ const FoamRecord = () => {
                     />
                   )}
                 </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
               </Box>
 
               <Grid container spacing={3} className="foam-form-grid">
-                {Object.entries(prePressData).map(([key, value]) => (
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Temperature Pre Press"
+                    type="number"
+                    value={prePressData.tempPrePress}
+                    onChange={(e) => {
+                      if (!isEdit) {
+                        setPrePressData({
+                          ...prePressData,
+                          tempPrePress: e.target.value,
+                        });
+                      }
+                    }}
+                    className={`foam-text-field ${
+                      isEdit ? "foam-disabled-field" : ""
+                    }`}
+                    disabled={isEdit}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Water Heat 1"
+                    type="number"
+                    value={prePressData.waterHeat1}
+                    onChange={(e) => {
+                      if (!isEdit) {
+                        setPrePressData({
+                          ...prePressData,
+                          waterHeat1: e.target.value,
+                        });
+                      }
+                    }}
+                    className={`foam-text-field ${
+                      isEdit ? "foam-disabled-field" : ""
+                    }`}
+                    disabled={isEdit}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Water Heat 2"
+                    type="number"
+                    value={prePressData.waterHeat2}
+                    onChange={(e) => {
+                      if (!isEdit) {
+                        setPrePressData({
+                          ...prePressData,
+                          waterHeat2: e.target.value,
+                        });
+                      }
+                    }}
+                    className={`foam-text-field ${
+                      isEdit ? "foam-disabled-field" : ""
+                    }`}
+                    disabled={isEdit}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Bake Time Pre Press"
+                    value={prePressData.bakeTimePrePress}
+                    onChange={(e) => {
+                      if (!isEdit) {
+                        setPrePressData({
+                          ...prePressData,
+                          bakeTimePrePress: e.target.value,
+                        });
+                      }
+                    }}
+                    className={`foam-text-field ${
+                      isEdit ? "foam-disabled-field" : ""
+                    }`}
+                    disabled={isEdit}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Fade>
+        );
+
+      case 6:
+        return (
+          <Fade in timeout={500}>
+            <Paper className="foam-step-content">
+              <Box className="foam-step-header">
+                <CompressIcon className="foam-step-icon" />
+                <Typography variant="h6" className="foam-step-title">
+                  Primary Press Step
+                  {isEdit && (
+                    <Chip
+                      label="โหมดดูข้อมูล"
+                      color="info"
+                      size="small"
+                      sx={{ ml: 2 }}
+                    />
+                  )}
+                </Typography>
+              </Box>
+
+              <Grid container spacing={3} className="foam-form-grid">
+                {Object.entries(primaryPressData).map(([key, value]) => (
                   <Grid item xs={12} md={6} lg={4} key={key}>
                     <TextField
                       fullWidth
@@ -986,16 +1121,14 @@ const FoamRecord = () => {
                         .replace(/^./, (str) => str.toUpperCase())}
                       type={
                         [
-                          "prePressHeat",
-                          "waterHeat1",
-                          "waterHeat2",
-                          "topHeat",
-                          "layerHeat1",
-                          "layerHeat2",
-                          "layerHeat3",
-                          "layerHeat4",
-                          "layerHeat5",
-                          "layerHeat6",
+                          "programNo",
+                          "topTemp",
+                          "tempBlock1",
+                          "tempBlock2",
+                          "tempBlock3",
+                          "tempBlock4",
+                          "tempBlock5",
+                          "tempBlock6",
                         ].includes(key)
                           ? "number"
                           : "text"
@@ -1003,8 +1136,8 @@ const FoamRecord = () => {
                       value={value}
                       onChange={(e) => {
                         if (!isEdit) {
-                          setPrePressData({
-                            ...prePressData,
+                          setPrimaryPressData({
+                            ...primaryPressData,
                             [key]: e.target.value,
                           });
                         }
@@ -1021,7 +1154,7 @@ const FoamRecord = () => {
           </Fade>
         );
 
-      case 6:
+      case 7:
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -1056,11 +1189,12 @@ const FoamRecord = () => {
                       type={
                         [
                           "machineNo",
+                          "programNo",
                           "foamWidth",
                           "foamLength",
-                          "heatCheckA",
-                          "heatCheckB",
-                          "heatExit",
+                          "tempCheck1",
+                          "tempCheck2",
+                          "tempOut",
                         ].includes(key)
                           ? "number"
                           : "text"
@@ -1086,12 +1220,12 @@ const FoamRecord = () => {
           </Fade>
         );
 
-      case 7:
+      case 8:
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
               <Box className="foam-step-header">
-                <CheckIcon className="foam-step-icon" />
+                <VerifiedIcon className="foam-step-icon" />
                 <Typography variant="h6" className="foam-step-title">
                   Foam Check Step
                   {isEdit && (
@@ -1134,17 +1268,17 @@ const FoamRecord = () => {
                   />
                 </Grid>
 
-                {/* Entry Data - ย้ายขึ้นมาแทน Layer 1 */}
+                {/* Employee Record */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Entry Data"
-                    value={foamCheckData.entryData}
+                    label="Employee Record"
+                    value={foamCheckData.employeeRecord}
                     onChange={(e) => {
                       if (!isEdit) {
                         setFoamCheckData({
                           ...foamCheckData,
-                          entryData: e.target.value,
+                          employeeRecord: e.target.value,
                         });
                       }
                     }}
@@ -1155,44 +1289,67 @@ const FoamRecord = () => {
                   />
                 </Grid>
 
-                {/* Section Title สำหรับ Layers */}
+                {/* Section Title สำหรับ Foam Blocks */}
                 <Grid item xs={12}>
                   <Typography
                     variant="subtitle1"
                     className="foam-section-title"
                     sx={{ mt: 2, mb: 1, fontWeight: 600 }}
                   >
-                    Layer Information
+                    Foam Block Quality Check (OK/NG)
                   </Typography>
                 </Grid>
 
-                {/* Layers 1-6 เรียงด้วยกัน */}
+                {/* Foam Blocks 1-6 - เปลี่ยนเป็น Dropdown */}
                 {[
-                  "layer1",
-                  "layer2",
-                  "layer3",
-                  "layer4",
-                  "layer5",
-                  "layer6",
+                  "foamBlock1",
+                  "foamBlock2", 
+                  "foamBlock3",
+                  "foamBlock4",
+                  "foamBlock5",
+                  "foamBlock6",
                 ].map((key, index) => (
                   <Grid item xs={12} md={6} lg={4} key={key}>
-                    <TextField
+                    <FormControl
                       fullWidth
-                      label={`Layer ${index + 1}`}
-                      value={foamCheckData[key]}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setFoamCheckData({
-                            ...foamCheckData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
                       className={`foam-text-field ${
                         isEdit ? "foam-disabled-field" : ""
                       }`}
-                      disabled={isEdit}
-                    />
+                    >
+                      <InputLabel id={`foam-block-${index + 1}-label`}>
+                        Foam Block {index + 1}
+                      </InputLabel>
+                      <Select
+                        labelId={`foam-block-${index + 1}-label`}
+                        value={foamCheckData[key]}
+                        label={`Foam Block ${index + 1}`}
+                        onChange={(e) => {
+                          if (!isEdit) {
+                            setFoamCheckData({
+                              ...foamCheckData,
+                              [key]: e.target.value,
+                            });
+                          }
+                        }}
+                        disabled={isEdit}
+                        sx={{
+                          '& .MuiSelect-select': {
+                            color: foamCheckData[key] === 'OK' ? 'green' : 
+                                   foamCheckData[key] === 'NG' ? 'red' : 'inherit'
+                          }
+                        }}
+                      >
+                        <MenuItem value="">
+                          <em>-- เลือกสถานะ --</em>
+                        </MenuItem>
+                        <MenuItem value="OK" sx={{ color: 'green', fontWeight: 'bold' }}>
+                          ✓ OK
+                        </MenuItem>
+                        <MenuItem value="NG" sx={{ color: 'red', fontWeight: 'bold' }}>
+                          ✗ NG
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
                   </Grid>
                 ))}
               </Grid>
@@ -1268,9 +1425,13 @@ const FoamRecord = () => {
       for (let i = 1; i <= 15; i++) {
         const weightValue = data[`FMCW_chemicalWeight_${i}`];
         let finalWeight = "";
-        
+
         // เช็คว่ามีค่าจริงหรือไม่
-        if (weightValue !== null && weightValue !== undefined && weightValue !== "") {
+        if (
+          weightValue !== null &&
+          weightValue !== undefined &&
+          weightValue !== ""
+        ) {
           const numWeight = parseFloat(weightValue);
           if (!isNaN(numWeight) && numWeight > 0) {
             finalWeight = numWeight.toString();
@@ -1278,7 +1439,7 @@ const FoamRecord = () => {
           }
           // ถ้าเป็น 0 ให้เป็นช่องว่าง
         }
-        
+
         weights.push(finalWeight);
       }
 
@@ -1288,76 +1449,79 @@ const FoamRecord = () => {
 
       // โหลด mixing step
       setMixingData({
-        programNo: data.program_no_mix || "",
-        hopperWeight: data.hopper_weight || "",
-        actualTime: data.actual_press || "",
-        mixingFinish: data.mixing_finish_mix || "",
-        lipHeat: data.lip_heat || "",
-        casingA: data.casing_a_heat || "",
-        casingB: data.casing_b_heat || "",
-        tempHopper: data.hopper_heat || "",
-        longScrew: data.long_screw || "",
-        shortScrew: data.short_screw || "",
-        waterHeat: data.water_heating || "",
+        programNo: data.FMMX_programNo || data.FMBR_programNo || "",
+        hopperWeight: data.FMMX_hopperWeight || "",
+        actualStart: data.FMMX_actualStart || "", // เปลี่ยนจาก actualTime
+        mixFinish: data.FMMX_mixFinish || "",
+        lip: data.FMMX_lip || "",
+        casingA: data.FMMX_casingA || "",
+        casingB: data.FMMX_casingB || "",
+        tempHopper: data.FMMX_tempHopper || "",
+        longScrew: data.FMMX_longScrew || "",
+        shortScrew: data.FMMX_shortScrew || "",
+        waterHeat: data.FMMX_waterHeat || "",
       });
 
       // โหลด cutting step
       setCuttingData({
-        wb1: data.weight_block_1 || "",
-        wb2: data.weight_block_2 || "",
-        wb3: data.weight_block_3 || "",
-        wb4: data.weight_block_4 || "",
-        wb5: data.weight_block_5 || "",
-        wb6: data.weight_block_6 || "",
-        wb7: data.weight_block_7 || "",
-        wb8: data.weight_block_8 || "",
-        wb9: data.weight_block_9 || "",
-        weightRemain: data.weight_remain || "",
-        staffSave: data.staff_data_save || "",
-        startPress: data.start_press || "",
-        mixFinish: data.mixing_finish_cut || "",
+        wb1: data.FMCU_weightBlock_1 || "",
+        wb2: data.FMCU_weightBlock_2 || "",
+        wb3: data.FMCU_weightBlock_3 || "",
+        wb4: data.FMCU_weightBlock_4 || "",
+        wb5: data.FMCU_weightBlock_5 || "",
+        wb6: data.FMCU_weightBlock_6 || "",
+        wb7: data.FMCU_weightBlock_7 || "",
+        wb8: data.FMCU_weightBlock_8 || "",
+        wb9: data.FMCU_weightBlock_9 || "",
+        weightRemain: data.FMCU_weightBlockRemain || "",
       });
 
-      // โหลด pre press step
+      // โหลด pre press step (เหลือ 4 fields)
       setPrePressData({
-        prePressHeat: data.pre_press_heat || "",
-        waterHeat1: data.water_heating_a || "",
-        waterHeat2: data.water_heating_b || "",
-        bakeTimePre: data.bake_time_pre_press || "",
-        topHeat: data.top_heat || "",
-        layerHeat1: data.layer_a_heat || "",
-        layerHeat2: data.layer_b_heat || "",
-        layerHeat3: data.layer_c_heat || "",
-        layerHeat4: data.layer_d_heat || "",
-        layerHeat5: data.layer_e_heat || "",
-        layerHeat6: data.layer_f_heat || "",
-        injectorStaff: data.injector_agent || "",
-        bakeTimePrimary: data.bake_time_primary_press || "",
+        tempPrePress: data.FMPP_tempPrePress || "",
+        waterHeat1: data.FMPP_waterHeat_1 || "",
+        waterHeat2: data.FMPP_waterHeat_2 || "",
+        bakeTimePrePress: data.FMPP_bakeTimePrePress || "",
+      });
+
+      // โหลด primary press step (ใหม่)
+      setPrimaryPressData({
+        programNo: data.FMPMP_programNo || data.FMBR_programNo || "",
+        topTemp: data.FMPMP_topTemp || "",
+        tempBlock1: data.FMPMP_tempBlock_1 || "",
+        tempBlock2: data.FMPMP_tempBlock_2 || "",
+        tempBlock3: data.FMPMP_tempBlock_3 || "",
+        tempBlock4: data.FMPMP_tempBlock_4 || "",
+        tempBlock5: data.FMPMP_tempBlock_5 || "",
+        tempBlock6: data.FMPMP_tempBlock_6 || "",
+        empSpray: data.FMPMP_empSpray || "",
+        bakeTimePrimary: data.FMPMP_bakeTimePrimary || "",
       });
 
       // โหลด secondary press step
       setSecondaryPressData({
-        machineNo: data.machine_no || "",
-        streamInPress: data.stream_in_press || "",
-        foamWidth: data.foam_width || "",
-        foamLength: data.foam_length || "",
-        bakeTimeSecondary: data.bake_time_secondary || "",
-        sprayAgent: data.spray_agent || "",
-        heatCheckA: data.heat_check_a || "",
-        heatCheckB: data.heat_check_b || "",
-        heatExit: data.heat_exit || "",
+        machineNo: data.FMSP_machineNo || "",
+        programNo: data.FMSP_programNo || data.FMBR_programNo || "",
+        streamInPress: data.FMSP_steamInPress || "",
+        foamWidth: data.FMSP_widthFoam || "",
+        foamLength: data.FMSP_lengthFoam || "",
+        bakeSecondaryTime: data.FMSP_bakeSecondaryTime || "",
+        injectEmp: data.FMSP_injectEmp || "",
+        tempCheck1: data.FMSP_tempCheck_1 || "",
+        tempCheck2: data.FMSP_tempCheck_2 || "",
+        tempOut: data.FMSP_tempOut || "",
       });
 
-      // โหลด foam check step
+      // โหลด foam check step - รองรับทั้ง OK/NG และตัวเลข
       setFoamCheckData({
-        runNo: data.run_no || "",
-        layer1: data.layer_1 || "",
-        layer2: data.layer_2 || "",
-        layer3: data.layer_3 || "",
-        layer4: data.layer_4 || "",
-        layer5: data.layer_5 || "",
-        layer6: data.layer_6 || "",
-        entryData: data.clerk_entry_data || "",
+        runNo: data.FMFC_runNo || "",
+        foamBlock1: data.FMFC_foamBlock_1 || "",
+        foamBlock2: data.FMFC_foamBlock_2 || "",
+        foamBlock3: data.FMFC_foamBlock_3 || "",
+        foamBlock4: data.FMFC_foamBlock_4 || "",
+        foamBlock5: data.FMFC_foamBlock_5 || "",
+        foamBlock6: data.FMFC_foamBlock_6 || "",
+        employeeRecord: data.FMFC_employeeRecord || "",
       });
 
       showAlert(
@@ -1411,12 +1575,15 @@ const FoamRecord = () => {
         }
         return false;
 
-      case 2: {// Chemical Weights - เช็คให้ละเอียดขึ้น
+      case 2: { // Chemical Weights
         let hasWeights = false;
         for (let i = 1; i <= 15; i++) {
           const weightValue = data[`FMCW_chemicalWeight_${i}`];
-          // เช็คว่ามีค่าจริงและมากกว่า 0
-          if (weightValue !== null && weightValue !== undefined && weightValue !== "") {
+          if (
+            weightValue !== null &&
+            weightValue !== undefined &&
+            weightValue !== ""
+          ) {
             const numWeight = parseFloat(weightValue);
             if (!isNaN(numWeight) && numWeight > 0) {
               hasWeights = true;
@@ -1424,32 +1591,49 @@ const FoamRecord = () => {
             }
           }
         }
-        
-        return hasWeights; // ลบการเช็ค ref
+        return hasWeights;
       }
 
       case 3: // Mixing
         return !!(
-          data.hopper_weight ||
-          data.actual_press ||
-          data.mixing_finish_mix
+          data.FMMX_programNo ||
+          data.FMMX_hopperWeight ||
+          data.FMMX_actualStart
         );
 
       case 4: // Cutting
         return !!(
-          data.weight_block_1 ||
-          data.weight_remain ||
-          data.staff_data_save
+          data.FMCU_weightBlock_1 ||
+          data.FMCU_weightBlockRemain
         );
 
       case 5: // Pre Press
-        return !!(data.pre_press_heat || data.water_heating_a || data.top_heat);
+        return !!(
+          data.FMPP_tempPrePress ||
+          data.FMPP_waterHeat_1 ||
+          data.FMPP_waterHeat_2
+        );
 
-      case 6: // Secondary Press
-        return !!(data.machine_no || data.foam_width || data.foam_length);
+      case 6: // Primary Press
+        return !!(
+          data.FMPMP_programNo ||
+          data.FMPMP_topTemp ||
+          data.FMPMP_tempBlock_1
+        );
 
-      case 7: // Foam Check
-        return !!(data.run_no || data.layer_1 || data.clerk_entry_data);
+      case 7: // Secondary Press
+        return !!(
+          data.FMSP_machineNo ||
+          data.FMSP_widthFoam ||
+          data.FMSP_lengthFoam
+        );
+
+      case 8: // Foam Check
+        return !!(
+          data.FMFC_runNo || 
+          data.FMFC_foamBlock_1 || 
+          data.FMFC_employeeRecord
+        );
 
       default:
         return false;

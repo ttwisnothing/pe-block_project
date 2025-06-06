@@ -77,7 +77,7 @@ export const getBatchRecordData = async (req, res) => {
 
             -- Mix Table
             FMMX.program_no AS FMMX_programNo, FMMX.hopper_weight AS FMMX_hopperWeight, FMMX.actual_start AS FMMX_actualStart, FMMX.mix_finish AS FMMX_mixFinish,FMMX.lip AS FMMX_lip,
-            FMMX.casing_a AS FMMX_cassingA, FMMX.casing_b AS FMMX_cassingB, FMMX.temp_hopper AS FMMX_tempHopper, FMMX.long_screw AS FMMX_longScrew, FMMX.short_screw AS FMMX_shortScrew, FMMX.water_heat AS FMMX_waterHeat,
+            FMMX.casing_a AS FMMX_casingA, FMMX.casing_b AS FMMX_casingB, FMMX.temp_hopper AS FMMX_tempHopper, FMMX.long_screw AS FMMX_longScrew, FMMX.short_screw AS FMMX_shortScrew, FMMX.water_heat AS FMMX_waterHeat,
 
             -- Cut Table
             FMCU.weight_block_1 AS FMCU_weightBlock_1, FMCU.weight_block_2 AS FMCU_weightBlock_2, FMCU.weight_block_3 AS FMCU_weightBlock_3, FMCU.weight_block_4 AS FMCU_weightBlock_4, FMCU.weight_block_5 AS FMCU_weightBlock_5,
@@ -91,8 +91,8 @@ export const getBatchRecordData = async (req, res) => {
             FMPMP.temp_block_4 AS FMPMP_tempBlock_4, FMPMP.temp_block_5 AS FMPMP_tempBlock_5, FMPMP.temp_block_6 AS FMPMP_tempBlock_6, FMPMP.emp_spray AS FMPMP_empSpray, FMPMP.bake_time_primary AS FMPMP_bakeTimePrimary,
 
             -- Secondary Press Table
-            FMSP.machine_no AS FMSP_machineNo, FMSP.program_no AS FMSP_programNo, FMSP.stream_in_press AS FMSP_streamInPress, FMSP.width_foam AS FMSP_widthFoam, FMSP.length_foam AS FMSP_lengthFoam,
-            FMSP.bake_secondary_time AS FMSP_bakeSecondaryTime, FMSP.inject_emp AS FMSP_injectEmp, FMSP.temp_check_1 AS FMSP_tempCheck_1, FMSP.temp_check_2 AS FMSP_tempCheck_2, FMSP.temp_out AS FMSP_tempOut
+            FMSP.machine_no AS FMSP_machineNo, FMSP.program_no AS FMSP_programNo, FMSP.steam_in_press AS FMSP_steamInPress, FMSP.width_foam AS FMSP_widthFoam, FMSP.length_foam AS FMSP_lengthFoam,
+            FMSP.bake_secondary_time AS FMSP_bakeSecondaryTime, FMSP.inject_emp AS FMSP_injectEmp, FMSP.temp_check_1 AS FMSP_tempCheck_1, FMSP.temp_check_2 AS FMSP_tempCheck_2, FMSP.temp_out AS FMSP_tempOut,
 
             -- Foam Check Table
             FMFC.run_no AS FMFC_runNo, FMFC.foam_block_1 AS FMFC_foamBlock_1, FMFC.foam_block_2 AS FMFC_foamBlock_2, FMFC.foam_block_3 AS FMFC_foamBlock_3, FMFC.foam_block_4 AS FMFC_foamBlock_4,

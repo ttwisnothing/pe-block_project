@@ -389,7 +389,7 @@ export const addPrePress = async (req, res) => {
         const request = pool.request();
 
         request.input("batchId", sql.Int, batchId);
-        request.input("prePressHeat", sql.Int, tempPrePress);
+        request.input("tempPrePress", sql.Int, tempPrePress);
         request.input("waterHeat1", sql.Int, waterHeat1);
         request.input("waterHeat2", sql.Int, waterHeat2);
         request.input("bakeTimePrePress", sql.NVarChar, bakeTimePrePress);
@@ -481,11 +481,13 @@ export const addSecondPrepress = async (req, res) => {
 
     const query = `
         INSERT INTO FM_secondary_press_step (
-            batch_record_id, machine_no, program_no, stream_in_press,
+            batch_record_id, machine_no, program_no, steam_in_press,
             width_foam, length_foam, bake_secondary_time,
             inject_emp, temp_check_1, temp_check_2, temp_out
         ) VALUES (
-            
+            @batchId, @machineNo, @programNo, @streamInPress,
+            @foamWidth, @foamLength, @bakeSecondaryTime,
+            @injectEmp, @tempCheck1, @tempCheck2, @tempOut
         )
     `
 
@@ -529,7 +531,7 @@ export const addSecondPrepress = async (req, res) => {
 }
 
 export const foamCheck = async (req, res) => {
-    const { batchId } = req.params; // เปลี่ยนจาก podId เป็น batchId
+    const { batchId } = req.params;
     const { 
         runNo, foamBlock1, foamBlock2,
         foamBlock3, foamBlock4, foamBlock5,
@@ -554,13 +556,14 @@ export const foamCheck = async (req, res) => {
 
         request.input("batchId", sql.Int, batchId);
         request.input("runNo", sql.Int, runNo);
-        request.input("foamBlock1", sql.Float, foamBlock1);
-        request.input("foamBlock2", sql.Float, foamBlock2);
-        request.input("foamBlock3", sql.Float, foamBlock3);
-        request.input("foamBlock4", sql.Float, foamBlock4);
-        request.input("foamBlock5", sql.Float, foamBlock5);
-        request.input("foamBlock6", sql.Float, foamBlock6);
-        request.input("entryData", sql.NVarChar, employeeRecord);
+        // เปลี่ยนจาก sql.Float เป็น sql.NVarChar เพื่อเก็บ "OK"/"NG"
+        request.input("foamBlock1", sql.NVarChar, foamBlock1);
+        request.input("foamBlock2", sql.NVarChar, foamBlock2);
+        request.input("foamBlock3", sql.NVarChar, foamBlock3);
+        request.input("foamBlock4", sql.NVarChar, foamBlock4);
+        request.input("foamBlock5", sql.NVarChar, foamBlock5);
+        request.input("foamBlock6", sql.NVarChar, foamBlock6);
+        request.input("employeeRecord", sql.NVarChar, employeeRecord);
 
         await request.query(query);
         res.status(201).json({
