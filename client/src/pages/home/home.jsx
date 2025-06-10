@@ -86,7 +86,7 @@ const Home = () => {
     },
     { 
       label: 'เวลาเฉลี่ย', 
-      value: '2.5 ชม.', 
+      value: '4.6 ชม.', 
       icon: <Schedule />,
       description: 'เวลาผลิตเฉลี่ย'
     },

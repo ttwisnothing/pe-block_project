@@ -125,8 +125,8 @@ const Config = () => {
   };
 
   const getPlaceholder = (key) => {
-    if (key === 'config_group') return 'เช่น Production-Group-A';
-    return 'เวลาเป็นนาที (เช่น 5.5)';
+    if (key === 'config_group') return 'เช่น RP-300S, B-150, B-4';
+    return 'กรุณาระบุบเป็นจำนวน (นาที)';
   };
 
   // จัดกลุ่มข้อมูล
@@ -134,35 +134,30 @@ const Config = () => {
     {
       title: "ข้อมูลทั่วไป",
       icon: "⚙️",
-      color: "#3b82f6",
       description: "กำหนดชื่อกลุ่มการตั้งค่า",
       fields: ["config_group"]
     },
     {
       title: "ขั้นตอนการผสมและขึ้นรูป",
       icon: "🔄",
-      color: "#f59e0b",
       description: "กระบวนการเตรียมวัตถุดิบและขึ้นรูปเบื้องต้น",
       fields: ["mixing_time", "extruder_exit_time", "pre_press_exit_time"]
     },
     {
       title: "Primary Press",
       icon: "🏭",
-      color: "#8b5cf6",
       description: "กระบวนการอัดรอบแรกและการไหลเข้า",
       fields: ["primary_press_start", "stream_in", "primary_press_exit"]
     },
     {
       title: "Secondary Press",
       icon: "🔧",
-      color: "#ef4444",
       description: "กระบวนการอัดรอบสองและตรวจสอบอุณหภูมิ",
       fields: ["secondary_press_1_start", "temp_check_1", "secondary_press_2_start", "temp_check_2", "secondary_press_exit"]
     },
     {
       title: "ขั้นตอนสุดท้าย",
       icon: "✅",
-      color: "#10b981",
       description: "การทำความเย็นและเสร็จสิ้นกระบวนการ",
       fields: ["cooling_time", "adj_next_start", "solid_block", "remove_workpiece"]
     }
@@ -265,9 +260,6 @@ const Config = () => {
                             {key !== 'config_group' && (
                               <span className="config-required-asterisk">*</span>
                             )}
-                            {key !== 'config_group' && (
-                              <span className="config-unit-label">(นาที)</span>
-                            )}
                           </label>
                           
                           <div className="config-input-container">
@@ -294,8 +286,8 @@ const Config = () => {
                           
                           <div className="config-input-helper">
                             {key === 'config_group' 
-                              ? 'ระบุชื่อกลุ่มการตั้งค่าที่เป็นเอกลักษณ์' 
-                              : 'ระบุเวลาที่ใช้ในขั้นตอนนี้ (ทศนิยม 2 ตำแหน่ง)'
+                              ? 'ระบุชื่อตามชื่อ Product ที่ต้องการ' 
+                              : ' '
                             }
                           </div>
                         </div>
@@ -360,7 +352,7 @@ const Config = () => {
                   onClick={resetForm}
                   disabled={isLoading}
                 >
-                  <span className="config-button-icon">🧹</span>
+                  {/* <span className="config-button-icon">🧹</span> */}
                   <span className="config-button-text">รีเซ็ต</span>
                 </button>
                 
@@ -370,7 +362,7 @@ const Config = () => {
                   onClick={() => window.history.back()}
                   disabled={isLoading}
                 >
-                  <span className="config-button-icon">↩️</span>
+                  {/* <span className="config-button-icon">↩️</span> */}
                   <span className="config-button-text">ยกเลิก</span>
                 </button>
                 
@@ -386,7 +378,7 @@ const Config = () => {
                     </>
                   ) : (
                     <>
-                      <span className="config-button-icon">💾</span>
+                      {/* <span className="config-button-icon">💾</span> */}
                       <span className="config-button-text">บันทึกการตั้งค่า</span>
                     </>
                   )}

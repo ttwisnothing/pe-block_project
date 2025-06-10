@@ -78,7 +78,7 @@ const Products = () => {
         chemicals: selectedChemicals.filter((chemical) => chemical !== ''),
       };
       
-      await axios.post(`/api/post/product/add`, payload);
+      const response = await axios.post(`/api/post/product/add`, payload);
       toast.success('✅ เพิ่มผลิตภัณฑ์สำเร็จแล้ว!');
       
       // รีเซ็ตฟอร์ม
@@ -94,8 +94,27 @@ const Products = () => {
       
     } catch (error) {
       console.error('❌ Error adding product:', error);
-      const errorMessage = error.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มผลิตภัณฑ์';
-      toast.error(`❌ ${errorMessage}`);
+      
+      if (error.response?.status === 409) {
+        // กรณีข้อมูลซ้ำ
+        const errorMessage = error.response?.data?.message || 'มีผลิตภัณฑ์นี้อยู่แล้วในระบบ';
+        toast.error(`🚫 ${errorMessage}`);
+        toast.warn(`⚠️ ผลิตภัณฑ์ "${productName}" สี "${productColor}" มีอยู่แล้ว กรุณาตรวจสอบข้อมูล`);
+      } else if (error.response?.status >= 400 && error.response?.status < 500) {
+        // กรณี client error อื่นๆ
+        const errorMessage = error.response?.data?.message || 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบใหม่';
+        toast.error(`❌ ${errorMessage}`);
+      } else if (error.response?.status >= 500) {
+        // กรณี server error
+        toast.error('❌ เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง');
+      } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        // กรณีปัญหาเครือข่าย
+        toast.error('❌ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อ');
+      } else {
+        // กรณีอื่นๆ
+        const errorMessage = error.response?.data?.message || 'เกิดข้อผิดพลาดในการเพิ่มผลิตภัณฑ์';
+        toast.error(`❌ ${errorMessage}`);
+      }
     } finally {
       setIsSubmitting(false);
     }

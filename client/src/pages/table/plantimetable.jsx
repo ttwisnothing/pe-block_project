@@ -307,7 +307,7 @@ const PlanTimeTable = () => {
         toast.success("✅ ข้อมูลถูกอัพเดทแล้ว");
       }
     } catch (error) {
-      toast.error("❌ ไม่สามารถอัพเดทข้อมูลได้");
+      toast.error("❌ ไม่สามารถอัพเดทข้อมูลได้", error);
     } finally {
       setRefreshing(false);
     }

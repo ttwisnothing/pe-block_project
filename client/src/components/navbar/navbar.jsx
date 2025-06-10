@@ -56,8 +56,8 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Toggle */}
-      <button 
-        className={`nav-mobile-toggle ${isMenuOpen ? 'active' : ''}`} 
+      <button
+        className={`nav-mobile-toggle ${isMenuOpen ? "active" : ""}`}
         onClick={toggleMenu}
         aria-label="Toggle navigation menu"
       >
@@ -71,32 +71,59 @@ const Navbar = () => {
         {/* New Part Dropdown */}
         <li
           className="nav-dropdown"
-          onMouseEnter={() => handleMouseEnter('newpart')}
+          onMouseEnter={() => handleMouseEnter("newpart")}
           onMouseLeave={handleMouseLeave}
         >
-          <button 
+          <button
             className="nav-dropdown-trigger"
-            onClick={() => handleDropdownClick('newpart')}
-            aria-expanded={isDropdownOpen && activeDropdown === 'newpart'}
+            onClick={() => handleDropdownClick("newpart")}
+            aria-expanded={isDropdownOpen && activeDropdown === "newpart"}
           >
             <div className="nav-item-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6zm8 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9h2v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h2v10z" />
               </svg>
             </div>
             <span className="nav-item-text">New Part</span>
-            <div className={`nav-dropdown-arrow ${isDropdownOpen && activeDropdown === 'newpart' ? 'open' : ''}`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5z"/>
+            <div
+              className={`nav-dropdown-arrow ${
+                isDropdownOpen && activeDropdown === "newpart" ? "open" : ""
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7 10l5 5 5-5z" />
               </svg>
             </div>
           </button>
-          <ul className={`nav-dropdown-menu ${isDropdownOpen && activeDropdown === 'newpart' ? 'visible' : ''}`}>
+          <ul
+            className={`nav-dropdown-menu ${
+              isDropdownOpen && activeDropdown === "newpart" ? "visible" : ""
+            }`}
+          >
             <li>
-              <Link to="/product" className="nav-dropdown-link" onClick={closeMenu}>
+              <Link
+                to="/product"
+                className="nav-dropdown-link"
+                onClick={closeMenu}
+              >
                 <div className="nav-link-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                 </div>
                 <div className="nav-link-content">
@@ -105,6 +132,7 @@ const Navbar = () => {
                 </div>
               </Link>
             </li>
+            {/* 
             <li>
               <Link to="/config-time" className="nav-dropdown-link" onClick={closeMenu}>
                 <div className="nav-link-icon">
@@ -117,39 +145,67 @@ const Navbar = () => {
                   <span className="nav-link-desc">ตั้งค่าเวลาการผลิต</span>
                 </div>
               </Link>
-            </li>
+            </li> 
+            */}
           </ul>
         </li>
-        
+
         {/* Plan Time Dropdown */}
         <li
           className="nav-dropdown"
-          onMouseEnter={() => handleMouseEnter('plantime')}
+          onMouseEnter={() => handleMouseEnter("plantime")}
           onMouseLeave={handleMouseLeave}
-        > 
-          <button 
+        >
+          <button
             className="nav-dropdown-trigger"
-            onClick={() => handleDropdownClick('plantime')}
-            aria-expanded={isDropdownOpen && activeDropdown === 'plantime'}
+            onClick={() => handleDropdownClick("plantime")}
+            aria-expanded={isDropdownOpen && activeDropdown === "plantime"}
           >
             <div className="nav-item-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" />
               </svg>
             </div>
             <span className="nav-item-text">Plan Time</span>
-            <div className={`nav-dropdown-arrow ${isDropdownOpen && activeDropdown === 'plantime' ? 'open' : ''}`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5z"/>
+            <div
+              className={`nav-dropdown-arrow ${
+                isDropdownOpen && activeDropdown === "plantime" ? "open" : ""
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7 10l5 5 5-5z" />
               </svg>
             </div>
           </button>
-          <ul className={`nav-dropdown-menu ${isDropdownOpen && activeDropdown === 'plantime' ? 'visible' : ''}`}>
+          <ul
+            className={`nav-dropdown-menu ${
+              isDropdownOpen && activeDropdown === "plantime" ? "visible" : ""
+            }`}
+          >
             <li>
-              <Link to="/plantime" className="nav-dropdown-link" onClick={closeMenu}>
+              <Link
+                to="/plantime"
+                className="nav-dropdown-link"
+                onClick={closeMenu}
+              >
                 <div className="nav-link-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                   </svg>
                 </div>
                 <div className="nav-link-content">
@@ -159,10 +215,19 @@ const Navbar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/plantime-list" className="nav-dropdown-link" onClick={closeMenu}>
+              <Link
+                to="/plantime-list"
+                className="nav-dropdown-link"
+                onClick={closeMenu}
+              >
                 <div className="nav-link-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
                   </svg>
                 </div>
                 <div className="nav-link-content">
@@ -177,32 +242,59 @@ const Navbar = () => {
         {/* Production Dropdown */}
         <li
           className="nav-dropdown"
-          onMouseEnter={() => handleMouseEnter('production')}
+          onMouseEnter={() => handleMouseEnter("production")}
           onMouseLeave={handleMouseLeave}
-        > 
-          <button 
+        >
+          <button
             className="nav-dropdown-trigger"
-            onClick={() => handleDropdownClick('production')}
-            aria-expanded={isDropdownOpen && activeDropdown === 'production'}
+            onClick={() => handleDropdownClick("production")}
+            aria-expanded={isDropdownOpen && activeDropdown === "production"}
           >
             <div className="nav-item-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
             <span className="nav-item-text">Production</span>
-            <div className={`nav-dropdown-arrow ${isDropdownOpen && activeDropdown === 'production' ? 'open' : ''}`}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5z"/>
+            <div
+              className={`nav-dropdown-arrow ${
+                isDropdownOpen && activeDropdown === "production" ? "open" : ""
+              }`}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7 10l5 5 5-5z" />
               </svg>
             </div>
           </button>
-          <ul className={`nav-dropdown-menu ${isDropdownOpen && activeDropdown === 'production' ? 'visible' : ''}`}>
+          <ul
+            className={`nav-dropdown-menu ${
+              isDropdownOpen && activeDropdown === "production" ? "visible" : ""
+            }`}
+          >
             <li>
-              <Link to="/production-foam" className="nav-dropdown-link" onClick={closeMenu}>
+              <Link
+                to="/production-foam"
+                className="nav-dropdown-link"
+                onClick={closeMenu}
+              >
                 <div className="nav-link-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   </svg>
                 </div>
                 <div className="nav-link-content">
@@ -212,10 +304,19 @@ const Navbar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/production-slice" className="nav-dropdown-link" onClick={closeMenu}>
+              <Link
+                to="/production-slice"
+                className="nav-dropdown-link"
+                onClick={closeMenu}
+              >
                 <div className="nav-link-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 18v-6l15-8 3 3-8 15h-6l-4-4zm7.5-5.5L8 15h2.5l6.5-6.5-2-2L10.5 12.5z"/>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M3 18v-6l15-8 3 3-8 15h-6l-4-4zm7.5-5.5L8 15h2.5l6.5-6.5-2-2L10.5 12.5z" />
                   </svg>
                 </div>
                 <div className="nav-link-content">
@@ -226,13 +327,18 @@ const Navbar = () => {
             </li>
           </ul>
         </li>
-         
+
         {/* Status Report */}
         <li>
           <Link to="/compare" className="nav-link" onClick={closeMenu}>
             <div className="nav-item-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22 21h-2l1-4h1l-4-7h3l1-4h1l-4-6h2l-1 4h-1l4 7h-3l-1 4h-1l4 6zM3 5h2v14H3v-14zm4 2h2v12H7V7zm4 4h2v8h-2v-8z"/>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M22 21h-2l1-4h1l-4-7h3l1-4h1l-4-6h2l-1 4h-1l4 7h-3l-1 4h-1l4 6zM3 5h2v14H3v-14zm4 2h2v12H7V7zm4 4h2v8h-2v-8z" />
               </svg>
             </div>
             <div className="nav-link-content">
