@@ -1,5 +1,5 @@
 import sql from 'mssql';
-import { getPool } from '../config/db.js'; // สมมติว่าคุณมีฟังก์ชัน getPool สำหรับ mssql pool
+import { getPool } from '../config/db.js';
 
 export const addTempPlanTime = async (req, res) => {
     const { product_name } = req.params;
@@ -8,10 +8,8 @@ export const addTempPlanTime = async (req, res) => {
         const pool = await getPool();
         const request = pool.request();
 
-        // ลบข้อมูลทั้งหมดใน temp_time_mst
         await request.query(`DELETE FROM PT_temp_time_mst`);
 
-        // รีเซ็ตค่า IDENTITY (เทียบเท่า AUTO_INCREMENT ใน mssql)
         await request.query(`DBCC CHECKIDENT ('PT_temp_time_mst', RESEED, 0)`);
 
         const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
@@ -43,7 +41,7 @@ export const addTempPlanTime = async (req, res) => {
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
-                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.block)}
+                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.foam_block)}
                 )
             `;
 
@@ -142,6 +140,7 @@ export const updateNewStartTime = async (req, res) => {
             INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
             WHERE rt.product_name = @product_name
         `);
+        
         const tempPlanTimes = tempPlanTimesResult.recordset;
 
         if (tempPlanTimes.length === 0) {
@@ -179,6 +178,8 @@ export const updateNewStartTime = async (req, res) => {
         if (runIndex === -1) {
             return res.status(404).json({ message: '❌ Temp Plan Time with the specified temp_id not found' });
         }
+        console.log(`✅ Found temp_id ${temp_id} at index: ${runIndex}`);
+        
 
         let newStartTime = new_start_time
         let blockPerRound = products[0].bPerRound;
@@ -188,197 +189,336 @@ export const updateNewStartTime = async (req, res) => {
         let runBlock = 0;
         let updateTempList = [];
 
-        // 8 % 3 
+        if (cGroup === 'RP-300S') {
+            for (let i = runIndex; i < (tempPlanTimes.length / 4) * 3; i++) {
+                const currTemp = {}
 
-        // อัพเดทเวลา temp_plan_times ใหม่ทั้งหมดยกเว้น temp_id ก่อนหน้า
-        for (let i = runIndex; i < (tempPlanTimes.length / 4) * 3; i++) {
-            const currTemp = {}
+                if (i !== runIndex) {
+                    if (prevBlock === 3) {
+                        currTemp.start_time = reduceMinutes(updateTempList[updateTempList.length - 1].primary_press_exit, config[0].adj_next_start)
+                        currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[1].extruder_exit_time);
+                        currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                        runBlock = blockPerRound - blockUse
+                        currentBlock = runBlock + blockPerRound
+                        prevBlock = currentBlock - runBlock
 
-            if (i !== runIndex) {
-                if (prevBlock === 3) {
-                    currTemp.start_time = reduceMinutes(updateTempList[updateTempList.length - 1].primary_press_exit, config[0].adj_next_start)
-                    currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
-                    currTemp.extruder_exit = addMinutes(currTemp.mixing, config[1].extruder_exit_time);
-                    currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    runBlock = blockPerRound - blockUse
-                    currentBlock = runBlock + blockPerRound
-                    prevBlock = currentBlock - runBlock
+                        updateTempList.push({ ...currTemp })
 
-                    updateTempList.push({ ...currTemp })
+                        if (true) {
+                            currTemp.start_time = null;
+                            currTemp.mixing = null;
+                            currTemp.extruder_exit = null;
 
-                    if (true) {
+                            currentBlock = prevBlock
+                            runBlock = currentBlock - blockUse
+                            prevBlock = currentBlock - runBlock
+
+                            updateTempList.push({ ...currTemp })
+                        }
+                    } else if (prevBlock === 6) {
                         currTemp.start_time = null;
                         currTemp.mixing = null;
                         currTemp.extruder_exit = null;
-
+                        currTemp.pre_press_exit = addMinutes(updateTempList[updateTempList.length - 1].secondary_press_1_start, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
                         currentBlock = prevBlock
-                        runBlock = currentBlock - blockUse
+                        runBlock = currentBlock
+                        prevBlock = currentBlock - runBlock
+
+                        updateTempList.push({ ...currTemp })
+                    } else {
+                        currTemp.start_time = reduceMinutes(updateTempList[updateTempList.length - 1].primary_press_exit, config[0].adj_next_start);
+                        currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                        currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                        currentBlock = blockPerRound
+                        runBlock = blockUse
                         prevBlock = currentBlock - runBlock
 
                         updateTempList.push({ ...currTemp })
                     }
-                } else if (prevBlock === 6) {
-                    currTemp.start_time = null;
-                    currTemp.mixing = null;
-                    currTemp.extruder_exit = null;
-                    currTemp.pre_press_exit = addMinutes(updateTempList[updateTempList.length - 1].secondary_press_1_start, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    currentBlock = prevBlock
-                    runBlock = currentBlock
-                    prevBlock = currentBlock - runBlock
-
-                    updateTempList.push({ ...currTemp })
                 } else {
-                    currTemp.start_time = reduceMinutes(updateTempList[updateTempList.length - 1].primary_press_exit, config[0].adj_next_start);
-                    currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
-                    currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
-                    currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    currentBlock = blockPerRound
-                    runBlock = blockUse
-                    prevBlock = currentBlock - runBlock
+                    if (i === 0) {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[0].mixing_time);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                        currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                        runBlock = blockUse
+                        currentBlock = blockPerRound
+                        prevBlock = currentBlock - runBlock
 
-                    updateTempList.push({ ...currTemp })
+                        updateTempList.push({ ...currTemp })
+                    } else if (i % 2 !== 0) {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[1].extruder_exit_time);
+                        currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                        runBlock = blockPerRound - blockUse
+                        currentBlock = runBlock + blockPerRound
+                        prevBlock = currentBlock - runBlock
+
+                        updateTempList.push({ ...currTemp })
+
+                        if (true) {
+                            currTemp.start_time = null;
+                            currTemp.mixing = null;
+                            currTemp.extruder_exit = null;
+
+                            currentBlock = prevBlock
+                            runBlock = currentBlock - blockUse
+                            prevBlock = currentBlock - runBlock
+
+                            updateTempList.push({ ...currTemp })
+                        }
+                    } else {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                        currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
+                        currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                        currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                        currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                        currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                        currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                        currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                        currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                        currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                        currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                        currentBlock = blockPerRound
+                        runBlock = blockUse
+                        prevBlock = currentBlock - runBlock
+
+                        updateTempList.push({ ...currTemp })
+                    }
                 }
-            } else {
-                if (i === 0) {
-                    currTemp.start_time = newStartTime;
-                    currTemp.mixing = addMinutes(newStartTime, config[0].mixing_time);
-                    currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
-                    currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    runBlock = blockUse
-                    currentBlock = blockPerRound
-                    prevBlock = currentBlock - runBlock
+            }
+        } else if (cGroup === 'B-150') {
+            for (let i = runIndex; i < tempPlanTimes.length; i++) {
+                const currTemp = {}
 
-                    updateTempList.push({ ...currTemp })
-                } else if (i % 2 !== 0) {
-                    currTemp.start_time = newStartTime;
-                    currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
-                    currTemp.extruder_exit = addMinutes(currTemp.mixing, config[1].extruder_exit_time);
-                    currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    runBlock = blockPerRound - blockUse
-                    currentBlock = runBlock + blockPerRound
-                    prevBlock = currentBlock - runBlock
+                if (i !== runIndex) {
 
-                    updateTempList.push({ ...currTemp })
-
-                    if (true) {
-                        currTemp.start_time = null;
-                        currTemp.mixing = null;
-                        currTemp.extruder_exit = null;
-
-                        currentBlock = prevBlock
-                        runBlock = currentBlock - blockUse
-                        prevBlock = currentBlock - runBlock
+                } else {
+                    if (i === 0) {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[0].mixing_time);
+                        currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
 
                         updateTempList.push({ ...currTemp })
-                    }
-                } else {
-                    currTemp.start_time = newStartTime;
-                    currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
-                    currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
-                    currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[0].pre_press_exit_time);
-                    currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
-                    currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
-                    currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
-                    currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
-                    currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
-                    currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
-                    currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
-                    currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
-                    currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
-                    currentBlock = blockPerRound
-                    runBlock = blockUse
-                    prevBlock = currentBlock - runBlock
 
-                    updateTempList.push({ ...currTemp })
+                        if (true) {
+                            currTemp.start_time = addMinutes(updateTempList[updateTempList.length - 1].mixing, config[1].solid_block);
+                            currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
+                            currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                            currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                            currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[1].pre_press_exit_time);
+                            currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                            currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                            currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                            currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                            currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                            currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                            currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                            currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                            currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                            currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
+                            currTemp.block = blockPerRound
+
+                            updateTempList.push({ ...currTemp })
+
+                            if (updateTempList.length > 1) {
+                                updateTempList[i].pre_press_exit = currTemp.pre_press_exit;
+                                updateTempList[i].primary_press_start = currTemp.primary_press_start;
+                                updateTempList[i].stream_in = currTemp.stream_in;
+                                updateTempList[i].primary_press_exit = currTemp.primary_press_exit;
+                                updateTempList[i].secondary_press_1_start = currTemp.secondary_press_1_start;
+                                updateTempList[i].temp_check_1 = currTemp.temp_check_1;
+                                updateTempList[i].secondary_press_2_start = currTemp.secondary_press_2_start;
+                                updateTempList[i].temp_check_2 = currTemp.temp_check_2;
+                                updateTempList[i].cooling = currTemp.cooling;
+                                updateTempList[i].secondary_press_exit = currTemp.secondary_press_exit;
+                                updateTempList[i].remove_work = currTemp.remove_work;
+                                updateTempList[i].block = currTemp.block;
+                            }
+                        }
+                    }
+                    else if (i === 2) {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
+                        currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+
+                        updateTempList.push({ ...currTemp })
+
+                        if (true) {
+                            currTemp.start_time = addMinutes(updateTempList[updateTempList.length - 1].mixing, config[1].stream_in);
+                            currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
+                            currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                            currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                            currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[1].pre_press_exit_time);
+                            currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                            currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                            currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                            currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                            currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                            currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                            currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                            currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                            currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                            currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
+                            currTemp.block = blockPerRound
+
+                            updateTempList.push({ ...currTemp })
+
+                            if (true) {
+                                updateTempList[updateTempList.length - 2].pre_press_exit = currTemp.pre_press_exit;
+                                updateTempList[updateTempList.length - 2].primary_press_start = currTemp.primary_press_start;
+                                updateTempList[updateTempList.length - 2].stream_in = currTemp.stream_in;
+                                updateTempList[updateTempList.length - 2].primary_press_exit = currTemp.primary_press_exit;
+                                updateTempList[updateTempList.length - 2].secondary_press_1_start = currTemp.secondary_press_1_start;
+                                updateTempList[updateTempList.length - 2].temp_check_1 = currTemp.temp_check_1;
+                                updateTempList[updateTempList.length - 2].secondary_press_2_start = currTemp.secondary_press_2_start;
+                                updateTempList[updateTempList.length - 2].temp_check_2 = currTemp.temp_check_2;
+                                updateTempList[updateTempList.length - 2].cooling = currTemp.cooling;
+                                updateTempList[updateTempList.length - 2].secondary_press_exit = currTemp.secondary_press_exit;
+                                updateTempList[updateTempList.length - 2].remove_work = currTemp.remove_work;
+                                updateTempList[updateTempList.length - 2].block = currTemp.block;
+                            }
+                        }
+                    } else {
+                        currTemp.start_time = newStartTime;
+                        currTemp.mixing = addMinutes(newStartTime, config[1].mixing_time);
+                        currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                        currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+
+                        updateTempList.push({ ...currTemp })
+
+                        if (true) {
+                            currTemp.start_time = currTemp.mixing;
+                            currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
+                            currTemp.solid_block = addMinutes(currTemp.mixing, config[0].solid_block);
+                            currTemp.extruder_exit = addMinutes(currTemp.mixing, config[0].extruder_exit_time);
+                            currTemp.pre_press_exit = addMinutes(currTemp.extruder_exit, config[1].pre_press_exit_time);
+                            currTemp.primary_press_start = addMinutes(currTemp.pre_press_exit, config[0].primary_press_start);
+                            currTemp.stream_in = addMinutes(currTemp.primary_press_start, config[0].stream_in);
+                            currTemp.primary_press_exit = addMinutes(currTemp.stream_in, config[0].primary_press_exit);
+                            currTemp.secondary_press_1_start = addMinutes(currTemp.primary_press_exit, config[0].secondary_press_1_start);
+                            currTemp.temp_check_1 = addMinutes(currTemp.secondary_press_1_start, config[0].temp_check_1);
+                            currTemp.secondary_press_2_start = addMinutes(currTemp.temp_check_1, config[0].secondary_press_2_start);
+                            currTemp.temp_check_2 = addMinutes(currTemp.secondary_press_2_start, config[0].temp_check_2);
+                            currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
+                            currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
+                            currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
+                            currTemp.block = blockPerRound
+
+                            updateTempList.push({ ...currTemp })
+
+                            if (true) {
+                                updateTempList[updateTempList.length - 2].pre_press_exit = currTemp.pre_press_exit;
+                                updateTempList[updateTempList.length - 2].primary_press_start = currTemp.primary_press_start;
+                                updateTempList[updateTempList.length - 2].stream_in = currTemp.stream_in;
+                                updateTempList[updateTempList.length - 2].primary_press_exit = currTemp.primary_press_exit;
+                                updateTempList[updateTempList.length - 2].secondary_press_1_start = currTemp.secondary_press_1_start;
+                                updateTempList[updateTempList.length - 2].temp_check_1 = currTemp.temp_check_1;
+                                updateTempList[updateTempList.length - 2].secondary_press_2_start = currTemp.secondary_press_2_start;
+                                updateTempList[updateTempList.length - 2].temp_check_2 = currTemp.temp_check_2;
+                                updateTempList[updateTempList.length - 2].cooling = currTemp.cooling;
+                                updateTempList[updateTempList.length - 2].secondary_press_exit = currTemp.secondary_press_exit;
+                                updateTempList[updateTempList.length - 2].remove_work = currTemp.remove_work;
+                                updateTempList[updateTempList.length - 2].block = currTemp.block;
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // อัพเดท temp_plan_time_table ด้วย updateTempList
-        for (let i = 0; i < updateTempList.length; i++) {
-            const pool = await getPool();
-            const request = pool.request();
+        // // อัพเดท temp_plan_time_table ด้วย updateTempList
+        // for (let i = 0; i < updateTempList.length; i++) {
+        //     const pool = await getPool();
+        //     const request = pool.request();
 
-            const sqlValue = (val) =>
-                val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
+        //     const sqlValue = (val) =>
+        //         val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
 
-            await request.input('start_time', sql.NVarChar, updateTempList[i].start_time)
-                .input('mixing', sql.NVarChar, updateTempList[i].mixing)
-                .input('extruder_exit', sql.NVarChar, updateTempList[i].extruder_exit)
-                .input('pre_press_exit', sql.NVarChar, updateTempList[i].pre_press_exit)
-                .input('primary_press_start', sql.NVarChar, updateTempList[i].primary_press_start)
-                .input('stream_in', sql.NVarChar, updateTempList[i].stream_in)
-                .input('primary_press_exit', sql.NVarChar, updateTempList[i].primary_press_exit)
-                .input('secondary_press_1_start', sql.NVarChar, updateTempList[i].secondary_press_1_start)
-                .input('temp_check_1', sql.NVarChar, updateTempList[i].temp_check_1)
-                .input('secondary_press_2_start', sql.NVarChar, updateTempList[i].secondary_press_2_start)
-                .input('temp_check_2', sql.NVarChar, updateTempList[i].temp_check_2)
-                .input('cooling', sql.NVarChar, updateTempList[i].cooling)
-                .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
-                .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
-                .query(`
-                    UPDATE PT_temp_time_mst
-                    SET start_time = @start_time,
-                        mixing = @mixing,
-                        extruder_exit = @extruder_exit,
-                        pre_press_exit = @pre_press_exit,
-                        primary_press_start = @primary_press_start,
-                        stream_in = @stream_in,
-                        primary_press_exit = @primary_press_exit,
-                        secondary_press_1_start = @secondary_press_1_start,
-                        temp_check_1 = @temp_check_1,
-                        secondary_press_2_start = @secondary_press_2_start,
-                        temp_check_2 = @temp_check_2,
-                        cooling = @cooling,
-                        secondary_press_exit = @secondary_press_exit
-                    WHERE temp_id = @temp_id
-                `);
-        }
+        //     await request.input('start_time', sql.NVarChar, updateTempList[i].start_time)
+        //         .input('mixing', sql.NVarChar, updateTempList[i].mixing)
+        //         .input('extruder_exit', sql.NVarChar, updateTempList[i].extruder_exit)
+        //         .input('pre_press_exit', sql.NVarChar, updateTempList[i].pre_press_exit)
+        //         .input('primary_press_start', sql.NVarChar, updateTempList[i].primary_press_start)
+        //         .input('stream_in', sql.NVarChar, updateTempList[i].stream_in)
+        //         .input('primary_press_exit', sql.NVarChar, updateTempList[i].primary_press_exit)
+        //         .input('secondary_press_1_start', sql.NVarChar, updateTempList[i].secondary_press_1_start)
+        //         .input('temp_check_1', sql.NVarChar, updateTempList[i].temp_check_1)
+        //         .input('secondary_press_2_start', sql.NVarChar, updateTempList[i].secondary_press_2_start)
+        //         .input('temp_check_2', sql.NVarChar, updateTempList[i].temp_check_2)
+        //         .input('cooling', sql.NVarChar, updateTempList[i].cooling)
+        //         .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
+        //         .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
+        //         .query(`
+        //             UPDATE PT_temp_time_mst
+        //             SET start_time = @start_time,
+        //                 mixing = @mixing,
+        //                 extruder_exit = @extruder_exit,
+        //                 pre_press_exit = @pre_press_exit,
+        //                 primary_press_start = @primary_press_start,
+        //                 stream_in = @stream_in,
+        //                 primary_press_exit = @primary_press_exit,
+        //                 secondary_press_1_start = @secondary_press_1_start,
+        //                 temp_check_1 = @temp_check_1,
+        //                 secondary_press_2_start = @secondary_press_2_start,
+        //                 temp_check_2 = @temp_check_2,
+        //                 cooling = @cooling,
+        //                 secondary_press_exit = @secondary_press_exit
+        //             WHERE temp_id = @temp_id
+        //         `);
+        // }
 
         return res.json({
             message: '✅ New Start Time updated successfully and Temp Plan Times recalculated',

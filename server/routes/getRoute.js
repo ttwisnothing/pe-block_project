@@ -21,6 +21,6 @@ router.get('/production/record-data/batches/:recordId', getBatchRecordData)
 router.get('/production/batches/status/:productionId', getBatchStatus);
 
 // test route for plantime
-router.get('/test-plantime/:product_name', addPlantime);
+// router.get('/test-plantime/:product_name', addPlantime);
 
 export default router;
