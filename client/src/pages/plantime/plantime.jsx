@@ -9,7 +9,6 @@ const Plantime = () => {
   const [fristStart, setFristStart] = useState("");
   const [runRound, setRunRound] = useState("");
   const [products, setProducts] = useState([]);
-  const [colorName, setColorName] = useState("");
   const [machineNames, setMachineNames] = useState([""]);
   const [planTimes, setPlanTimes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +26,7 @@ const Plantime = () => {
   };
 
   const calculatePlanTime = async () => {
-    if (!productName || !fristStart || !runRound || !colorName || machineNames.length === 0) {
+    if (!productName || !fristStart || !runRound || machineNames.length === 0) {
       toast.warn("⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
@@ -37,18 +36,24 @@ const Plantime = () => {
       toast.warn("⚠️ กรุณากรอกเวลาในรูปแบบ HH:mm หรือ HH:mm:ss");
       return;
     }
-    
-    const formattedTime = `${timeParts[0].padStart(2, "0")}:${timeParts[1].padStart(2, "0")}:${timeParts[2] || "00"}`;
+
+    const formattedTime = `${timeParts[0].padStart(
+      2,
+      "0"
+    )}:${timeParts[1].padStart(2, "0")}:${timeParts[2] || "00"}`;
 
     setLoading(true);
     setIsSubmitting(true);
-    
+
     try {
       const payload = {
         fristStart: formattedTime,
         runRound: parseInt(runRound, 10),
-        mcNames: machineNames.filter((name) => name !== ""),
-        color_name: colorName,
+        mcNames: machineNames
+          .filter((name) => name.trim() !== "")
+          .map((name) =>
+            name.trim().startsWith("M") ? name.trim() : `M${name.trim()}`
+          ),
       };
 
       // Step 1: สร้างแผนเวลาก่อน
@@ -56,8 +61,10 @@ const Plantime = () => {
         `/api/post/plantime/add/${productName}`,
         payload
       );
-      
-      toast.success(planTimeResponse.data.message || "✅ Plan Time calculated successfully");
+
+      toast.success(
+        planTimeResponse.data.message || "✅ Plan Time calculated successfully"
+      );
       setPlanTimes(planTimeResponse.data.planTimeList || []);
       setCalculated(true);
 
@@ -66,18 +73,23 @@ const Plantime = () => {
         const productRecordResponse = await axios.post(
           `/api/post/production/head/${productName}`
         );
-        
-        toast.success(productRecordResponse.data.message || "✅ Product Record added successfully");
+
+        toast.success(
+          productRecordResponse.data.message ||
+            "✅ Product Record added successfully"
+        );
         console.log("Product Record created:", productRecordResponse.data);
-        
       } catch (productRecordError) {
         console.error("❌ Error adding product record:", productRecordError);
-        toast.warn("⚠️ แผนเวลาสร้างสำเร็จ แต่เกิดข้อผิดพลาดในการสร้าง Product Record");
+        toast.warn(
+          "⚠️ แผนเวลาสร้างสำเร็จ แต่เกิดข้อผิดพลาดในการสร้าง Product Record"
+        );
       }
-
     } catch (error) {
       console.error("❌ ERROR calculating Plan Time:", error);
-      toast.error(error.response?.data?.message || "❌ เกิดข้อผิดพลาดในการคำนวณ");
+      toast.error(
+        error.response?.data?.message || "❌ เกิดข้อผิดพลาดในการคำนวณ"
+      );
       setPlanTimes([]);
       setCalculated(false);
     } finally {
@@ -107,7 +119,6 @@ const Plantime = () => {
     setProductName("");
     setFristStart("");
     setRunRound("");
-    setColorName("");
     setMachineNames([""]);
     setPlanTimes([]);
     setCalculated(false);
@@ -115,15 +126,23 @@ const Plantime = () => {
   };
 
   const isFormValid = () => {
-    return productName && fristStart && runRound && colorName && 
-           machineNames.some(name => name.trim() !== "");
+    return (
+      productName &&
+      fristStart &&
+      runRound &&
+      machineNames.some((name) => name.trim() !== "")
+    );
   };
 
   const getCompletionPercentage = () => {
-    const requiredFields = [productName, fristStart, runRound, colorName];
-    const filledFields = requiredFields.filter(field => field.trim() !== '').length;
-    const machineField = machineNames.some(name => name.trim() !== "") ? 1 : 0;
-    const totalRequired = 5; // 4 required fields + machines
+    const requiredFields = [productName, fristStart, runRound];
+    const filledFields = requiredFields.filter(
+      (field) => field.trim() !== ""
+    ).length;
+    const machineField = machineNames.some((name) => name.trim() !== "")
+      ? 1
+      : 0;
+    const totalRequired = 4; // 4 required fields + machines
     return Math.round(((filledFields + machineField) / totalRequired) * 100);
   };
 
@@ -133,7 +152,7 @@ const Plantime = () => {
 
   return (
     <div className="plantime-page-wrapper">
-      <ToastContainer 
+      <ToastContainer
         position="top-right"
         autoClose={5000}
         hideProgressBar={false}
@@ -145,7 +164,7 @@ const Plantime = () => {
         pauseOnHover
         theme="light"
       />
-      
+
       <div className="plantime-main-container">
         {/* Header Section */}
         <header className="plantime-page-header">
@@ -153,16 +172,22 @@ const Plantime = () => {
             <div className="plantime-header-overlay"></div>
             <div className="plantime-header-decoration"></div>
           </div>
-          
+
           <div className="plantime-header-content">
             <div className="plantime-brand-icon">
               <svg viewBox="0 0 24 24" className="plantime-icon-svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                <path d="M2 17L12 22L22 17" />
-                <path d="M2 12L12 17L22 12" />
+                <path
+                  d="M12 2L2 7L12 12L22 7L12 2Z"
+                  transform="translate(0,6)"
+                />
+                <path
+                  d="M12 2L2 7L12 12L22 7L12 2Z"
+                  transform="translate(0,12)"
+                />
               </svg>
             </div>
-            
+
             <div className="plantime-header-text">
               <h1 className="plantime-main-title">สร้างแผนเวลาการผลิต</h1>
               <p className="plantime-main-subtitle">
@@ -170,11 +195,11 @@ const Plantime = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="plantime-progress-indicator">
             <div className="plantime-progress-bar">
-              <div 
-                className="plantime-progress-fill" 
+              <div
+                className="plantime-progress-fill"
                 style={{ width: `${getCompletionPercentage()}%` }}
               ></div>
             </div>
@@ -187,20 +212,16 @@ const Plantime = () => {
         {/* Form Container */}
         <main className="plantime-form-container">
           <form className="plantime-main-form">
-            
             {/* Product and Production Settings */}
             <div className="plantime-dual-section">
               <div className="plantime-form-section plantime-product-section">
                 <div className="plantime-section-header">
-                  <h3 className="plantime-section-title">
-                    <span className="plantime-section-icon">📦</span>
-                    ข้อมูลผลิตภัณฑ์
-                  </h3>
+                  <h3 className="plantime-section-title">ข้อมูลผลิตภัณฑ์</h3>
                   <span className="plantime-section-badge plantime-badge-required">
                     จำเป็น
                   </span>
                 </div>
-                
+
                 <div className="plantime-form-grid">
                   <div className="plantime-input-group">
                     <label className="plantime-input-label">
@@ -221,35 +242,17 @@ const Plantime = () => {
                       ))}
                     </select>
                   </div>
-
-                  <div className="plantime-input-group">
-                    <label className="plantime-input-label">
-                      ชื่อสี
-                      <span className="plantime-required-asterisk">*</span>
-                    </label>
-                    <input
-                      className="plantime-text-input"
-                      type="text"
-                      value={colorName}
-                      onChange={(e) => setColorName(e.target.value)}
-                      placeholder="เช่น สีแดงเข้ม, สีน้ำเงินอ่อน"
-                      required
-                    />
-                  </div>
                 </div>
               </div>
 
               <div className="plantime-form-section plantime-production-section">
                 <div className="plantime-section-header">
-                  <h3 className="plantime-section-title">
-                    <span className="plantime-section-icon">⏰</span>
-                    ตั้งค่าการผลิต
-                  </h3>
+                  <h3 className="plantime-section-title">ตั้งค่าการผลิต</h3>
                   <span className="plantime-section-badge plantime-badge-production">
                     การผลิต
                   </span>
                 </div>
-                
+
                 <div className="plantime-form-grid">
                   <div className="plantime-input-group">
                     <label className="plantime-input-label">
@@ -264,9 +267,6 @@ const Plantime = () => {
                       placeholder="HH:mm (เช่น 08:30)"
                       required
                     />
-                    <p className="plantime-input-description">
-                      รูปแบบเวลา: ชั่วโมง:นาที (24 ชั่วโมง)
-                    </p>
                   </div>
 
                   <div className="plantime-input-group">
@@ -284,9 +284,6 @@ const Plantime = () => {
                       max="1000"
                       required
                     />
-                    <p className="plantime-input-description">
-                      ระบุจำนวนรอบการผลิตที่ต้องการ
-                    </p>
                   </div>
                 </div>
               </div>
@@ -295,20 +292,16 @@ const Plantime = () => {
             {/* Machines Section */}
             <div className="plantime-form-section plantime-machines-section">
               <div className="plantime-section-header">
-                <h3 className="plantime-section-title">
-                  <span className="plantime-section-icon">🏭</span>
-                  เครื่องจักรที่ใช้งาน
-                </h3>
+                <h3 className="plantime-section-title">เครื่องจักรที่ใช้งาน</h3>
                 <button
                   className="plantime-add-machine-button"
                   type="button"
                   onClick={addMachineField}
                 >
-                  <span className="plantime-button-icon">➕</span>
                   เพิ่มเครื่องจักร
                 </button>
               </div>
-              
+
               <div className="plantime-machines-container">
                 {machineNames.map((name, index) => (
                   <div key={index} className="plantime-machine-card">
@@ -330,13 +323,15 @@ const Plantime = () => {
                         </button>
                       )}
                     </div>
-                    
+
                     <div className="plantime-input-group">
                       <input
                         className="plantime-text-input"
                         type="text"
                         value={name}
-                        onChange={(e) => handleMachineNameChange(index, e.target.value)}
+                        onChange={(e) =>
+                          handleMachineNameChange(index, e.target.value)
+                        }
                         placeholder={`ชื่อเครื่องจักร ${index + 1}`}
                         required
                       />
@@ -349,50 +344,48 @@ const Plantime = () => {
             {/* Summary Section */}
             <div className="plantime-form-summary">
               <div className="plantime-summary-header">
-                <div className="plantime-summary-icon">📊</div>
                 <h4 className="plantime-summary-title">สรุปข้อมูลแผนการผลิต</h4>
               </div>
-              
+
               <div className="plantime-summary-content">
                 <div className="plantime-summary-item">
                   <span className="plantime-summary-label">ผลิตภัณฑ์:</span>
                   <span className="plantime-summary-value">
-                    {productName || '-'}
+                    {productName || "-"}
                   </span>
                 </div>
-                
-                <div className="plantime-summary-item">
-                  <span className="plantime-summary-label">สี:</span>
-                  <span className="plantime-summary-value">
-                    {colorName || '-'}
-                  </span>
-                </div>
-                
+
                 <div className="plantime-summary-item">
                   <span className="plantime-summary-label">เวลาเริ่มต้น:</span>
                   <span className="plantime-summary-value">
-                    {fristStart || '-'}
+                    {fristStart || "-"}
                   </span>
                 </div>
-                
+
                 <div className="plantime-summary-item">
                   <span className="plantime-summary-label">จำนวนรอบ:</span>
                   <span className="plantime-summary-value">
-                    {runRound || '-'} รอบ
+                    {runRound || "-"} รอบ
                   </span>
                 </div>
-                
+
                 <div className="plantime-summary-item">
                   <span className="plantime-summary-label">เครื่องจักร:</span>
                   <span className="plantime-summary-value">
-                    {machineNames.filter(name => name.trim()).length} เครื่อง
+                    {machineNames.filter((name) => name.trim()).length} เครื่อง
                   </span>
                 </div>
-                
+
                 <div className="plantime-summary-item">
                   <span className="plantime-summary-label">สถานะ:</span>
-                  <span className={`plantime-summary-status ${isFormValid() ? 'plantime-status-valid' : 'plantime-status-invalid'}`}>
-                    {isFormValid() ? '✅ พร้อมสร้างแผน' : '⚠️ ยังไม่พร้อม'}
+                  <span
+                    className={`plantime-summary-status ${
+                      isFormValid()
+                        ? "plantime-status-valid"
+                        : "plantime-status-invalid"
+                    }`}
+                  >
+                    {isFormValid() ? "✅ พร้อมสร้างแผน" : "⚠️ ยังไม่พร้อม"}
                   </span>
                 </div>
               </div>
@@ -400,28 +393,28 @@ const Plantime = () => {
 
             {/* Form Actions */}
             <div className="plantime-form-actions">
-              <button 
-                className="plantime-reset-button" 
-                type="button" 
+              <button
+                className="plantime-reset-button"
+                type="button"
                 onClick={resetForm}
                 disabled={isSubmitting}
               >
-                <span className="plantime-button-icon">🧹</span>
                 รีเซ็ตฟอร์ม
               </button>
-              
-              <button 
-                className="plantime-cancel-button" 
-                type="button" 
+
+              <button
+                className="plantime-cancel-button"
+                type="button"
                 onClick={() => window.history.back()}
                 disabled={isSubmitting}
               >
-                <span className="plantime-button-icon">↩️</span>
                 ยกเลิก
               </button>
-              
+
               <button
-                className={`plantime-submit-button ${!isFormValid() ? 'plantime-submit-disabled' : ''}`}
+                className={`plantime-submit-button ${
+                  !isFormValid() ? "plantime-submit-disabled" : ""
+                }`}
                 type="button"
                 onClick={calculatePlanTime}
                 disabled={!isFormValid() || isSubmitting}
@@ -432,10 +425,7 @@ const Plantime = () => {
                     กำลังสร้างแผน...
                   </>
                 ) : (
-                  <>
-                    <span className="plantime-button-icon">🔄</span>
-                    สร้างแผนเวลา
-                  </>
+                  <>สร้างแผนเวลา</>
                 )}
               </button>
             </div>

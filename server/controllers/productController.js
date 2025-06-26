@@ -3,12 +3,16 @@ import sql from 'mssql';
 
 // ดึงชื่อ Product ทั้งหมดจากฐานข้อมูล
 export const getProductsName = async (req, res) => {
-    const query = `SELECT DISTINCT product_name AS name FROM PT_product_mst`;
+    const query = `SELECT DISTINCT product_name, color_name FROM PT_product_mst`;
 
     try {
         const pool = await getPool();
         const result = await pool.request().query(query);
-        return res.status(200).json({ products: result.recordset });
+        // รวมชื่อและสีในรูปแบบ product_name(color_name)
+        const products = result.recordset.map(row => ({
+            name: `${row.product_name}${row.color_name ? `(${row.color_name})` : ''}`
+        }));
+        return res.status(200).json({ products });
     } catch (error) {
         console.error("❌ Error in fetching products: ", error);
         res.status(500).json({ message: "Internal server error" });

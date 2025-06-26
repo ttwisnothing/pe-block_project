@@ -137,7 +137,7 @@ const PlanTimeTable = () => {
           // แจ้งเตือนเมื่อถึงเวลาพอดี
           if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
-            const alertDuration = 10000; // 10 วินาที
+            const alertDuration = 5000; // 5 วินาที
 
             Swal.fire({
               title: "🚨 ถึงเวลาดำเนินการ!",

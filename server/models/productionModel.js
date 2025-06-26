@@ -7,7 +7,7 @@ export const addProductRecord = async (req, res) => {
 
     const query = `
         SELECT pt.product_id, CONCAT(rt.product_name, '(', rt.color_name, ')') AS production_name, 
-        batch_no, start_time, secondary_press_exit, remove_work
+        plantime_id, batch_no, start_time, secondary_press_exit, remove_work
         FROM PT_plan_time_mst pt
         INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
         WHERE rt.product_name = @proName
@@ -74,9 +74,9 @@ export const addProductRecord = async (req, res) => {
         // Insert ข้อมูลลงในตาราง product_record
         const queryIns = `
             INSERT INTO FM_production_record (
-                product_id, product_name, create_date, start_time, end_time, total_batch
+                product_id, product_name, plantime_id, create_date, start_time, end_time, total_batch
             ) VALUES (
-                @productId, @productName, @recordDate, @startTime, @endTime, @totalBatch
+                @productId, @productName, @plantimeId, @recordDate, @startTime, @endTime, @totalBatch
             )
         `;
 
@@ -85,6 +85,7 @@ export const addProductRecord = async (req, res) => {
         // กำหนด Parameters สำหรับ INSERT
         insertRequest.input('productId', sql.Int, result.recordset[0].product_id);
         insertRequest.input('productName', sql.VarChar, result.recordset[0].production_name);
+        insertRequest.input('plantimeId', sql.VarChar, result.recordset[0].plantime_id); // เพิ่ม plantime_id
         insertRequest.input('recordDate', sql.Date, currentDate);
         insertRequest.input('startTime', sql.DateTimeOffset, formattedStartTime);
         insertRequest.input('endTime', sql.DateTimeOffset, formattedEndTime);
@@ -96,6 +97,7 @@ export const addProductRecord = async (req, res) => {
             message: "✅ บันทึกข้อมูลผลิตภัณฑ์สำเร็จ",
             productId: result.recordset[0].product_id,
             productName: result.recordset[0].production_name,
+            plantimeId: result.recordset[0].plantime_id, // ส่งกลับ plantime_id ด้วย
             recordDate: currentDate,
             startTime: formattedStartTime ? formattedStartTime.toLocaleString('th-TH') : null,
             endTime: formattedEndTime ? formattedEndTime.toLocaleString('th-TH') : null,
