@@ -2,15 +2,19 @@ import { getPool } from "../config/db.js";
 import sql from "mssql";
 
 export const addProductRecord = async (req, res) => {
-    const { proName } = req.params;
-    const { recordDate } = req.query; // รับวันที่จาก query parameter
+    // รับ plantime_id จาก body หรือ params
+    const { plantime_id } = req.body; // หรือ req.params
+
+    if (!plantime_id) {
+        return res.status(400).json({ message: "กรุณาระบุ plantime_id" });
+    }
 
     const query = `
         SELECT pt.product_id, CONCAT(rt.product_name, '(', rt.color_name, ')') AS production_name, 
-        plantime_id, batch_no, start_time, secondary_press_exit, remove_work
+        pt.plantime_id, pt.batch_no, pt.start_time, pt.secondary_press_exit, pt.remove_work
         FROM PT_plan_time_mst pt
         INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
-        WHERE rt.product_name = @proName
+        WHERE pt.plantime_id = @plantime_id
         ORDER BY pt.run_no ASC, pt.batch_no ASC
     `;
 
@@ -18,16 +22,16 @@ export const addProductRecord = async (req, res) => {
         const pool = await getPool();
         const request = pool.request();
 
-        request.input('proName', sql.VarChar, proName);
+        request.input('plantime_id', sql.VarChar, plantime_id);
 
         const result = await request.query(query);
 
         if (result.recordset.length === 0) {
-            return res.status(404).json({ message: "ไม่พบข้อมูลสำหรับผลิตภัณฑ์นี้" });
+            return res.status(404).json({ message: "ไม่พบข้อมูลสำหรับ plantime_id นี้" });
         }
 
         // รับค่าวันที่จาก query หรือใช้วันที่ปัจจุบันถ้าไม่มี
-        const currentDate = recordDate || new Date().toISOString().split('T')[0];
+        const currentDate = new Date().toISOString().split('T')[0];
 
         // Find the last valid time value
         let lastValidTime = null;

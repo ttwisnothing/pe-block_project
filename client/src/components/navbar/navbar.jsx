@@ -117,13 +117,16 @@ const Navbar = () => {
                 onClick={closeMenu}
               >
                 <div className="nav-link-icon">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  <svg viewBox="0 0 24 24" className="plantime-icon-svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                    <path
+                      d="M12 2L2 7L12 12L22 7L12 2Z"
+                      transform="translate(0,6)"
+                    />
+                    <path
+                      d="M12 2L2 7L12 12L22 7L12 2Z"
+                      transform="translate(0,12)"
+                    />
                   </svg>
                 </div>
                 <div className="nav-link-content">

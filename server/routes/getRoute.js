@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/chemicals', getChemicals);
 router.get('/products', getProductsName);
-router.get('/plantime/:productName', getPlanTime);
+router.get('/plantime/:plantimeId', getPlanTime);
 router.get('/tempplantime/:product_name', getTempPlanTime);
 router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
 router.get('/all-products', getProducts);

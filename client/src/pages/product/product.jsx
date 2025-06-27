@@ -169,10 +169,16 @@ const Products = () => {
           
           <div className="product-header-content">
             <div className="product-brand-icon">
-              <svg viewBox="0 0 24 24" className="product-icon-svg">
+              <svg viewBox="0 0 24 24" className="plantime-icon-svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                <path d="M2 12L12 17L22 12" />
-                <path d="M2 17L12 22L22 17" />
+                <path
+                  d="M12 2L2 7L12 12L22 7L12 2Z"
+                  transform="translate(0,6)"
+                />
+                <path
+                  d="M12 2L2 7L12 12L22 7L12 2Z"
+                  transform="translate(0,12)"
+                />
               </svg>
             </div>
             

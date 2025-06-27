@@ -2,46 +2,89 @@
   max-width: 1400px;
   margin: 20px auto;
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
   padding: 0;
   overflow: hidden;
+  border: 1px solid rgba(201, 222, 255, 0.8);
 }
 
 .listplan-header-section {
   background: linear-gradient(135deg, #004d8a 0%, #003a6b 100%);
   color: white;
-  padding: 32px;
+  padding: 40px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.listplan-header-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+  animation: float 20s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-100px); }
 }
 
 .listplan-header-section h2 {
-  margin: 0 0 24px 0;
-  font-size: 2rem;
-  font-weight: 700;
+  margin: 0 0 32px 0;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
+  position: relative;
+  z-index: 1;
 }
 
 .listplan-status-summary {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+  position: relative;
+  z-index: 1;
 }
 
 .listplan-status-card {
   background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 16px 24px;
-  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  padding: 24px 20px;
+  border-radius: 16px;
   text-align: center;
-  min-width: 120px;
-  transition: transform 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.listplan-status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.listplan-status-card:hover::before {
+  left: 100%;
 }
 
 .listplan-status-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 40px rgba(0, 77, 138, 0.2);
 }
 
 .listplan-status-card.listplan-status-total {
@@ -51,111 +94,161 @@
 
 .listplan-status-count {
   display: block;
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.5rem;
+  font-weight: 900;
   margin-bottom: 8px;
+  background: linear-gradient(45deg, #fff, #f0f8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .listplan-status-label {
   font-size: 0.9rem;
-  opacity: 0.9;
-  font-weight: 500;
+  opacity: 0.95;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .listplan-controls-section {
   background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
-  padding: 24px 32px;
+  padding: 32px;
   border-bottom: 1px solid #c9deff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+  position: relative;
+}
+
+.listplan-controls-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #004d8a, transparent);
 }
 
 .listplan-search-controls {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
-  flex: 1;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .listplan-search-box {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  max-width: 450px;
+  min-width: 300px;
 }
 
 .listplan-search-input {
   width: 100%;
-  padding: 12px 16px 12px 44px;
+  padding: 16px 20px 16px 52px;
   border: 2px solid #c9deff;
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  font-weight: 500;
 }
 
 .listplan-search-input:focus {
   outline: none;
   border-color: #004d8a;
-  box-shadow: 0 0 0 3px rgba(0, 77, 138, 0.1);
+  box-shadow: 0 0 0 4px rgba(0, 77, 138, 0.15);
+  transform: translateY(-1px);
+}
+
+.listplan-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
 }
 
 .listplan-search-icon {
   position: absolute;
-  left: 14px;
+  left: 18px;
   top: 50%;
   transform: translateY(-50%);
   color: #004d8a;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
 }
 
 .listplan-filter-controls {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .listplan-filter-select,
 .listplan-sort-select {
-  padding: 10px 16px;
+  padding: 14px 20px;
   border: 2px solid #c9deff;
-  border-radius: 8px;
+  border-radius: 12px;
   background: white;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  min-width: 160px;
 }
 
 .listplan-filter-select:focus,
 .listplan-sort-select:focus {
   outline: none;
   border-color: #004d8a;
+  box-shadow: 0 0 0 3px rgba(0, 77, 138, 0.15);
+  transform: translateY(-1px);
 }
 
 .listplan-action-controls {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .listplan-refresh-btn {
   background: linear-gradient(135deg, #004d8a 0%, #0066b3 100%);
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
+  padding: 14px 28px;
+  border-radius: 14px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(0, 77, 138, 0.3);
+  gap: 10px;
+  box-shadow: 0 8px 20px rgba(0, 77, 138, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.listplan-refresh-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.listplan-refresh-btn:hover::before {
+  left: 100%;
 }
 
 .listplan-refresh-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 77, 138, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 77, 138, 0.4);
 }
 
 .listplan-refresh-btn:disabled {
@@ -167,54 +260,69 @@
 .listplan-table-wrapper {
   padding: 0;
   overflow-x: auto;
+  border-radius: 0 0 20px 20px;
+  background: white;
 }
 
 .listplan-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.95rem;
   background: #ffffff;
   margin: 0;
 }
 
 .listplan-table th {
-  background: linear-gradient(135deg, #f0f5ff 0%, #d9e9ff 100%);
-  color: #004d8a;
+  background: linear-gradient(135deg, #004d8a 0%, #0066b3 100%);
+  color: white;
   font-weight: 700;
-  padding: 20px 16px;
+  padding: 24px 20px;
   text-align: center;
   border: none;
-  border-bottom: 3px solid #004d8a;
-  font-size: 0.95rem;
+  font-size: 1rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.listplan-table th:first-child {
+  border-radius: 0;
+}
+
+.listplan-table th:last-child {
+  border-radius: 0;
 }
 
 .listplan-table td {
-  padding: 20px 16px;
+  padding: 24px 20px;
   border: none;
   border-bottom: 1px solid #f0f5ff;
   vertical-align: middle;
 }
 
 .listplan-data-row {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .listplan-data-row:hover {
   background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 77, 138, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 77, 138, 0.08);
+}
+
+.listplan-data-row:nth-child(even) {
+  background: rgba(240, 245, 255, 0.5);
 }
 
 .listplan-index-cell {
   text-align: center;
-  font-weight: 700;
+  font-weight: 800;
   color: #004d8a;
-  font-size: 1rem;
-  background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
-  border-radius: 8px;
-  margin: 4px;
+  font-size: 1.1rem;
 }
 
 .listplan-product-cell {
@@ -224,40 +332,53 @@
 .listplan-product-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .listplan-product-name {
   font-weight: 700;
-  color: #2d3a4b;
-  font-size: 1.1rem;
+  color: #1e293b;
+  font-size: 1.15rem;
+  line-height: 1.3;
 }
 
 .listplan-color-indicator {
   display: inline-block;
-  width: 24px;
-  height: 24px;
-  margin-right: 8px;
-  border: 2px solid;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
+  border: 3px solid;
+  border-radius: 8px;
   text-align: center;
   font-size: 10px;
-  line-height: 20px;
+  line-height: 22px;
   font-weight: bold;
   vertical-align: middle;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.listplan-color-indicator:hover {
+  transform: scale(1.1);
 }
 
 .listplan-color-tag {
   display: flex;
   align-items: center;
   background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.9em;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.95em;
   font-weight: 600;
-  border: 1px solid #c9deff;
+  border: 2px solid #c9deff;
   width: fit-content;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.listplan-color-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .listplan-time-cell {
@@ -267,19 +388,27 @@
 .listplan-time-value {
   background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
   color: #155724;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1rem;
-  border: 1px solid #b8dabd;
+  padding: 12px 20px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  border: 2px solid #b8dabd;
   display: inline-block;
-  min-width: 80px;
+  min-width: 100px;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+  transition: all 0.3s ease;
+}
+
+.listplan-time-value:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.2);
 }
 
 .listplan-no-time {
-  color: #9e9e9e;
+  color: #94a3b8;
   font-style: italic;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .listplan-status-cell {
@@ -289,16 +418,23 @@
 .listplan-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: 700;
   font-size: 0.9em;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: 2px solid transparent;
-  min-width: 120px;
+  min-width: 140px;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.listplan-status-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .listplan-status-badge.listplan-status-completed {
@@ -321,8 +457,14 @@
 }
 
 @keyframes listplan-pulse-status {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 77, 138, 0.2);
+  }
 }
 
 .listplan-action-cell {
@@ -333,32 +475,49 @@
   background: linear-gradient(135deg, #004d8a 0%, #0066b3 100%);
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 12px;
+  padding: 14px 24px;
+  border-radius: 16px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 16px rgba(0, 77, 138, 0.3);
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(0, 77, 138, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.listplan-btn-show::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.listplan-btn-show:hover::before {
+  left: 100%;
 }
 
 .listplan-btn-show:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 77, 138, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 77, 138, 0.4);
 }
 
 .listplan-btn-show:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 .listplan-no-data {
   text-align: center;
-  padding: 64px 16px;
+  padding: 80px 16px;
   background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
 }
 
@@ -366,53 +525,58 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   color: #004d8a;
 }
 
 .listplan-no-data-content span {
-  font-size: 3rem;
+  font-size: 4rem;
+  filter: grayscale(0.3);
 }
 
 .listplan-no-data-content p {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 600;
+  color: #004d8a;
 }
 
 .listplan-clear-filters-btn {
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 .listplan-clear-filters-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 8px 20px rgba(220, 53, 69, 0.4);
 }
 
 .listplan-results-info {
-  padding: 16px 32px;
+  padding: 24px 32px;
   background: linear-gradient(135deg, #f0f5ff 0%, #e6f1ff 100%);
   color: #004d8a;
   font-weight: 600;
   text-align: center;
   border-top: 1px solid #c9deff;
+  font-size: 1rem;
 }
 
 .listplan-filter-indicator {
   background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
   color: #000;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-left: 12px;
   font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
 }
 
 .listplan-loading-container, .listplan-error-container {
@@ -420,23 +584,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  gap: 20px;
+  min-height: 500px;
+  gap: 24px;
+  padding: 40px;
 }
 
 .listplan-loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #004d8a;
+  width: 60px;
+  height: 60px;
+  border: 5px solid #f0f5ff;
+  border-top: 5px solid #004d8a;
   border-radius: 50%;
   animation: listplan-spin 1s linear infinite;
+  box-shadow: 0 4px 12px rgba(0, 77, 138, 0.3);
 }
 
 .listplan-loading-spinner.listplan-small {
-  width: 20px;
-  height: 20px;
-  border-width: 2px;
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
 }
 
 @keyframes listplan-spin {
@@ -449,118 +615,218 @@
 }
 
 .listplan-error-icon {
-  font-size: 4rem;
+  font-size: 5rem;
+  margin-bottom: 16px;
 }
 
-/* Responsive Design */
+.listplan-error-container p {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.listplan-error-container button {
+  background: linear-gradient(135deg, #004d8a 0%, #0066b3 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 77, 138, 0.3);
+}
+
+.listplan-error-container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 77, 138, 0.4);
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 1200px) {
+  .listplan-container {
+    margin: 15px;
+  }
+  
+  .listplan-status-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 1024px) {
   .listplan-controls-section {
-    flex-direction: column;
-    gap: 16px;
+    padding: 24px;
   }
   
   .listplan-search-controls {
-    width: 100%;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
   
   .listplan-search-box {
     max-width: none;
+    min-width: auto;
   }
   
-  .listplan-status-summary {
-    gap: 16px;
+  .listplan-filter-controls {
+    justify-content: center;
+  }
+  
+  .listplan-action-controls {
+    margin-top: 16px;
   }
 }
 
 @media (max-width: 768px) {
   .listplan-container {
     margin: 10px;
-    border-radius: 12px;
+    border-radius: 16px;
   }
   
   .listplan-header-section {
-    padding: 24px 16px;
+    padding: 32px 20px;
   }
   
   .listplan-header-section h2 {
-    font-size: 1.6rem;
+    font-size: 2rem;
   }
   
   .listplan-status-summary {
-    flex-wrap: wrap;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
   
   .listplan-status-card {
-    min-width: 100px;
-    padding: 12px 16px;
+    padding: 20px 16px;
+  }
+  
+  .listplan-status-count {
+    font-size: 2rem;
   }
   
   .listplan-controls-section {
-    padding: 16px;
+    padding: 20px;
   }
   
-  .listplan-filter-controls {
-    flex-wrap: wrap;
-    width: 100%;
+  .listplan-search-input {
+    padding: 14px 18px 14px 48px;
   }
   
   .listplan-filter-select,
   .listplan-sort-select {
     flex: 1;
-    min-width: 140px;
+    min-width: 120px;
   }
   
   .listplan-table th, .listplan-table td {
-    padding: 12px 8px;
-    font-size: 0.85rem;
+    padding: 16px 12px;
+    font-size: 0.9rem;
   }
   
   .listplan-btn-show {
-    padding: 8px 12px;
-    font-size: 0.8rem;
+    padding: 12px 16px;
+    font-size: 0.85rem;
   }
   
   .listplan-color-tag {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+  
+  .listplan-status-badge {
+    min-width: 120px;
     font-size: 0.8rem;
-    padding: 4px 8px;
+    padding: 10px 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .listplan-header-section h2 {
+    font-size: 1.6rem;
+  }
+  
+  .listplan-status-summary {
+    grid-template-columns: 1fr;
+  }
+  
   .listplan-table {
     font-size: 0.8rem;
   }
   
   .listplan-table th, .listplan-table td {
-    padding: 8px 4px;
+    padding: 12px 8px;
   }
   
   .listplan-btn-show {
-    padding: 6px 10px;
-    font-size: 0.75rem;
+    padding: 10px 14px;
+    font-size: 0.8rem;
   }
   
   .listplan-status-badge {
     min-width: 100px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+  }
+  
+  .listplan-product-name {
+    font-size: 1rem;
+  }
+  
+  .listplan-time-value {
+    min-width: 80px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 /* Print Styles */
 @media print {
   .listplan-controls-section,
-  .listplan-results-info {
+  .listplan-results-info,
+  .listplan-btn-show {
     display: none !important;
   }
   
   .listplan-container {
     box-shadow: none;
     border-radius: 0;
+    border: 1px solid #000;
   }
   
-  .listplan-btn-show {
-    display: none;
+  .listplan-header-section {
+    background: #004d8a !important;
+    color: #fff !important;
   }
+  
+  .listplan-table th {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .listplan-data-row:hover {
+    background: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Focus Styles for Better Accessibility */
+.listplan-search-input:focus,
+.listplan-filter-select:focus,
+.listplan-sort-select:focus,
+.listplan-refresh-btn:focus,
+.listplan-btn-show:focus {
+  outline: 3px solid rgba(0, 77, 138, 0.5);
+  outline-offset: 2px;
 }

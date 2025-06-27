@@ -6,6 +6,7 @@ import "./plantime.css";
 
 const Plantime = () => {
   const [productName, setProductName] = useState("");
+  const [plantimeId, setPlantimeId] = useState("");
   const [fristStart, setFristStart] = useState("");
   const [runRound, setRunRound] = useState("");
   const [products, setProducts] = useState([]);
@@ -66,13 +67,14 @@ const Plantime = () => {
         planTimeResponse.data.message || "✅ Plan Time calculated successfully"
       );
       setPlanTimes(planTimeResponse.data.planTimeList || []);
+      setPlantimeId(planTimeResponse.data.plantime_id || "");
       setCalculated(true);
 
-      // Step 2: หลังจากสร้างแผนเวลาสำเร็จแล้ว ให้เพิ่ม Product Record
+      // ใช้ plantime_id จาก response ตรงนี้เลย
+      const newPlantimeId = planTimeResponse.data.plantime_id || "";
+
       try {
-        const productRecordResponse = await axios.post(
-          `/api/post/production/head/${productName}`
-        );
+        const productRecordResponse = await axios.post('/api/post/production/head', { plantime_id: newPlantimeId });
 
         toast.success(
           productRecordResponse.data.message ||

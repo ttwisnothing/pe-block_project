@@ -1,22 +1,6 @@
 import { getPool } from '../config/db.js';
 import sql from 'mssql';
 
-const fetchPlanTimes = async (productName) => {
-    const pool = await getPool();
-    const request = pool.request();
-    request.input('productName', sql.VarChar, productName);
-
-    const result = await request.query(`
-        SELECT pt.*, rt.product_name, rt.color_name
-        FROM PT_plan_time_mst pt
-        INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
-        WHERE rt.product_name = @productName
-        ORDER BY pt.run_no ASC, pt.batch_no ASC
-    `);
-
-    return result.recordset;
-}
-
 // ฟังก์ชันสำหรับแยก product name และ color name
 const parseProductNameAndColor = (fullProductName) => {
     if (!fullProductName) {
@@ -58,24 +42,39 @@ const parseProductNameAndColor = (fullProductName) => {
 };
 
 export const getPlanTime = async (req, res) => {
-    const { productName } = req.params;
+    const { plantimeId } = req.params; // เปลี่ยนชื่อ param
 
     try {
-        console.log(`🔄 getPlanTime called for product: ${productName} at ${new Date().toLocaleString()}`);
+        console.log(`🔄 getPlanTime called for plantime_id: ${plantimeId} at ${new Date().toLocaleString()}`);
 
-        const planTimes = await fetchPlanTimes(productName);
+        // Query ด้วย plantime_id
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('plantime_id', sql.VarChar, plantimeId);
+
+        const result = await request.query(`
+            SELECT pt.*, rt.product_name, rt.color_name
+            FROM PT_plan_time_mst pt
+            INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
+            WHERE pt.plantime_id = @plantime_id
+            ORDER BY pt.run_no ASC, pt.batch_no ASC
+        `);
+
+        const planTimes = result.recordset;
 
         if (planTimes.length === 0) {
-            return res.status(404).json({ message: `❌ No Plan Times found for this Product: ${productName}` });
+            return res.status(404).json({ message: `❌ No Plan Times found for this Plantime ID: ${plantimeId}` });
         }
 
         return res.json({
-            productName,
+            plantimeId,
             recipeId: planTimes[0].product_id,
+            productName: planTimes[0].product_name,
+            colorName: planTimes[0].color_name,
             planTimes
         });
     } catch (error) {
-        console.error(`❌ ERROR in getPlanTime for product: ${productName}`, error);
+        console.error(`❌ ERROR in getPlanTime for plantime_id: ${plantimeId}`, error);
         res.status(500).json({ message: "❌ Error in fetching Plan Times" });
     }
 };
@@ -89,6 +88,7 @@ export const listPlantime = async (req, res) => {
         const query = `
             SELECT 
                 id,
+                plantime_id,
                 product_name as full_product_name,
                 create_date,
                 start_time,
@@ -105,6 +105,7 @@ export const listPlantime = async (req, res) => {
             
             return {
                 product_id: record.id,
+                plantime_id: record.plantime_id,
                 product_name: productName,
                 color_name: colorName,
                 full_product_name: record.full_product_name, // เก็บไว้สำหรับ debug

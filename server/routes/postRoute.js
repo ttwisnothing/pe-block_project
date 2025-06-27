@@ -33,6 +33,6 @@ router.post("/production/:batchId/pre-press-step/add", addPrePress);
 router.post("/production/:batchId/second-press/add", addSecondPrepress);
 router.post("/production/:batchId/foam-check/add", foamCheck);
 router.post("/production/:batchId/primary-press/add", addPrimaryPress);
-router.post("/production/head/:proName", addProductRecord);
+router.post("/production/head", addProductRecord);
 
 export default router;

@@ -3,7 +3,7 @@ import sql from "mssql";
 
 // คำนวณเวลาของ PlanTime จาก Recipe ที่เลือก และเพิ่มข้อมูลลงในฐานข้อมูล
 export const addPlantime = async (req, res) => {
-    const { product_name } = req.params;
+    let { product_name } = req.params; // เปลี่ยนจาก const เป็น let
     const { fristStart, runRound, mcNames } = req.body;
 
     // แยกชื่อสินค้าและสีออกจาก product_name
@@ -813,7 +813,7 @@ export const addPlantime = async (req, res) => {
                     temp_check_1, secondary_press_2_start, temp_check_2,
                     cooling, secondary_press_exit, remove_work, foam_block
                   ) VALUES (
-                    ${sqlValue(plan.product_id)}, ${plantime_id}, ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
+                    ${sqlValue(plan.product_id)}, '${plantime_id}', ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
@@ -830,6 +830,7 @@ export const addPlantime = async (req, res) => {
 
         return res.json({
             message: "Plan Time Data successfully added",
+            plantime_id,
             productName: `${product_name} (${color_name})`,
             mac: Array.isArray(mcNames) ? mcNames : [],
             blockPerRound,
