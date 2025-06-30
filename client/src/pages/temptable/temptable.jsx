@@ -32,7 +32,9 @@ const TempTable = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const intervalRef = useRef(null);
-  const { productName, colorName } = location.state || {};
+
+  // รับ plantimeId, productName, colorName จาก state
+  const { plantimeId, productName, colorName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -93,23 +95,19 @@ const TempTable = () => {
   };
 
   useEffect(() => {
-    if (!productName) {
-      console.error("❌ No recipeName provided");
+    if (!plantimeId) {
       setError(true);
       setLoading(false);
       return;
     }
 
-    // เรียกใช้ determineTableType
     determineTableType(productName);
 
     const fetchTempPlanTimes = async () => {
       try {
         const response = await axios.get(
-          `/api/get/tempplantime/${productName}`
+          `/api/get/tempplantime/${plantimeId}`
         );
-        
-        // จัดเรียงข้อมูลตาม run_no และ batch_no เหมือน temptable
         const sortedTempPlanTimes = [...(response.data.tempPlanTimes || [])].sort((a, b) => {
           if (a.run_no !== b.run_no) {
             return a.run_no - b.run_no;
@@ -120,7 +118,6 @@ const TempTable = () => {
         setTempPlanTimes(sortedTempPlanTimes);
         setError(false);
       } catch (err) {
-        console.error("❌ ERROR fetching Temp Plan Times:", err);
         setError(true);
       } finally {
         setLoading(false);
@@ -128,7 +125,7 @@ const TempTable = () => {
     };
 
     fetchTempPlanTimes();
-  }, [productName]);
+  }, [plantimeId, productName]);
 
   // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
   const handleMachineBreakdown = async () => {
@@ -168,17 +165,14 @@ const TempTable = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const response = await axios.get(`/api/get/tempplantime/${productName}`);
-      
+      const response = await axios.get(`/api/get/tempplantime/${plantimeId}`);
       if (response.data && response.data.tempPlanTimes) {
-        // จัดเรียงข้อมูลใหม่
         const sortedTempPlanTimes = [...response.data.tempPlanTimes].sort((a, b) => {
           if (a.run_no !== b.run_no) {
             return a.run_no - b.run_no;
           }
           return a.batch_no - b.batch_no;
         });
-        
         setTempPlanTimes(sortedTempPlanTimes);
         toast.success("✅ ข้อมูลถูกอัพเดทแล้ว");
       }
@@ -200,14 +194,24 @@ const TempTable = () => {
       let closestRow = null;
       let closestDiff = Infinity;
 
+      // ฟิลด์ที่ต้องการแจ้งเตือน
+      const notifyFields = [
+        "start_time",
+        "extruder_exit",
+        "primary_press_start",
+        "stream_in",
+        "primary_press_exit",
+        "secondary_press_1_start",
+        "secondary_press_exit",
+      ];
+
       tempPlanTimes.forEach((row) => {
-        // ใช้วิธีการเดียวกับ temptable - วนลูปทุก field
         Object.entries(row).forEach(([key, timeValue]) => {
-          // ข้ามฟิลด์ที่ไม่ใช่เวลา
           if (
             !timeValue ||
             typeof timeValue !== "string" ||
             !timeValue.includes(":") ||
+            !notifyFields.includes(key) ||
             ["run_no", "batch_no", "temp_id", "product_id", "machine"].includes(key)
           )
             return;

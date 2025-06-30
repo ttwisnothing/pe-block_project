@@ -40,6 +40,7 @@ const PlanTimeTable = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [tableType, setTableType] = useState("default");
   const [refreshing, setRefreshing] = useState(false);
+  const [plantimeId, setPlantimeId] = useState(""); // เพิ่ม state
 
   // เพิ่ม effect เพื่ออัปเดตเวลาปัจจุบันทุกวินาที
   useEffect(() => {
@@ -63,6 +64,11 @@ const PlanTimeTable = () => {
       toast.error("❌ ไม่มีข้อมูล Plan Time กรุณากลับไปเลือกใหม่");
       navigate("/plantime");
       return;
+    }
+
+    // เซ็ต plantimeId
+    if (savedData.plantimeId) {
+      setPlantimeId(savedData.plantimeId);
     }
 
     // เรียกใช้ determineTableType ด้วย productName จาก savedData
@@ -91,13 +97,25 @@ const PlanTimeTable = () => {
       let closestRow = null;
       let closestDiff = Infinity;
 
+      // เพิ่มรายชื่อฟิลด์ที่ต้องการแจ้งเตือน
+      const notifyFields = [
+        "start_time",
+        "extruder_exit",
+        "primary_press_start",
+        "stream_in",
+        "primary_press_exit",
+        "secondary_press_1_start",
+        "secondary_press_exit",
+      ];
+
       savedData.planTimes.forEach((row) => {
         Object.entries(row).forEach(([key, timeValue]) => {
-          // ข้ามฟิลด์ที่ไม่ใช่เวลา
+          // ข้ามฟิลด์ที่ไม่ใช่เวลา หรือไม่อยู่ในรายชื่อที่ต้องการแจ้งเตือน
           if (
             !timeValue ||
             typeof timeValue !== "string" ||
             !timeValue.includes(":") ||
+            !notifyFields.includes(key) || // เพิ่มบรรทัดนี้
             ["run_no", "batch_no", "id", "product_id"].includes(key)
           )
             return;
@@ -259,9 +277,17 @@ const PlanTimeTable = () => {
       // แสดงสถานะ loading
       const pendingToastId = toast.loading("⏳ กำลังเพิ่มข้อมูลแผนชั่วคราว...");
 
+      // ดึง plantimeId จาก localStorage หรือ state
+      let plantimeId = "";
+      const planTimeData = localStorage.getItem("planTimeData");
+      if (planTimeData) {
+        const parsed = JSON.parse(planTimeData);
+        plantimeId = parsed.plantimeId;
+      }
+
       // เรียก API
       const response = await axios.post(
-        `/api/post/plantime/temp/add/${productName}`
+        `/api/post/plantime/temp/add/${plantimeId}`
       );
 
       if (response.status !== 200) {
@@ -279,7 +305,7 @@ const PlanTimeTable = () => {
       // นำทางไปยังหน้า edit-temp
       setTimeout(() => {
         navigate("/edit-temp", {
-          state: { productName, colorName },
+          state: { plantimeId, productName, colorName },
         });
       }, 3000);
     } catch (error) {
@@ -293,7 +319,12 @@ const PlanTimeTable = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const response = await axios.get(`/api/get/plantime/${productName}`);
+      if (!plantimeId) {
+        toast.error("❌ ไม่พบ plantimeId สำหรับรีเฟรชข้อมูล");
+        setRefreshing(false);
+        return;
+      }
+      const response = await axios.get(`/api/get/plantime/${plantimeId}`);
       
       if (response.data && response.data.planTimes) {
         const sortedPlanTimes = [...response.data.planTimes].sort((a, b) => {
@@ -302,7 +333,6 @@ const PlanTimeTable = () => {
           }
           return a.batch_no - b.batch_no;
         });
-        
         setPlanTimes(sortedPlanTimes);
         toast.success("✅ ข้อมูลถูกอัพเดทแล้ว");
       }

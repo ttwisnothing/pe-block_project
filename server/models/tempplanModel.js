@@ -1,27 +1,27 @@
 import sql from 'mssql';
 import { getPool } from '../config/db.js';
 
+// เพิ่มเติม: รับ plantime_id จาก params แทน product_name
 export const addTempPlanTime = async (req, res) => {
-    const { product_name } = req.params;
+    const { plantime_id } = req.params;
 
     try {
         const pool = await getPool();
         const request = pool.request();
 
         await request.query(`DELETE FROM PT_temp_time_mst`);
-
         await request.query(`DBCC CHECKIDENT ('PT_temp_time_mst', RESEED, 0)`);
 
-        const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
+        // ดึงข้อมูลจาก PT_plan_time_mst ด้วย plantime_id
+        const planTimesResult = await request.input('plantime_id', sql.VarChar, plantime_id).query(`
             SELECT pt.*
             FROM PT_plan_time_mst pt
-            INNER JOIN PT_product_mst pm ON pt.product_id = pm.product_id
-            WHERE pm.product_name = @product_name
+            WHERE pt.plantime_id = @plantime_id
         `);
         const planTimes = planTimesResult.recordset;
 
         if (planTimes.length === 0) {
-            return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
+            return res.status(404).json({ message: '❌ No Plan Times found for this plantime_id' });
         }
 
         // INSERT ข้อมูลลงใน temp_time_mst
@@ -31,13 +31,13 @@ export const addTempPlanTime = async (req, res) => {
 
             const query = `
                 INSERT INTO PT_temp_time_mst (
-                    product_id, run_no, machine, batch_no, start_time,
+                    product_id, run_no, plantime_id, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
                     temp_check_1, secondary_press_2_start, temp_check_2,
                     cooling, secondary_press_exit, remove_work, foam_block
                 ) VALUES (
-                    ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
+                    ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, '${plantime_id}', ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
@@ -62,22 +62,21 @@ export const addTempPlanTime = async (req, res) => {
 }
 
 export const addTempMB = async (req, res) => {
-    const { product_name } = req.params;
+    const { plantime_id } = req.params;
 
     try {
         const pool = await getPool();
         const request = pool.request();
 
-        const planTimesResult = await request.input('product_name', sql.VarChar, product_name).query(`
+        const planTimesResult = await request.input('plantime_id', sql.VarChar, plantime_id).query(`
             SELECT tpt.*
             FROM PT_temp_time_mst tpt
-            INNER JOIN PT_product_mst pm ON tpt.product_id = pm.product_id
-            WHERE pm.product_name = @product_name
+            WHERE tpt.plantime_id = @plantime_id
         `);
         const planTimes = planTimesResult.recordset;
 
         if (planTimes.length === 0) {
-            return res.status(404).json({ message: '❌ No Plan Times found for this recipe' });
+            return res.status(404).json({ message: '❌ No Plan Times found for this plantime_id' });
         }
 
         // ลบข้อมูลทั้งหมดใน temp_time_mst
@@ -93,13 +92,13 @@ export const addTempMB = async (req, res) => {
 
             const query = `
                 INSERT INTO PT_temp_time_mst (
-                    product_id, run_no, machine, batch_no, start_time,
+                    product_id, run_no, plantime_id, machine, batch_no, start_time,
                     mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
                     temp_check_1, secondary_press_2_start, temp_check_2,
                     cooling, secondary_press_exit, remove_work, foam_block
                 ) VALUES (
-                    ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
+                    ${sqlValue(plan.product_id)}, ${sqlValue(plan.run_no)}, '${plantime_id}', ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
                     ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
@@ -190,7 +189,7 @@ export const updateNewStartTime = async (req, res) => {
         let updateTempList = [];
 
         if (cGroup === 'RP-300S') {
-            for (let i = runIndex; i < (tempPlanTimes.length / 4) * 3; i++) {
+            for (let i = runIndex; i <= (tempPlanTimes.length / 4) * 3; i++) {
                 const currTemp = {}
 
                 if (i !== runIndex) {
@@ -342,7 +341,7 @@ export const updateNewStartTime = async (req, res) => {
                 const currTemp = {}
 
                 if (i !== runIndex) {
-                    
+
                     if (i === 2) {
                         currTemp.start_time = updateTempList[updateTempList.length - 1].primary_press_exit;
                         currTemp.mixing = addMinutes(currTemp.start_time, config[1].mixing_time);
@@ -604,10 +603,6 @@ export const updateNewStartTime = async (req, res) => {
                         }
                     }
                 }
-            }
-        } else if (cGroup === 'B-4') {
-            if (i === 1) {
-
             }
         }
 

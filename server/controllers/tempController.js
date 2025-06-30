@@ -1,29 +1,28 @@
-import { getPool } from "../config/db.js"; // นำเข้า getPool จาก db.js
+import { getPool } from "../config/db.js";
 import sql from "mssql";
 
 export const getTempPlanTime = async (req, res) => {
-    const { product_name } = req.params;
+    const { plantime_id } = req.params; // เปลี่ยนจาก product_name เป็น plantime_id
 
     try {
         const pool = await getPool();
         const request = pool.request();
-        request.input('product_name', sql.VarChar, product_name);
+        request.input('plantime_id', sql.VarChar, plantime_id);
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
             FROM PT_temp_time_mst pt
-            INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
-            WHERE rt.product_name = @product_name
+            WHERE pt.plantime_id = @plantime_id
         `);
         const tempPlanTimes = tempPlanTimesResult.recordset;
 
         if (tempPlanTimes.length === 0) {
-            return res.status(404).json({ message: '❌ No Temp Plan Times found for this recipe' });
+            return res.status(404).json({ message: '❌ No Temp Plan Times found for this plantime_id' });
         }
 
         return res.status(200).json({
-            product_name,
-            productId: tempPlanTimes[0]?.product_id, // ใช้ optional chaining ป้องกัน error ถ้าไม่มีข้อมูล
+            plantime_id,
+            productId: tempPlanTimes[0]?.product_id,
             tempPlanTimes
         });
     } catch (error) {
@@ -33,29 +32,28 @@ export const getTempPlanTime = async (req, res) => {
 };
 
 export const getTempPlanTimeASC = async (req, res) => {
-    const { product_name } = req.params;
+    const { plantime_id } = req.params; // เปลี่ยนจาก product_name เป็น plantime_id
 
     try {
         const pool = await getPool();
         const request = pool.request();
-        request.input('product_name', sql.VarChar, product_name);
+        request.input('plantime_id', sql.VarChar, plantime_id);
 
         const tempPlanTimesResult = await request.query(`
             SELECT pt.*
             FROM PT_temp_time_mst pt
-            INNER JOIN PT_product_mst rt ON pt.product_id = rt.product_id
-            WHERE rt.product_name = @product_name
-            ORDER BY pt.run_no, pt.batch_no;
+            WHERE pt.plantime_id = @plantime_id
+            ORDER BY pt.run_no, pt.batch_no
         `);
         const tempPlanTimes = tempPlanTimesResult.recordset;
 
         if (tempPlanTimes.length === 0) {
-            return res.status(404).json({ message: '❌ No Temp Plan Times found for this recipe' });
+            return res.status(404).json({ message: '❌ No Temp Plan Times found for this plantime_id' });
         }
 
         return res.status(200).json({
-            product_name,
-            productId: tempPlanTimes[0]?.product_id, // ใช้ optional chaining ป้องกัน error ถ้าไม่มีข้อมูล
+            plantime_id,
+            productId: tempPlanTimes[0]?.product_id,
             tempPlanTimes
         });
     } catch (error) {

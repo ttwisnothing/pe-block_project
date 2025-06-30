@@ -42,8 +42,16 @@
   flex-wrap: wrap;
 }
 
+.temptime-planid-chip {
+  background: linear-gradient(45deg, #2196f3, #1976d2) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  height: auto !important;
+}
+
 .temptime-product-chip {
-  background: linear-gradient(45deg, #2196f3, #21cbf3) !important;
+  background: linear-gradient(45deg, #4caf50, #2e7d32) !important;
   color: white !important;
   font-weight: 600 !important;
   padding: 8px 16px !important;
@@ -72,7 +80,7 @@
   padding: 20px;
   text-align: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid #2196f3;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -83,7 +91,7 @@
 
 .temptime-stat-number {
   font-weight: 700 !important;
-  color: #2e7d32 !important;
+  color: #1976d2 !important;
   margin-bottom: 4px !important;
 }
 
@@ -108,7 +116,7 @@
 }
 
 .temptime-table-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
 }
 
 .temptime-table-cell-header {
@@ -147,14 +155,14 @@
 
 /* Chips and Display Elements */
 .temptime-run-chip {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a5a) !important;
+  background: linear-gradient(45deg, #f44336, #d32f2f) !important;
   color: white !important;
   font-weight: 600 !important;
 }
 
 .temptime-batch-chip {
-  border-color: #9c27b0 !important;
-  color: #9c27b0 !important;
+  border-color: #2196f3 !important;
+  color: #2196f3 !important;
   font-weight: 500 !important;
 }
 
@@ -166,6 +174,12 @@
   border-radius: 6px;
   display: inline-block;
   min-width: 100px;
+  transition: all 0.2s ease;
+}
+
+.temptime-machine-name:hover {
+  background: #e3f2fd;
+  color: #1976d2;
 }
 
 .temptime-time-display {
@@ -195,6 +209,11 @@
 .temptime-input-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
   border-color: #1976d2 !important;
   border-width: 2px !important;
+}
+
+.temptime-input-field .MuiInputBase-input {
+  text-align: center;
+  font-weight: 500;
 }
 
 /* Action Buttons */
@@ -264,7 +283,7 @@
 }
 
 .temptime-save-all-btn {
-  background: linear-gradient(45deg, #4caf50, #45a049) !important;
+  background: linear-gradient(45deg, #4caf50, #2e7d32) !important;
   color: white !important;
   font-weight: 600 !important;
   padding: 10px 24px !important;
@@ -293,7 +312,7 @@
 }
 
 .temptime-edit-machine-btn {
-  background: linear-gradient(45deg, #2196f3, #21cbf3) !important;
+  background: linear-gradient(45deg, #2196f3, #1976d2) !important;
   color: white !important;
   font-weight: 600 !important;
   padding: 10px 24px !important;
@@ -309,8 +328,27 @@
 /* Bottom Actions */
 .temptime-bottom-actions {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   padding: 24px 0;
+  gap: 16px;
+}
+
+.temptime-back-btn {
+  background: linear-gradient(45deg, #757575, #616161) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 12px 32px !important;
+  border-radius: 25px !important;
+  font-size: 1.1rem !important;
+  text-transform: none !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+.temptime-back-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(117, 117, 117, 0.4);
 }
 
 .temptime-show-table-btn {
@@ -393,6 +431,21 @@
   .temptime-action-buttons {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .temptime-product-info {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .temptime-bottom-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .temptime-back-btn {
+    margin-right: 0 !important;
   }
 }
 
