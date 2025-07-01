@@ -495,7 +495,6 @@ export const updateNewStartTime = async (req, res) => {
                             currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
                             currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
                             currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
-                            currTemp.block = blockPerRound
 
                             updateTempList.push({ ...currTemp })
 
@@ -511,7 +510,6 @@ export const updateNewStartTime = async (req, res) => {
                                 updateTempList[i].cooling = currTemp.cooling;
                                 updateTempList[i].secondary_press_exit = currTemp.secondary_press_exit;
                                 updateTempList[i].remove_work = currTemp.remove_work;
-                                updateTempList[i].block = currTemp.block;
                             }
                         }
                     }
@@ -539,7 +537,6 @@ export const updateNewStartTime = async (req, res) => {
                             currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
                             currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
                             currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
-                            currTemp.block = blockPerRound
 
                             updateTempList.push({ ...currTemp })
 
@@ -555,7 +552,6 @@ export const updateNewStartTime = async (req, res) => {
                                 updateTempList[updateTempList.length - 2].cooling = currTemp.cooling;
                                 updateTempList[updateTempList.length - 2].secondary_press_exit = currTemp.secondary_press_exit;
                                 updateTempList[updateTempList.length - 2].remove_work = currTemp.remove_work;
-                                updateTempList[updateTempList.length - 2].block = currTemp.block;
                             }
                         }
                     } else {
@@ -582,7 +578,6 @@ export const updateNewStartTime = async (req, res) => {
                             currTemp.cooling = addMinutes(currTemp.temp_check_2, config[0].cooling_time);
                             currTemp.secondary_press_exit = addMinutes(currTemp.cooling, config[0].secondary_press_exit);
                             currTemp.remove_work = addMinutes(currTemp.secondary_press_exit, config[0].remove_workpiece);
-                            currTemp.block = blockPerRound
 
                             updateTempList.push({ ...currTemp })
 
@@ -598,7 +593,6 @@ export const updateNewStartTime = async (req, res) => {
                                 updateTempList[updateTempList.length - 2].cooling = currTemp.cooling;
                                 updateTempList[updateTempList.length - 2].secondary_press_exit = currTemp.secondary_press_exit;
                                 updateTempList[updateTempList.length - 2].remove_work = currTemp.remove_work;
-                                updateTempList[updateTempList.length - 2].block = currTemp.block;
                             }
                         }
                     }
@@ -606,46 +600,47 @@ export const updateNewStartTime = async (req, res) => {
             }
         }
 
-        // // อัพเดท temp_plan_time_table ด้วย updateTempList
-        // for (let i = 0; i < updateTempList.length; i++) {
-        //     const pool = await getPool();
-        //     const request = pool.request();
+        // อัพเดท temp_plan_time_table ด้วย updateTempList
+        for (let i = 0; i < updateTempList.length; i++) {
+            const pool = await getPool();
+            const request = pool.request();
 
-        //     const sqlValue = (val) =>
-        //         val === null || val === undefined ? 'NULL' : `'${val.toString().replace(/'/g, "''")}'`;
-
-        //     await request.input('start_time', sql.NVarChar, updateTempList[i].start_time)
-        //         .input('mixing', sql.NVarChar, updateTempList[i].mixing)
-        //         .input('extruder_exit', sql.NVarChar, updateTempList[i].extruder_exit)
-        //         .input('pre_press_exit', sql.NVarChar, updateTempList[i].pre_press_exit)
-        //         .input('primary_press_start', sql.NVarChar, updateTempList[i].primary_press_start)
-        //         .input('stream_in', sql.NVarChar, updateTempList[i].stream_in)
-        //         .input('primary_press_exit', sql.NVarChar, updateTempList[i].primary_press_exit)
-        //         .input('secondary_press_1_start', sql.NVarChar, updateTempList[i].secondary_press_1_start)
-        //         .input('temp_check_1', sql.NVarChar, updateTempList[i].temp_check_1)
-        //         .input('secondary_press_2_start', sql.NVarChar, updateTempList[i].secondary_press_2_start)
-        //         .input('temp_check_2', sql.NVarChar, updateTempList[i].temp_check_2)
-        //         .input('cooling', sql.NVarChar, updateTempList[i].cooling)
-        //         .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
-        //         .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
-        //         .query(`
-        //             UPDATE PT_temp_time_mst
-        //             SET start_time = @start_time,
-        //                 mixing = @mixing,
-        //                 extruder_exit = @extruder_exit,
-        //                 pre_press_exit = @pre_press_exit,
-        //                 primary_press_start = @primary_press_start,
-        //                 stream_in = @stream_in,
-        //                 primary_press_exit = @primary_press_exit,
-        //                 secondary_press_1_start = @secondary_press_1_start,
-        //                 temp_check_1 = @temp_check_1,
-        //                 secondary_press_2_start = @secondary_press_2_start,
-        //                 temp_check_2 = @temp_check_2,
-        //                 cooling = @cooling,
-        //                 secondary_press_exit = @secondary_press_exit
-        //             WHERE temp_id = @temp_id
-        //         `);
-        // }
+            await request.input('start_time', sql.NVarChar, updateTempList[i].start_time)
+                .input('mixing', sql.NVarChar, updateTempList[i].mixing)
+                .input('solid_block', sql.NVarChar, updateTempList[i].solid_block)
+                .input('extruder_exit', sql.NVarChar, updateTempList[i].extruder_exit)
+                .input('pre_press_exit', sql.NVarChar, updateTempList[i].pre_press_exit)
+                .input('primary_press_start', sql.NVarChar, updateTempList[i].primary_press_start)
+                .input('stream_in', sql.NVarChar, updateTempList[i].stream_in)
+                .input('primary_press_exit', sql.NVarChar, updateTempList[i].primary_press_exit)
+                .input('secondary_press_1_start', sql.NVarChar, updateTempList[i].secondary_press_1_start)
+                .input('temp_check_1', sql.NVarChar, updateTempList[i].temp_check_1)
+                .input('secondary_press_2_start', sql.NVarChar, updateTempList[i].secondary_press_2_start)
+                .input('temp_check_2', sql.NVarChar, updateTempList[i].temp_check_2)
+                .input('cooling', sql.NVarChar, updateTempList[i].cooling)
+                .input('secondary_press_exit', sql.NVarChar, updateTempList[i].secondary_press_exit)
+                .input('remove_work', sql.NVarChar, updateTempList[i].remove_work)
+                .input('temp_id', sql.Int, tempPlanTimes[runIndex + i].temp_id) // ใช้ runIndex + i เพื่อให้ได้ temp_id ที่ถูกต้อง
+                .query(`
+                    UPDATE PT_temp_time_mst
+                    SET start_time = @start_time,
+                        mixing = @mixing,
+                        solid_block = @solid_block,
+                        extruder_exit = @extruder_exit,
+                        pre_press_exit = @pre_press_exit,
+                        primary_press_start = @primary_press_start,
+                        stream_in = @stream_in,
+                        primary_press_exit = @primary_press_exit,
+                        secondary_press_1_start = @secondary_press_1_start,
+                        temp_check_1 = @temp_check_1,
+                        secondary_press_2_start = @secondary_press_2_start,
+                        temp_check_2 = @temp_check_2,
+                        cooling = @cooling,
+                        secondary_press_exit = @secondary_press_exit,
+                        remove_work = @remove_work
+                    WHERE temp_id = @temp_id
+                `);
+        }
 
         return res.json({
             message: '✅ New Start Time updated successfully and Temp Plan Times recalculated',

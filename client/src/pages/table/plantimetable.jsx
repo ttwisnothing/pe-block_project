@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../components/table/table.jsx";
 import CustomTable from "../../components/table/table";
 import CustomTableB150 from "../../components/table/tableb";
+import CustomTableA110F from "../../components/table/tablea"; // เพิ่มบรรทัดนี้
 import DigitalClock from "../../components/clock/digitalClock";
 import Swal from "sweetalert2";
 import CloseIcon from "@mui/icons-material/Close";
@@ -235,8 +236,8 @@ const PlanTimeTable = () => {
       setTableType("b150");
     } else if (productName && productName.includes("RP-300S")) {
       setTableType("default");
-    } else {
-      setTableType("default");
+    } else if (productName && productName.includes("A-110F")) {
+      setTableType("a110f");
     }
   };
 
@@ -245,6 +246,14 @@ const PlanTimeTable = () => {
       case "b150":
         return (
           <CustomTableB150
+            data={planTimes}
+            formatTime={formatTime}
+            currentRow={currentRow}
+          />
+        );
+      case "a110f": // เพิ่ม case นี้
+        return (
+          <CustomTableA110F
             data={planTimes}
             formatTime={formatTime}
             currentRow={currentRow}

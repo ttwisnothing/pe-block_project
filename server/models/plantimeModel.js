@@ -733,17 +733,17 @@ export const addPlantime = async (req, res) => {
                     planTime.machine = mac[machineIndex];
                     planTime.batch_no = planTimeList.length + 1;
                     planTime.program_no = null
-                    planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].secondary_press_1_start, config[0].adj_next_start);
+                    planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
                     planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                    planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                    planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                    planTime.primary_press_start = addMinutes(planTime.mixing, config[1].primary_press_start);
-                    planTime.stream_in = addMinutes(planTime.primary_press_start, config[1].stream_in);
-                    planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                    planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                    planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                    planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                    planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                    planTime.solid_block = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                    planTime.extruder_exit = addMinutes(planTime.solid_block, config[0].pre_press_exit_time);
+                    planTime.mold_primary_press = addMinutes(planTime.mixing, config[1].primary_press_start);
+                    planTime.pre_press_exit = addMinutes(planTime.mold_primary_press, config[1].stream_in);
+                    planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_exit);
+                    planTime.primary_press_exit = addMinutes(planTime.primary_press_start, config[0].secondary_press_1_start);
+                    planTime.trolley_in = addMinutes(planTime.primary_press_exit, config[0].temp_check_1);
+                    planTime.trolley_out = addMinutes(planTime.trolley_in, config[0].secondary_press_2_start);
+                    planTime.remove_work = addMinutes(planTime.trolley_out, config[1].temp_check_2);
                     planTime.block = blockUse;
 
                     planTimeList.push({ ...planTime });
@@ -756,15 +756,15 @@ export const addPlantime = async (req, res) => {
                     planTime.program_no = null
                     planTime.start_time = startTimes;
                     planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                    planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                    planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                    planTime.primary_press_start = reduceMinutes(planTime.mixing, config[0].primary_press_start);
-                    planTime.stream_in = addMinutes(planTime.pre_press_exit, config[0].stream_in);
-                    planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                    planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                    planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                    planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                    planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                    planTime.solid_block = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                    planTime.extruder_exit = addMinutes(planTime.solid_block, config[0].pre_press_exit_time);
+                    planTime.mold_primary_press = reduceMinutes(planTime.mixing, config[0].primary_press_start);
+                    planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].stream_in);
+                    planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_exit);
+                    planTime.primary_press_exit = addMinutes(planTime.primary_press_start, config[0].secondary_press_1_start);
+                    planTime.trolley_in = addMinutes(planTime.primary_press_exit, config[0].temp_check_1);
+                    planTime.trolley_out = addMinutes(planTime.trolley_in, config[0].secondary_press_2_start);
+                    planTime.remove_work = addMinutes(planTime.trolley_out, config[0].temp_check_2);
                     planTime.block = blockUse;
 
                     planTimeList.push({ ...planTime });
@@ -808,16 +808,18 @@ export const addPlantime = async (req, res) => {
             const query = `
                   INSERT INTO PT_plan_time_mst (
                     product_id, plantime_id, run_no, machine, batch_no, start_time,
-                    mixing, solid_block, extruder_exit, pre_press_exit, primary_press_start,
+                    mixing, solid_block, extruder_exit, mold_primary_press, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
-                    temp_check_1, secondary_press_2_start, temp_check_2,
-                    cooling, secondary_press_exit, remove_work, foam_block
+                    temp_check_1, secondary_press_2_start, temp_check_2, cooling, 
+                    trolley_in, trolley_out, secondary_press_exit, remove_work, foam_block
                   ) VALUES (
-                    ${sqlValue(plan.product_id)}, '${plantime_id}', ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)}, ${sqlValue(plan.start_time)},
-                    ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)},
+                    ${sqlValue(plan.product_id)}, '${plantime_id}', ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)},
+                    ${sqlValue(plan.start_time)}, ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, 
+                    ${sqlValue(plan.mold_primary_press)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)}, 
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
-                    ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)},
-                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.block)}
+                    ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)}, 
+                    ${sqlValue(plan.cooling)}, ${sqlValue(plan.trolley_in)}, ${sqlValue(plan.trolley_out)},
+                    ${sqlValue(plan.secondary_press_exit)}, ${sqlValue(plan.remove_work)}, ${sqlValue(plan.block)}
                   );
                 `;
 

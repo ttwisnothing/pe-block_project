@@ -159,7 +159,7 @@ const EditTemp = () => {
         return;
       }
 
-      await axios.put(`/api/put/tempplantime/upmachine/${plantimeId}`, {
+      await axios.put(`/api/put/tempplantime/upmachine/${productName}`, {
         machines,
       });
 
@@ -194,6 +194,16 @@ const EditTemp = () => {
         productName, 
         colorName 
       } 
+    });
+  };
+
+  // เพิ่มฟังก์ชันนี้ไว้ก่อน return
+  const groupByRunNo = (data) => {
+    const seen = new Set();
+    return data.filter(plan => {
+      if (seen.has(plan.run_no)) return false;
+      seen.add(plan.run_no);
+      return true;
     });
   };
 
@@ -293,7 +303,7 @@ const EditTemp = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {tempPlanTimes.map((plan, index) => (
+              {groupByRunNo(tempPlanTimes).map((plan, index) => (
                 <TableRow 
                   key={plan.temp_id} 
                   className={`temptime-table-row ${index % 2 === 0 ? 'temptime-row-even' : 'temptime-row-odd'}`}

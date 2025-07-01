@@ -39,9 +39,13 @@ const CustomTableB150 = ({ data, formatTime }) => {
             <TableCell>เริ่มอบที่ไพรมารี่ เพลส</TableCell>
             <TableCell>กด สตรีมอิน</TableCell>
             <TableCell>ออกจากไพรมารี่ เพลส</TableCell>
-            <TableCell className="secondary-press">เริ่มอบรอบที่ 1 เซคคันดารี่ เพลส</TableCell>
+            <TableCell className="secondary-press">
+              เริ่มอบรอบที่ 1 เซคคันดารี่ เพลส
+            </TableCell>
             <TableCell className="temp-check">จดอุณหภูมิรอบที่ 1</TableCell>
-            <TableCell className="secondary-press">เริ่มอบรอบที่ 2 เซคคันดารี่ เพลส</TableCell>
+            <TableCell className="secondary-press">
+              เริ่มอบรอบที่ 2 เซคคันดารี่ เพลส
+            </TableCell>
             <TableCell className="temp-check">จดอุณหภูมิรอบที่ 2</TableCell>
             <TableCell>คูลลิ่ง</TableCell>
             <TableCell>ออกจาก เซคคันดารี่ เพลส</TableCell>
@@ -55,78 +59,80 @@ const CustomTableB150 = ({ data, formatTime }) => {
             const rowSpan = isFirst ? calculateRowSpan(data, index) : 1;
 
             return (
-                <TableRow >
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>{plan.run_no}</TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>{plan.machine}</TableCell>
-                  )}
-                  <TableCell>{plan.batch_no}</TableCell>
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>{plan.program}</TableCell>
-                  )}
-                  <TableCell className="start-time">{formatTime(plan.start_time)}</TableCell>
-                  <TableCell>{formatTime(plan.mixing)}</TableCell>
-                  <TableCell>{formatTime(plan.solid_block)}</TableCell>
-                  <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>
-                      {formatTime(plan.pre_press_exit)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="primary-press">
-                      {formatTime(plan.primary_press_start)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="stream-in">
+              <TableRow>
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>{plan.run_no}</TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>{plan.machine}</TableCell>
+                )}
+                <TableCell>{plan.batch_no}</TableCell>
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>{plan.program}</TableCell>
+                )}
+                <TableCell className="start-time">
+                  {formatTime(plan.start_time)}
+                </TableCell>
+                <TableCell>{formatTime(plan.mixing)}</TableCell>
+                <TableCell>{formatTime(plan.solid_block)}</TableCell>
+                <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>
+                    {formatTime(plan.pre_press_exit)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="primary-press">
+                    {formatTime(plan.primary_press_start)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="stream-in">
                     {formatTime(plan.stream_in)}
                   </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>
-                      {formatTime(plan.primary_press_exit)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="secondary-press">
-                      {formatTime(plan.secondary_press_1_start)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="temp-check-row">
-                      {formatTime(plan.temp_check_1)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="secondary-press">
-                      {formatTime(plan.secondary_press_2_start)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="temp-check-row">
-                      {formatTime(plan.temp_check_2)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>
-                      {formatTime(plan.cooling)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan}>
-                      {formatTime(plan.secondary_press_exit)}
-                    </TableCell>
-                  )}
-                  {isFirst && (
-                    <TableCell rowSpan={rowSpan} className="remove-work">
-                      {formatTime(plan.remove_work)}
-                    </TableCell>
-                  )}
-                  <TableCell>{plan.foam_block}</TableCell>
-                </TableRow>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>
+                    {formatTime(plan.primary_press_exit)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="secondary-press">
+                    {formatTime(plan.secondary_press_1_start)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="temp-check-row">
+                    {formatTime(plan.temp_check_1)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="secondary-press">
+                    {formatTime(plan.secondary_press_2_start)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="temp-check-row">
+                    {formatTime(plan.temp_check_2)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>
+                    {formatTime(plan.cooling)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan}>
+                    {formatTime(plan.secondary_press_exit)}
+                  </TableCell>
+                )}
+                {isFirst && (
+                  <TableCell rowSpan={rowSpan} className="remove-work">
+                    {formatTime(plan.remove_work)}
+                  </TableCell>
+                )}
+                <TableCell>{plan.foam_block}</TableCell>
+              </TableRow>
             );
           })}
         </TableBody>
