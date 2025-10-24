@@ -5,6 +5,10 @@
   padding-top: 80px;
 }
 
+.App.no-padding-top {
+  padding-top: 0 !important;
+}
+
 .content {
   flex: 1;
   padding: 20px;

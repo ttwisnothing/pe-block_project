@@ -30,7 +30,7 @@ export const getProduction = async (req, res) => {
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
                     const seconds = String(date.getSeconds()).padStart(2, '0');
-                    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+                    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
                 } catch (error) {
                     return "-";
                 }
@@ -40,10 +40,10 @@ export const getProduction = async (req, res) => {
                 if (!date) return "-";
                 try {
                     const d = new Date(date);
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
                     const year = d.getFullYear();
-                    return `${day}/${month}/${year}`;
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`; // <-- เปลี่ยนตรงนี้
                 } catch (error) {
                     return "-";
                 }
@@ -87,7 +87,7 @@ export const getProduction = async (req, res) => {
     }
 };
 
-export const getBatchRecord = async (req, res) => {
+export const getRunRecord = async (req, res) => {
     const { productionId } = req.params;
     if (!productionId) {
         return res.status(400).json({ message: "Missing productionId parameter." });
@@ -97,21 +97,21 @@ export const getBatchRecord = async (req, res) => {
         const request = pool.request();
         const query = `
             SELECT 
-                id, batch_no, record_date, program_no, product_name, operator_name
-            FROM FM_batch_record
+                id, run_no, record_date, program_no, product_name, operator_name
+            FROM FM_run_record
             WHERE production_record_id = @productionId
-            ORDER BY batch_no ASC
+            ORDER BY id ASC
         `;
         request.input('productionId', sql.Int, productionId);
         const result = await request.query(query);
         return res.status(200).json(result.recordset || []);
     } catch (error) {
-        console.error("❌ Error in fetching batch details:", error);
+        console.error("❌ Error in fetching run details:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
 
-export const getBatchRecordData = async (req, res) => {
+export const getRunRecordData = async (req, res) => {
     const { recordId } = req.params;
     if (!recordId) {
         return res.status(400).json({ message: "Missing recordId parameter." });
@@ -121,9 +121,9 @@ export const getBatchRecordData = async (req, res) => {
         	-- Prodcution Record Table
             FMPR.id AS FMPR_id, FMPR.product_name AS FMPR_productName,
 
-        	-- Batch Record Table
+        	-- Run Record Table
         	FMBR.id as FMBR_id,
-            FMBR.batch_no as FMBR_batchNo, FMBR.record_date as FMBR_recDate, FMBR.product_status as FMBR_productStatus,
+            FMBR.run_no as FMBR_runNo, FMBR.record_date as FMBR_recDate, FMBR.product_status as FMBR_productStatus,
             FMBR.program_no as FMBR_programNo, FMBR.emp_shift as FMBR_shift, FMBR.operator_name as FMBR_operator,
 
         	-- Chemical Name Table
@@ -157,18 +157,18 @@ export const getBatchRecordData = async (req, res) => {
 
             -- Foam Check Table
             FMFC.run_no AS FMFC_runNo, FMFC.foam_block_1 AS FMFC_foamBlock_1, FMFC.foam_block_2 AS FMFC_foamBlock_2, FMFC.foam_block_3 AS FMFC_foamBlock_3, FMFC.foam_block_4 AS FMFC_foamBlock_4,
-            FMFC.foam_block_5 AS FMFC_foamBlock_5, FMFC.foam_block_6 AS FMFC_foamBlock_6, FMFC.employee_record AS FMFC_employeeRecord
+            FMFC.foam_block_5 AS FMFC_foamBlock_5, FMFC.foam_block_6 AS FMFC_foamBlock_6, FMFC.employee_record AS FMFC_employeeRecord,  FMFC.exit_secondary_press AS FMFC_exitSecondaryPress
 
             FROM FM_production_record FMPR
-            LEFT JOIN FM_batch_record AS FMBR ON FMPR.id = FMBR.production_record_id
-        	LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.batch_record_id
-            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.batch_record_id
-            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.batch_record_id
-            LEFT JOIN FM_cut_step AS FMCU ON FMBR.id = FMCU.batch_record_id
-            LEFT JOIN FM_pre_press_step AS FMPP ON FMBR.id = FMPP.batch_record_id
-            LEFT JOIN FM_primary_press_step AS FMPMP ON FMBR.id = FMPMP.batch_record_id
-            LEFT JOIN FM_secondary_press_step AS FMSP ON FMBR.id = FMSP.batch_record_id
-            LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.batch_record_id
+            LEFT JOIN FM_run_record AS FMBR ON FMPR.id = FMBR.production_record_id
+        	LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.run_record_id
+            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.run_record_id
+            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.run_record_id
+            LEFT JOIN FM_cut_step AS FMCU ON FMBR.id = FMCU.run_record_id
+            LEFT JOIN FM_pre_press_step AS FMPP ON FMBR.id = FMPP.run_record_id
+            LEFT JOIN FM_primary_press_step AS FMPMP ON FMBR.id = FMPMP.run_record_id
+            LEFT JOIN FM_secondary_press_step AS FMSP ON FMBR.id = FMSP.run_record_id
+            LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.run_record_id
         WHERE FMBR.id = @recordId
     `;
     try {
@@ -182,10 +182,10 @@ export const getBatchRecordData = async (req, res) => {
             Object.keys(row).forEach(key => {
                 if (key === 'FMBR_recDate' && row[key]) {
                     const d = new Date(row[key]);
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
                     const year = d.getFullYear();
-                    formattedRow[key] = `${day}/${month}/${year}`;
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    formattedRow[key] = `${year}-${month}-${day}`;
                 } else {
                     formattedRow[key] = row[key] || "";
                 }
@@ -200,7 +200,7 @@ export const getBatchRecordData = async (req, res) => {
     }
 };
 
-export const getBatchStatus = async (req, res) => {
+export const getRunStatus = async (req, res) => {
     const { productionId } = req.params;
     if (!productionId) {
         return res.status(400).json({ message: "Missing productionId parameter." });
@@ -214,7 +214,7 @@ export const getBatchStatus = async (req, res) => {
         const query = `
             SELECT 
                 FMBR.id as FMBR_id,
-                FMBR.batch_no as FMBR_batchNo,
+                FMBR.run_no as FMBR_runNo,
                 FMCN.id AS FMCN_Id,
                 FMCW.id AS FMCW_Id,
                 FMMX.id AS FMMX_Id,
@@ -223,21 +223,21 @@ export const getBatchStatus = async (req, res) => {
                 FMPMP.id AS FMPMP_Id,
                 FMSP.id AS FMSP_Id,
                 FMFC.id AS FMFC_id
-            FROM FM_batch_record FMBR
-            LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.batch_record_id
-            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.batch_record_id
-            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.batch_record_id
-            LEFT JOIN FM_cut_step AS FMCU ON FMBR.id = FMCU.batch_record_id
-            LEFT JOIN FM_pre_press_step AS FMPP ON FMBR.id = FMPP.batch_record_id
-            LEFT JOIN FM_primary_press_step AS FMPMP ON FMBR.id = FMPMP.batch_record_id
-            LEFT JOIN FM_secondary_press_step AS FMSP ON FMBR.id = FMSP.batch_record_id
-            LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.batch_record_id
+            FROM FM_run_record FMBR
+            LEFT JOIN FM_chemical_name_step AS FMCN ON FMBR.id = FMCN.run_record_id
+            LEFT JOIN FM_chemical_weight_step AS FMCW ON FMBR.id = FMCW.run_record_id
+            LEFT JOIN FM_mixing_step AS FMMX ON FMBR.id = FMMX.run_record_id
+            LEFT JOIN FM_cut_step AS FMCU ON FMBR.id = FMCU.run_record_id
+            LEFT JOIN FM_pre_press_step AS FMPP ON FMBR.id = FMPP.run_record_id
+            LEFT JOIN FM_primary_press_step AS FMPMP ON FMBR.id = FMPMP.run_record_id
+            LEFT JOIN FM_secondary_press_step AS FMSP ON FMBR.id = FMSP.run_record_id
+            LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.run_record_id
             WHERE FMBR.production_record_id = @productionId
         `;
 
         const result = await request.query(query);
         if (result.recordset.length === 0) {
-            return res.status(404).json({ message: "No batch records found for this production." });
+            return res.status(404).json({ message: "No run records found for this production." });
         }
 
         const totalSteps = 8;
@@ -272,8 +272,8 @@ export const getBatchStatus = async (req, res) => {
             }
 
             return {
-                batchId: row.FMBR_id,
-                batchNo: row.FMBR_batchNo,
+                runId: row.FMBR_id,
+                runNo: row.FMBR_runNo,
                 status,
                 statusDisplay,
                 completedSteps,
@@ -286,7 +286,7 @@ export const getBatchStatus = async (req, res) => {
         return res.status(200).json(statusList);
     }
     catch (error) {
-        console.error("❌ Error in fetching batch status:", error);
+        console.error("❌ Error in fetching run status:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -308,7 +308,7 @@ export const upFirstStep = async (req, res) => {
         request.input('recordId', sql.Int, recordId);
 
         const query = `
-            UPDATE FM_batch_record
+            UPDATE FM_run_record
             SET 
                 record_date = @recordDate,
                 product_status = @productStatus,

@@ -331,9 +331,9 @@ const Navbar = () => {
           </ul>
         </li>
 
-        {/* Status Report */}
+        {/* Dashboard */}
         <li>
-          <Link to="/compare" className="nav-link" onClick={closeMenu}>
+          <Link to="/dashboard" className="nav-link" onClick={closeMenu}>
             <div className="nav-item-icon">
               <svg
                 width="20"
@@ -345,11 +345,32 @@ const Navbar = () => {
               </svg>
             </div>
             <div className="nav-link-content">
-              <span className="nav-link-title">Status Report</span>
-              <span className="nav-link-desc">รายงานสถานะการผลิต</span>
+              <span className="nav-link-title">Dashboard</span>
+              <span className="nav-link-desc">แดชบอร์ด</span>
             </div>
           </Link>
         </li>
+
+        {/* New Plantime */}
+        <li>
+          <Link to="/new-plantime" className="nav-link" onClick={closeMenu}>
+            <div className="nav-item-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M22 21h-2l1-4h1l-4-7h3l1-4h1l-4-6h2l-1 4h-1l4 7h-3l-1 4h-1l4 6zM3 5h2v14H3v-14zm4 2h2v12H7V7zm4 4h2v8h-2v-8z" />
+              </svg>
+            </div>
+            <div className="nav-link-content">
+              <span className="nav-link-title">New Plantime</span>
+              <span className="nav-link-desc">ตารางเวลาแบบใหม่</span>
+            </div>
+          </Link>
+        </li>
+
       </ul>
 
       {/* Backdrop for mobile */}

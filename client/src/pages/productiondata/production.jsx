@@ -18,10 +18,20 @@ import {
   IconButton,
   Fade,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { format } from "date-fns";
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -32,6 +42,9 @@ import AssessmentIcon from "@mui/icons-material/Assessment";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import BatchPredictionIcon from "@mui/icons-material/BatchPrediction";
+import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
+import BusinessIcon from "@mui/icons-material/Business";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -45,9 +58,161 @@ const Production = () => {
   const [dateTo, setDateTo] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [expandedRows, setExpandedRows] = useState({});
-  const [batchDetails, setBatchDetails] = useState({});
-  const [batchStatuses, setBatchStatuses] = useState({});
+  const [runDetails, setRunDetails] = useState({});
+  const [runStatuses, setRunStatuses] = useState({});
+  
+  // Modal States
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    productName: '',
+    startDate: null,
+    startTime: null,
+    totalBlock: '',
+    programName: '',
+    blockRound: '',
+    blockUsed: '',
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [productList, setProductList] = useState([]);
+  
   const navigate = useNavigate();
+
+  // ดึงรายการสินค้า
+  const fetchProductList = async () => {
+    try {
+      const response = await axios.get("/api/get/products");
+      setProductList(response.data.products || []);
+    } catch (err) {
+      console.error("Failed to fetch products:", err);
+    }
+  };
+
+  // เปิด Modal
+  const handleOpenCreateDialog = () => {
+    setCreateDialogOpen(true);
+    fetchProductList();
+  };
+
+  // ปิด Modal
+  const handleCloseCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setCreateFormData({
+      productName: '',
+      startDate: null,
+      startTime: null,
+      totalBlock: '',
+      programName: '',
+      blockRound: '',
+      blockUsed: '',
+    });
+  };
+
+  // จัดการการเปลี่ยนแปลงใน Form
+  const handleCreateFormChange = (field, value) => {
+    setCreateFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const formattedStartDate = createFormData.startDate
+    ? format(createFormData.startDate, "yyyy-MM-dd")
+    : null;
+
+  // ตรวจสอบและส่งข้อมูล
+  const handleCreateSubmit = async () => {
+    try {
+      // Validation
+      if (!createFormData.productName) {
+        toast.error("กรุณาเลือกชื่อสินค้า");
+        return;
+      }
+      if (!createFormData.startDate || !createFormData.startTime) {
+        toast.error("กรุณาระบุวันที่และเวลาเริ่มต้น");
+        return;
+      }
+      if (!createFormData.totalBlock) {
+        toast.error("กรุณาระบุจำนวนบล็อค");
+        return;
+      }
+      if (!createFormData.programName) {
+        toast.error("กรุณาระบุโปรแกรม");
+        return;
+      }
+      if (!createFormData.blockRound) {
+        toast.error("กรุณาระบุบล็อคต่อรอบ");
+        return;
+      }
+      if (!createFormData.blockUsed) {
+        toast.error("กรุณาระบุบล็อคที่ใช้");
+        return;
+      }
+
+      setCreateLoading(true);
+
+      // เตรียมข้อมูลสำหรับ plantime
+      let fristStart = createFormData.startTime;
+      const timeParts = fristStart.split(":");
+      const formattedTime = `${timeParts[0].padStart(2, "0")}:${timeParts[1].padStart(2, "0")}:${timeParts[2] || "00"}`;
+
+      const machineNames = [
+        createFormData.machine1 || "",
+        createFormData.machine2 || "",
+        createFormData.machine3 || "",
+        createFormData.machine4 || "",
+      ].filter((name) => name.trim() !== "");
+
+      if (machineNames.length === 0) {
+        toast.error("กรุณาระบุชื่อเครื่องจักรอย่างน้อย 1 เครื่อง");
+        setCreateLoading(false);
+        return;
+      }
+
+      const plantimePayload = {
+        fristStart: formattedTime,
+        blockTotal: parseInt(createFormData.totalBlock, 10),
+        blockRound: parseInt(createFormData.blockRound, 10),
+        blockUsed: parseInt(createFormData.blockUsed, 10),
+        programName: createFormData.programName,
+        mcNames: machineNames.map((name) =>
+          name.trim().startsWith("M") ? name.trim() : `M${name.trim()}`
+        ),
+        startDate: formattedStartDate,
+        startTime: formattedTime,
+      };     
+
+      const plantimeRes = await axios.post(
+        `/api/post/plantime/add/${createFormData.productName}`,
+        plantimePayload
+      );
+
+      const plantime_id = plantimeRes.data.plantime_id;
+      toast.success(plantimeRes.data.message || "✅ สร้างแผนเวลา (Plantime) สำเร็จ");
+
+      const productionPayload = {
+        plantime_id: plantime_id,
+        blockTotal: parseInt(createFormData.totalBlock, 10),
+        startDate: formattedStartDate,
+        startTime: formattedTime,
+        blockUsed: parseInt(createFormData.blockUsed, 10)
+      };
+
+      const prodRes = await axios.post('/api/post/new-production/head', productionPayload);
+
+      toast.success(prodRes.data.message || "✅ สร้าง Production สำเร็จ");
+      handleCloseCreateDialog();
+      await fetchProductionData();
+
+    } catch (err) {
+      console.error("Failed to create plantime/production:", err);
+      toast.error(
+        err.response?.data?.message ||
+          "เกิดข้อผิดพลาดในการสร้างแผนเวลา/production"
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const fetchProductionData = async (searchParams = {}) => {
     try {
@@ -74,49 +239,51 @@ const Production = () => {
     }
   };
 
-  const fetchBatchDetails = async (productionId) => {
+  // ดึง run records
+  const fetchRunDetails = async (productionId) => {
     try {
       const response = await axios.get(
-        `/api/get/production/${productionId}/batches`
+        `/api/get/production/${productionId}/run`
       );
-      setBatchDetails((prev) => ({
+      setRunDetails((prev) => ({
         ...prev,
         [productionId]: response.data || [],
       }));
 
-      // เรียก API เพื่อดึง batch status
-      await fetchBatchStatuses(productionId);
+      // ดึง run status
+      await fetchRunStatuses(productionId);
     } catch (err) {
-      console.error("Failed to fetch batch details:", err);
-      toast.error("ไม่สามารถดึงข้อมูล batch ได้");
+      console.error("Failed to fetch run details:", err);
+      toast.error("ไม่สามารถดึงข้อมูล Run ได้");
     }
   };
 
-  // เพิ่มฟังก์ชันใหม่สำหรับดึง batch status
-  const fetchBatchStatuses = async (productionId) => {
+  // ดึง run statuses
+  const fetchRunStatuses = async (productionId) => {
     try {
       const response = await axios.get(
-        `/api/get/production/batches/status/${productionId}`
+        `/api/get/production/run/status/${productionId}`
       );
-      setBatchStatuses((prev) => ({
+      setRunStatuses((prev) => ({
         ...prev,
         [productionId]: response.data || [],
       }));
     } catch (err) {
-      console.error("Failed to fetch batch statuses:", err);
-      // ไม่แสดง error toast เพราะไม่ใช่ข้อมูลหลัก
+      console.error("Failed to fetch run statuses:", err);
     }
   };
 
-  const handleCreateBatchRecord = async (
+  // สร้าง/ดูข้อมูล Run Record
+  const handleCreateRunRecord = async (
     productionId,
     productName,
-    batchNo,
-    batchId
+    runNo,
+    runId,
+    openInNewTab = false
   ) => {
     try {
       const dataResponse = await axios.get(
-        `/api/get/production/record-data/batches/${batchId}`
+        `/api/get/production/record-data/run/${runId}`
       );
       const existingData = dataResponse.data?.[0];
 
@@ -125,77 +292,78 @@ const Production = () => {
           state: {
             productionId,
             productName,
-            batchNo,
-            batchId,
+            runNo,
+            runId,
             existingData: null,
             isEdit: false,
             hasExistingData: false,
           },
         });
-        toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
+        toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Run ${runNo}`);
         return;
       }
 
-      // ใช้ข้อมูลที่ server ประมวลผลแล้ว
-      const statuses = batchStatuses[productionId] || [];
-      const batchStatus = statuses.find((status) => status.batchId === batchId);
+      const statuses = runStatuses[productionId] || [];
+      const runStatus = statuses.find((status) => status.runId === runId);
 
-      if (!batchStatus) {
-        toast.error("ไม่พบข้อมูลสถานะ batch");
+      if (!runStatus) {
+        toast.error("ไม่พบข้อมูลสถานะ Run");
         return;
       }
 
-      const { completedSteps, totalSteps, isCompleteData, hasSignificantData } = batchStatus;
+      const { completedSteps, totalSteps, isCompleteData, hasSignificantData } =
+        runStatus;
 
-      console.log(`📊 Batch ${batchNo} Analysis (from API):`, {
-        status: batchStatus.status,
+      const url = `/production-foam/create/${encodeURIComponent(productName)}`;
+      const state = {
+        productionId,
+        productName,
+        runNo,
+        runId,
+        existingData: existingData,
+        isEdit: isCompleteData,
+        hasExistingData: true,
         completedSteps,
         totalSteps,
-        isCompleteData,
-      });
+        autoNavigateToIncomplete: true,
+      };
 
-      navigate(`/production-foam/create/${encodeURIComponent(productName)}`, {
-        state: {
-          productionId,
-          productName,
-          batchNo,
-          batchId,
-          existingData: existingData,
-          isEdit: isCompleteData,
-          hasExistingData: true,
-          completedSteps,
-          totalSteps,
-          autoNavigateToIncomplete: true,
-        },
-      });
+      if (openInNewTab) {
+        window.open(
+          `${url}?state=${encodeURIComponent(JSON.stringify(state))}`,
+          "_blank"
+        );
+      } else {
+        navigate(url, { state });
+      }
 
       if (isCompleteData) {
         toast.success(
-          `✅ Batch ${batchNo} บันทึกครบแล้ว (${completedSteps}/${totalSteps} steps) - โหมดดูข้อมูล`
+          `✅ Run ${runNo} บันทึกครบแล้ว (${completedSteps}/${totalSteps} steps) - โหมดดูข้อมูล`
         );
       } else if (hasSignificantData) {
         toast.info(
-          `⚠️ Batch ${batchNo} มีข้อมูลบางส่วน (${completedSteps}/${totalSteps} steps) - ไปยัง step ที่ยังไม่เสร็จ`
+          `⚠️ Run ${runNo} มีข้อมูลบางส่วน (${completedSteps}/${totalSteps} steps) - ไปยัง step ที่ยังไม่เสร็จ`
         );
       } else {
         toast.info(
-          `🆕 Batch ${batchNo} เพิ่งเริ่มบันทึก (${completedSteps}/${totalSteps} steps) - เริ่มจากขั้นตอนแรก`
+          `🆕 Run ${runNo} เพิ่งเริ่มบันทึก (${completedSteps}/${totalSteps} steps) - เริ่มจากขั้นตอนแรก`
         );
       }
     } catch (err) {
-      console.error("Failed to fetch batch data:", err);
+      console.error("Failed to fetch run data:", err);
       navigate(`/production-foam/create/${encodeURIComponent(productName)}`, {
         state: {
+          runNo,
           productionId,
           productName,
-          batchNo,
-          batchId,
+          runId,
           existingData: null,
           isEdit: false,
           hasExistingData: false,
         },
       });
-      toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Batch ${batchNo}`);
+      toast.info(`เริ่มบันทึกข้อมูลใหม่สำหรับ Run ${runNo}`);
     }
   };
 
@@ -209,41 +377,41 @@ const Production = () => {
 
     if (!isExpanded) {
       // ถ้ายังไม่มี batch details ให้ดึงข้อมูลมาก่อน
-      if (!batchDetails[productionId]) {
-        await fetchBatchDetails(productionId);
+      if (!runDetails[productionId]) {
+        await fetchRunDetails(productionId);
       }
 
       // รอให้ state อัปเดตแล้วเช็คจาก response โดยตรง
       try {
         const response = await axios.get(
-          `/api/get/production/${productionId}/batches`
+          `/api/get/production/${productionId}/run`
         );
-        const currentBatches = response.data || [];
+        const currentRuns = response.data || [];
 
         // เช็คจาก response ล่าสุด แทนการเช็คจาก state
-        if (currentBatches.length === 0) {
+        if (currentRuns.length === 0) {
           // เรียก API เพื่อสร้าง batch records
           const createResponse = await axios.post(
-            `/api/post/production/${productionId}/batch-record/add`
+            `/api/post/production/${productionId}/run-record/add`
           );
 
           if (createResponse.status === 201) {
             toast.success(
-              `✅ สร้าง Batch Records สำเร็จ (${createResponse.data.totalBatchesCreated} รายการ)`
+              `✅ สร้าง Run Records สำเร็จ (${createResponse.data.totalRunsCreated} รายการ)`
             );
 
             // ดึงข้อมูล batch details ใหม่หลังจากสร้างเสร็จ
-            await fetchBatchDetails(productionId);
+            await fetchRunDetails(productionId);
           }
         } else {
-          console.log("ℹ️ Batches already exist:", currentBatches.length); // Debug log
+          console.log("ℹ️ Runs already exist:", currentRuns.length);
         }
       } catch (error) {
-        console.error("Failed to check/create batch records:", error);
+        console.error("Failed to check/create run records:", error);
         if (error.response?.status === 404) {
           toast.error("ไม่พบข้อมูลการผลิตที่ระบุ");
         } else {
-          toast.error("เกิดข้อผิดพลาดในการสร้าง Batch Records");
+          toast.error("เกิดข้อผิดพลาดในการสร้าง Run Records");
         }
       }
     }
@@ -283,8 +451,8 @@ const Production = () => {
     setDateTo(null);
     setSearchLoading(true);
     setExpandedRows({});
-    setBatchDetails({});
-    setBatchStatuses({});
+    setRunDetails({});
+    setRunStatuses({});
     try {
       await fetchProductionData();
       toast.info("รีเซ็ตการค้นหาเรียบร้อย");
@@ -293,16 +461,16 @@ const Production = () => {
     }
   };
 
-  // ใช้ฟังก์ชันง่ายๆ แทน
-  const getBatchStatusFromAPI = (productionId, batchId) => {
-    const statuses = batchStatuses[productionId] || [];
-    const batchStatus = statuses.find((status) => status.batchId === batchId);
-    
-    if (!batchStatus) {
+  // เปลี่ยนชื่อฟังก์ชัน
+  const getRunStatusFromAPI = (productionId, runId) => {
+    const statuses = runStatuses[productionId] || [];
+    const runStatus = statuses.find((status) => status.runId === runId);
+
+    if (!runStatus) {
       return { label: "ไม่มีข้อมูล", color: "default", icon: "❓" };
     }
-    
-    return batchStatus.statusDisplay;
+
+    return runStatus.statusDisplay;
   };
 
   return (
@@ -334,18 +502,28 @@ const Production = () => {
         <Fade in={true} timeout={1000}>
           <Paper elevation={0} className="production-search-card">
             <Box className="production-search-header">
-              <CalendarTodayIcon className="production-search-icon" />
-              <Typography variant="h6" className="production-search-title">
-                ค้นหาข้อมูล
-              </Typography>
+              <Box className="production-search-header-left">
+                <CalendarTodayIcon className="production-search-icon" />
+                <Typography variant="h6" className="production-search-title">
+                  ค้นหาข้อมูล
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleOpenCreateDialog}
+                className="production-create-button"
+              >
+                สร้างข้อมูลใหม่
+              </Button>
             </Box>
 
             <LocalizationProvider
               dateAdapter={AdapterDateFns}
               adapterLocale={th}
             >
-              <Grid container spacing={3} alignItems="center">
-                <Grid item xs={12} md={4}>
+              <Grid container spacing={3} sx={{ alignItems: "center" }}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <DatePicker
                     label="วันที่เริ่มต้น"
                     value={dateFrom}
@@ -361,7 +539,7 @@ const Production = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <DatePicker
                     label="วันที่สิ้นสุด"
                     value={dateTo}
@@ -377,7 +555,7 @@ const Production = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box className="production-action-buttons">
                     <Button
                       variant="contained"
@@ -409,6 +587,197 @@ const Production = () => {
             </LocalizationProvider>
           </Paper>
         </Fade>
+
+        {/* Create Production Dialog */}
+        <Dialog 
+          open={createDialogOpen} 
+          onClose={handleCloseCreateDialog}
+          maxWidth="md"
+          fullWidth
+          className="production-create-dialog"
+        >
+          <DialogTitle className="production-dialog-title">
+            <Box display="flex" alignItems="center" gap={1}>
+              <BusinessIcon color="primary" />
+              <Typography variant="h6" component="span">
+                สร้างข้อมูลการผลิตใหม่
+              </Typography>
+            </Box>
+            <IconButton
+              onClick={handleCloseCreateDialog}
+              className="production-dialog-close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          
+          <DialogContent dividers className="production-dialog-content">
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={th}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <FormControl fullWidth variant="outlined" className="production-form-field">
+                    <InputLabel>ชื่อสินค้า</InputLabel>
+                    <Select
+                      label="ชื่อสินค้า"
+                      value={createFormData.productName}
+                      onChange={(e) => handleCreateFormChange('productName', e.target.value)}
+                    >
+                      <MenuItem value="">
+                        -- เลือกชื่อสินค้า --
+                      </MenuItem>
+                      {productList.map((product, idx) => (
+                        <MenuItem key={product.id || idx} value={product.name}>
+                          {product.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="จำนวนบล็อค"
+                    type="text"
+                    fullWidth
+                    variant="outlined"
+                    value={createFormData.totalBlock}
+                    onChange={(e) => handleCreateFormChange('totalBlock', e.target.value)}
+                    className="production-form-field"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="โปรแกรม"
+                    value={createFormData.programName}
+                    onChange={(e) => handleCreateFormChange('programName', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <DatePicker
+                    label="วันที่เริ่มต้น"
+                    value={createFormData.startDate}
+                    onChange={(date) => handleCreateFormChange('startDate', date)}
+                    format="dd/MM/yyyy"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                        className: "production-form-field",
+                      },
+                    }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="เวลาเริ่มต้น"
+                    value={createFormData.startTime || ""}
+                    onChange={(e) => handleCreateFormChange('startTime', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                    placeholder="เช่น 08:00"
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="บล็อคต่อรอบ"
+                    type="text"
+                    value={createFormData.blockRound}
+                    onChange={(e) => handleCreateFormChange('blockRound', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="บล็อคที่ใช้"
+                    type="text"
+                    value={createFormData.blockUsed}
+                    onChange={(e) => handleCreateFormChange('blockUsed', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                    inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="Machine 1"
+                    value={createFormData.machine1 || ""}
+                    onChange={(e) => handleCreateFormChange('machine1', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="Machine 2"
+                    value={createFormData.machine2 || ""}
+                    onChange={(e) => handleCreateFormChange('machine2', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="Machine 3"
+                    value={createFormData.machine3 || ""}
+                    onChange={(e) => handleCreateFormChange('machine3', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField
+                    label="Machine 4"
+                    value={createFormData.machine4 || ""}
+                    onChange={(e) => handleCreateFormChange('machine4', e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    className="production-form-field"
+                  />
+                </Grid>
+              </Grid>
+            </LocalizationProvider>
+          </DialogContent>
+
+          <DialogActions className="production-dialog-actions">
+            <Button
+              onClick={handleCloseCreateDialog}
+              variant="outlined"
+              className="production-cancel-button"
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              onClick={handleCreateSubmit}
+              variant="contained"
+              startIcon={createLoading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+              disabled={createLoading}
+              className="production-save-button"
+            >
+              {createLoading ? "กำลังบันทึก..." : "บันทึก"}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Data Section */}
         <Fade in={true} timeout={1200}>
@@ -458,7 +827,7 @@ const Production = () => {
                           เวลาสิ้นสุด
                         </TableCell>
                         <TableCell className="production-table-header-cell">
-                          จำนวนแบทช์
+                          จำนวนบล็อค
                         </TableCell>
                         <TableCell className="production-table-header-cell">
                           สถานะ
@@ -467,19 +836,25 @@ const Production = () => {
                     </TableHead>
                     <TableBody>
                       {productionData.map((row, index) => {
-                        // ใช้ข้อมูลที่ server ประมวลผลแล้ว
                         const status = row.production_status;
                         const isExpanded = expandedRows[row.id];
-                        const batches = batchDetails[row.id] || [];
+                        const runs = runDetails[row.id] || [];
 
                         return (
                           <React.Fragment key={row.id}>
                             {/* Main Row */}
-                            <TableRow className="production-table-row">
+                            <TableRow 
+                              className="production-table-row"
+                              onClick={() => handleRowExpand(row.id)}
+                              style={{ cursor: 'pointer' }}
+                            >
                               <TableCell className="production-table-cell">
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleRowExpand(row.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRowExpand(row.id);
+                                  }}
                                   className="production-expand-button"
                                 >
                                   {isExpanded ? (
@@ -506,7 +881,7 @@ const Production = () => {
                               </TableCell>
                               <TableCell className="production-table-cell production-batch-cell">
                                 <Chip
-                                  label={row.total_batch || "0"}
+                                  label={row.total_block || "0"}
                                   variant="outlined"
                                   size="small"
                                   className="production-batch-chip"
@@ -522,7 +897,7 @@ const Production = () => {
                               </TableCell>
                             </TableRow>
 
-                            {/* Expanded Row - Batch Details */}
+                            {/* Expanded Row - Run Details */}
                             <TableRow>
                               <TableCell
                                 style={{ paddingBottom: 0, paddingTop: 0 }}
@@ -533,42 +908,41 @@ const Production = () => {
                                   timeout="auto"
                                   unmountOnExit
                                 >
-                                  <Box className="production-batch-details">
-                                    <Box className="production-batch-details-header">
+                                  <Box className="production-run-details">
+                                    <Box className="production-run-details-header">
                                       <Typography
                                         variant="h6"
-                                        className="production-batch-details-title"
+                                        className="production-run-details-title"
                                       >
-                                        <BatchPredictionIcon className="production-batch-icon" />
-                                        รายละเอียด Batch ({batches.length}{" "}
-                                        รายการ)
+                                        <BatchPredictionIcon className="production-run-icon" />
+                                        รายละเอียด Run ({runs.length} รายการ)
                                       </Typography>
                                     </Box>
 
-                                    {batches.length > 0 ? (
+                                    {runs.length > 0 ? (
                                       <Table
                                         size="small"
-                                        className="production-batch-table"
+                                        className="production-run-table"
                                       >
                                         <TableHead>
                                           <TableRow>
-                                            <TableCell className="production-batch-header-cell">
-                                              Batch No.
+                                            <TableCell className="production-run-header-cell">
+                                              Run No.
                                             </TableCell>
-                                            <TableCell className="production-batch-header-cell">
+                                            <TableCell className="production-run-header-cell">
                                               วันที่บันทึก
                                             </TableCell>
-                                            <TableCell className="production-batch-header-cell">
+                                            <TableCell className="production-run-header-cell">
                                               ชื่อผลิตภัณฑ์
                                             </TableCell>
-                                            <TableCell className="production-batch-header-cell">
+                                            <TableCell className="production-run-header-cell">
                                               พนักงานที่บันทึก
                                             </TableCell>
-                                            <TableCell className="production-batch-header-cell">
+                                            <TableCell className="production-run-header-cell">
                                               สถานะ
                                             </TableCell>
                                             <TableCell
-                                              className="production-batch-header-cell"
+                                              className="production-run-header-cell"
                                               style={{ width: "120px" }}
                                             >
                                               การจัดการ
@@ -576,48 +950,58 @@ const Production = () => {
                                           </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                          {batches.map((batch) => {
-                                            // ใช้ฟังก์ชันใหม่
-                                            const batchStatus = getBatchStatusFromAPI(
-                                              row.id,
-                                              batch.id
-                                            );
+                                          {runs.map((run) => {
+                                            const runStatus =
+                                              getRunStatusFromAPI(
+                                                row.id,
+                                                run.id
+                                              );
                                             const isCompleteData =
-                                              batchStatus.label === "บันทึกครบแล้ว";
+                                              runStatus.label ===
+                                              "บันทึกครบแล้ว";
 
                                             return (
                                               <TableRow
-                                                key={batch.id}
-                                                className="production-batch-row"
+                                                key={run.id}
+                                                className="production-run-row"
                                               >
-                                                <TableCell className="production-batch-cell production-batch-number">
+                                                <TableCell className="production-run-cell production-run-number">
                                                   <Chip
-                                                    label={batch.batch_no}
+                                                    label={run.run_no}
                                                     size="small"
                                                     variant="outlined"
-                                                    className="production-batch-number-chip"
+                                                    className="production-run-number-chip"
                                                   />
                                                 </TableCell>
-                                                <TableCell className="production-batch-cell">
-                                                  {batch.record_date ? 
-                                                    new Date(batch.record_date).toLocaleDateString('th-TH') 
+                                                <TableCell className="production-run-cell">
+                                                  {run.record_date
+                                                    ? new Date(run.record_date)
+                                                        .toLocaleDateString(
+                                                          "th-TH",
+                                                          {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                          }
+                                                        )
+                                                        .replace(/\//g, "-")
                                                     : "-"}
                                                 </TableCell>
-                                                <TableCell className="production-batch-cell">
-                                                  {batch.product_name || "-"}
+                                                <TableCell className="production-run-cell">
+                                                  {run.product_name || "-"}
                                                 </TableCell>
-                                                <TableCell className="production-batch-cell production-batch-time">
-                                                  {batch.operator_name || "-"}
+                                                <TableCell className="production-run-cell production-run-time">
+                                                  {run.operator_name || "-"}
                                                 </TableCell>
-                                                <TableCell className="production-batch-cell">
+                                                <TableCell className="production-run-cell">
                                                   <Chip
-                                                    label={`${batchStatus.icon} ${batchStatus.label}`}
-                                                    color={batchStatus.color}
+                                                    label={`${runStatus.icon} ${runStatus.label}`}
+                                                    color={runStatus.color}
                                                     size="small"
-                                                    className="production-batch-status-chip"
+                                                    className="production-run-status-chip"
                                                   />
                                                 </TableCell>
-                                                <TableCell className="production-batch-cell">
+                                                <TableCell className="production-run-cell">
                                                   <Button
                                                     variant={
                                                       isCompleteData
@@ -633,14 +1017,23 @@ const Production = () => {
                                                       )
                                                     }
                                                     onClick={() =>
-                                                      handleCreateBatchRecord(
-                                                        row.id,
-                                                        row.product_name,
-                                                        batch.batch_no,
-                                                        batch.id
-                                                      )
+                                                      isCompleteData
+                                                        ? handleCreateRunRecord(
+                                                            row.id,
+                                                            row.product_name,
+                                                            run.run_no,
+                                                            run.id,
+                                                            true
+                                                          )
+                                                        : handleCreateRunRecord(
+                                                            row.id,
+                                                            row.product_name,
+                                                            run.run_no,
+                                                            run.id,
+                                                            true
+                                                          )
                                                     }
-                                                    className="production-batch-create-button"
+                                                    className="production-run-create-button"
                                                     color={
                                                       isCompleteData
                                                         ? "info"
@@ -658,12 +1051,12 @@ const Production = () => {
                                         </TableBody>
                                       </Table>
                                     ) : (
-                                      <Box className="production-no-batch-data">
+                                      <Box className="production-no-run-data">
                                         <Typography
                                           variant="body2"
                                           color="textSecondary"
                                         >
-                                          ไม่มีข้อมูล Batch
+                                          ไม่มีข้อมูล Run
                                         </Typography>
                                       </Box>
                                     )}

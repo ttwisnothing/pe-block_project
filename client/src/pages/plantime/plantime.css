@@ -289,6 +289,21 @@
   padding-left: 4px;
 }
 
+/* Textarea Inputs */
+.plantime-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.plantime-textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
 /* Machines Container */
 .plantime-machines-container {
   display: grid;
@@ -547,6 +562,18 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Horizontal Group Styles */
+.plantime-horizontal-group {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.plantime-input-flex {
+  flex: 1;
+  min-width: 0; /* ป้องกันการ overflow */
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .plantime-main-container {
@@ -607,6 +634,11 @@
     align-items: flex-start;
     gap: 16px;
   }
+  
+  .plantime-horizontal-group {
+    flex-direction: column;
+    gap: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -628,6 +660,11 @@
   
   .plantime-machines-container {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .plantime-horizontal-group {
+    flex-direction: column;
     gap: 12px;
   }
 }

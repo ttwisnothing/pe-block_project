@@ -9,7 +9,7 @@ import {
   Paper,
 } from "@mui/material";
 import "./table.css";
- 
+
 const CustomTable = ({ data, formatTime, }) => {
   // ฟังก์ชันตรวจสอบว่าเป็นแถวแรกของรอบการผลิตหรือไม่
   const isFirstRowForRun = (index, data) => {

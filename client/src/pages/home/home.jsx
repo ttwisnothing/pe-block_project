@@ -136,14 +136,6 @@ const Home = () => {
               <Typography variant="h1" component="h1" className="home-hero-title">
                 PE-BLOCK DEPARTMENT
               </Typography>
-              <Typography variant="h4" className="home-hero-subtitle">
-                ระบบจัดการการผลิตที่ทันสมัยและมีประสิทธิภาพ
-              </Typography>
-              <Typography variant="h6" className="home-hero-description">
-                จัดการแผนการผลิต ติดตามข้อมูล และวิเคราะห์ผลผลิตแบบเรียลไทม์
-                <br />
-                เพื่อประสิทธิภาพสูงสุดในการผลิต PE Block
-              </Typography>
 
               {/* Digital Clock */}
               <Box className="home-digital-clock-container">
@@ -198,7 +190,7 @@ const Home = () => {
           
           <Grid container spacing={3}>
             {stats.map((stat, index) => (
-              <Grid item xs={6} md={3} key={index}>
+              <Grid size={{ xs: 6, md: 3 }} key={index}>
                 <Grow in={loaded} timeout={1000 + (index * 200)}>
                   <Card className="home-stat-card">
                     <CardContent className="home-stat-content">
@@ -239,7 +231,7 @@ const Home = () => {
           
           <Grid container spacing={4} className="home-features-grid">
             {features.map((feature, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
                 <Grow in={loaded} timeout={2000 + (index * 200)}>
                   <Card 
                     className="home-feature-card"
@@ -282,7 +274,7 @@ const Home = () => {
           </Typography>
           
           <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card className="home-action-card home-action-production">
                 <CardContent>
                   <Typography variant="h6">บันทึกข้อมูลการผลิต</Typography>
@@ -299,7 +291,7 @@ const Home = () => {
               </Card>
             </Grid>
             
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card className="home-action-card home-action-product">
                 <CardContent>
                   <Typography variant="h6">จัดการผลิตภัณฑ์</Typography>
@@ -316,7 +308,7 @@ const Home = () => {
               </Card>
             </Grid>
             
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card className="home-action-card home-action-report">
                 <CardContent>
                   <Typography variant="h6">รายงานสถานะ</Typography>
@@ -340,7 +332,7 @@ const Home = () => {
       <Box className="home-page-footer">
         <Container maxWidth="lg">
           <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" className="home-footer-title">
                 PE Block Department
               </Typography>
@@ -350,7 +342,7 @@ const Home = () => {
                 INOAC Industries (Thailand) Co., Ltd.
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" className="home-footer-copyright">
                 &copy; 2025 PE Block Department, Inoac Industries (Thailand) Co., Ltd.
                 <br />

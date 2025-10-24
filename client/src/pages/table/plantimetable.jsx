@@ -17,8 +17,24 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 
 let alertAudio = null;
 
-const playAlertSound = (alertDuration) => {
-  alertAudio = new Audio("/sounds/warning-beeping.mp3");
+const fieldSoundMap5Min = {
+  start_time: "/sounds/1. stand by autostart.wav",
+  primary_press_start: "/sounds/2. stand by primary press.wav",
+  stream_in: "/sounds/4. stand by stream in.wav",
+  secondary_press_1_start: "/sounds/3. stand by secondary press.wav",
+};
+
+const fieldSoundMapExact = {
+  start_time: "/sounds/1. auto start.wav",
+  primary_press_start: "/sounds/2. primary press.wav",
+  stream_in: "/sounds/4. stream in.wav",
+  secondary_press_1_start: "/sounds/3. out seccondary.wav",
+};
+
+// ปรับฟังก์ชันให้รับ mapping
+const playAlertSound = (alertDuration, fieldName, soundMap) => {
+  const soundSrc = soundMap[fieldName] || "/sounds/warning-beeping.mp3";
+  alertAudio = new Audio(soundSrc);
   alertAudio.play();
 
   setTimeout(() => {
@@ -61,7 +77,11 @@ const PlanTimeTable = () => {
       }
     }
 
-    if (!savedData || !savedData.planTimes || savedData.planTimes.length === 0) {
+    if (
+      !savedData ||
+      !savedData.planTimes ||
+      savedData.planTimes.length === 0
+    ) {
       toast.error("❌ ไม่มีข้อมูล Plan Time กรุณากลับไปเลือกใหม่");
       navigate("/plantime");
       return;
@@ -140,7 +160,6 @@ const PlanTimeTable = () => {
             diff >= NOTIFY_BEFORE_MS &&
             diff <= NOTIFY_WITHIN_MS
           ) {
-            // คำนวณเวลาที่เหลือเป็นนาที
             const minutesLeft = Math.floor(diff / 60000);
 
             toast.warn(
@@ -151,12 +170,17 @@ const PlanTimeTable = () => {
                 { hour12: false }
               )})`
             );
+
+            // เพิ่มเสียงแจ้งเตือนเฉพาะตอนเหลือ 5 นาที
+            if (minutesLeft === 5) {
+              playAlertSound(5000, key, fieldSoundMap5Min); // ใช้ mapping สำหรับ 5 นาที
+            }
           }
 
           // แจ้งเตือนเมื่อถึงเวลาพอดี
-          if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
+          if (diff >= 0 && diff <= EXACT_MATCH_THRESHOLD_MS) {
             let timeInterval;
-            const alertDuration = 5000; // 5 วินาที
+            const alertDuration = 5000;
 
             Swal.fire({
               title: "🚨 ถึงเวลาดำเนินการ!",
@@ -175,7 +199,7 @@ const PlanTimeTable = () => {
               showConfirmButton: true,
               confirmButtonText: "รับทราบ",
               didOpen: () => {
-                playAlertSound(alertDuration);
+                playAlertSound(alertDuration, key, fieldSoundMapExact); // ใช้ mapping สำหรับตรงเวลา
                 Swal.showLoading();
                 timeInterval = setInterval(() => {
                   const timer =
@@ -334,7 +358,7 @@ const PlanTimeTable = () => {
         return;
       }
       const response = await axios.get(`/api/get/plantime/${plantimeId}`);
-      
+
       if (response.data && response.data.planTimes) {
         const sortedPlanTimes = [...response.data.planTimes].sort((a, b) => {
           if (a.run_no !== b.run_no) {
@@ -379,13 +403,15 @@ const PlanTimeTable = () => {
           </Button>
         </div>
       </div>
- 
+
       <div className="plantimetable-product-info-section">
         <div className="plantimetable-table-header">
           <h2>
             <span className="plantimetable-product-label">สินค้า:</span>
             <span className="plantimetable-product-name">{productName}</span>
-            {colorName && <span className="plantimetable-product-color">({colorName})</span>}
+            {colorName && (
+              <span className="plantimetable-product-color">({colorName})</span>
+            )}
           </h2>
         </div>
 
@@ -394,7 +420,9 @@ const PlanTimeTable = () => {
           <div className="plantimetable-current-step">
             <div className="plantimetable-current-step-icon"></div>
             <div className="plantimetable-current-step-content">
-              <div className="plantimetable-current-step-label">ขั้นตอนปัจจุบัน:</div>
+              <div className="plantimetable-current-step-label">
+                ขั้นตอนปัจจุบัน:
+              </div>
               <div className="plantimetable-current-step-value">
                 {currentRow.closestField &&
                   currentRow.closestField.replace("_", " ")}
@@ -421,15 +449,19 @@ const PlanTimeTable = () => {
         >
           {isLoading ? "⏳ กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
         </Button>
-        
+
         <div className="plantimetable-status-info">
           <div className="plantimetable-status-item">
             <span className="plantimetable-status-label">จำนวนแผน:</span>
-            <span className="plantimetable-status-value">{planTimes.length} รายการ</span>
+            <span className="plantimetable-status-value">
+              {planTimes.length} รายการ
+            </span>
           </div>
           <div className="plantimetable-status-item">
             <span className="plantimetable-status-label">วันที่:</span>
-            <span className="plantimetable-status-value">{currentTime.toLocaleDateString("th-TH")}</span>
+            <span className="plantimetable-status-value">
+              {currentTime.toLocaleDateString("th-TH")}
+            </span>
           </div>
         </div>
       </div>

@@ -12,7 +12,8 @@
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 1.2rem;
+    font-size: 1.2rem; 
+    font-weight: bold; 
 }
 
 /* Table header */
@@ -20,12 +21,13 @@
     background-color: rgb(155, 194, 230);
     color: rgb(0, 0, 0);
     text-align: center;
-    padding: 10px;
+    padding: 12px;
     font-weight: bold;
     border: 1px solid #000000;
     position: sticky;
     top: 0;
     z-index: 1;
+    font-size: 1.1rem; 
 }
 
 /* Table body rows */
@@ -56,11 +58,12 @@
 
 /* Table cells */
 .custom-table td {
-    padding: 10px;
+    padding: 12px;
     word-wrap: break-word;
     text-align: center;
     border: 1px solid #ddd;
-    font-size: 1.1rem;
+    font-size: 1.1rem; 
+    font-weight: bold; 
     position: relative;
 }
 
@@ -91,7 +94,7 @@
     font-weight: bold;
     background-color: rgb(255, 238, 0);
     color: rgb(255, 0, 0);
-    font-size: 1.2rem !important;
+    font-size: 1.2rem !important; 
 }
 
 /* Highlight for missing time */

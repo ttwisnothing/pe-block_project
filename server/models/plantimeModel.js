@@ -1,10 +1,9 @@
 import { getPool } from "../config/db.js";
 import sql from "mssql";
 
-// คำนวณเวลาของ PlanTime จาก Recipe ที่เลือก และเพิ่มข้อมูลลงในฐานข้อมูล
 export const addPlantime = async (req, res) => {
-    let { product_name } = req.params; // เปลี่ยนจาก const เป็น let
-    const { fristStart, runRound, mcNames } = req.body;
+    let { product_name } = req.params;
+    const { fristStart, blockTotal, mcNames, programName, blockRound, blockUsed, startDate } = req.body;
 
     // แยกชื่อสินค้าและสีออกจาก product_name
     let color_name = '';
@@ -56,15 +55,15 @@ export const addPlantime = async (req, res) => {
 
         // คำนวณเวลาที่ต้องใช้ในแต่ละขั้นตอน
         let startTimes = fristStart;
-        let round = runRound;
-        let blockPerRound = products[0].bPerRound;
-        let blockUse = products[0].bUse;
+        let blockPerRound = blockRound;
+        let blockUse = blockUsed;
+        let runRound = Math.ceil(blockTotal / blockUse);
         let currentBlock = 0;
         let prevBlock = 0;
         let planTimeList = [];
 
-        if (cGroup === 'B-150') {
-            for (let i = 0; i < round; i++) {
+        if (cGroup === 'B-150') { // แก้แล้ว
+            for (let i = 0; i < runRound; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
@@ -75,7 +74,7 @@ export const addPlantime = async (req, res) => {
                         planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                         planTime.program_no = null;
-                        planTime.start_time = planTimeList[planTimeList.length - 1].primary_press_exit;
+                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].extruder_exit_time);
                         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
                         planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
                         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
@@ -124,7 +123,116 @@ export const addPlantime = async (req, res) => {
                             }
                         }
                     } else {
-                        if (i >= 5) {
+                        // if (i >= 5) {
+                        //     planTime.product_id = products[0].product_id;
+                        //     planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
+                        //     planTime.machine = mac[machineIndex];
+                        //     planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        //     planTime.program_no = null;
+                        //     planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+                        //     planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                        //     planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                        //     planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+
+                        //     planTimeList.push({ ...planTime });
+
+                        //     if (true) {
+                        //         planTime.product_id = products[0].product_id;
+                        //         planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
+                        //         planTime.machine = mac[machineIndex];
+                        //         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        //         planTime.program_no = null;
+                        //         planTime.start_time = planTimeList[planTimeList.length - 1].mixing;
+                        //         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                        //         planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                        //         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                        //         planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
+                        //         planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+                        //         planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+                        //         planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+                        //         planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+                        //         planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+                        //         planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+                        //         planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                        //         planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+                        //         planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+                        //         planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                        //         planTime.block = blockPerRound;
+
+                        //         planTimeList.push({ ...planTime });
+
+                        //         // อัปเดต pre_press_exit ของแถวแรก
+                        //         if (planTimeList.length > 1) {
+                        //             planTimeList[planTimeList.length - 2].pre_press_exit = planTime.pre_press_exit;
+                        //             planTimeList[planTimeList.length - 2].primary_press_start = planTime.primary_press_start;
+                        //             planTimeList[planTimeList.length - 2].stream_in = planTime.stream_in;
+                        //             planTimeList[planTimeList.length - 2].primary_press_exit = planTime.primary_press_exit;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_1_start = planTime.secondary_press_1_start;
+                        //             planTimeList[planTimeList.length - 2].temp_check_1 = planTime.temp_check_1;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_2_start = planTime.secondary_press_2_start;
+                        //             planTimeList[planTimeList.length - 2].temp_check_2 = planTime.temp_check_2;
+                        //             planTimeList[planTimeList.length - 2].cooling = planTime.cooling;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_exit = planTime.secondary_press_exit;
+                        //             planTimeList[planTimeList.length - 2].remove_work = planTime.remove_work;
+                        //             planTimeList[planTimeList.length - 2].block = planTime.block;
+                        //         }
+                        //     }
+                        // } else {
+                        //     planTime.product_id = products[0].product_id;
+                        //     planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
+                        //     planTime.machine = mac[machineIndex];
+                        //     planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        //     planTime.program_no = null;
+                        //     planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].extruder_exit_time);
+                        //     planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                        //     planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                        //     planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+
+                        //     planTimeList.push({ ...planTime });
+
+                        //     if (true) {
+                        //         planTime.product_id = products[0].product_id;
+                        //         planTime.run_no = planTimeList[planTimeList.length - 1].run_no;
+                        //         planTime.machine = mac[machineIndex];
+                        //         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
+                        //         planTime.program_no = null;
+                        //         planTime.start_time = planTimeList[planTimeList.length - 1].mixing;
+                        //         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
+                        //         planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
+                        //         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                        //         planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[1].pre_press_exit_time);
+                        //         planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+                        //         planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+                        //         planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+                        //         planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+                        //         planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+                        //         planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+                        //         planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+                        //         planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+                        //         planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+                        //         planTime.remove_work = addMinutes(planTime.secondary_press_exit, config[0].remove_workpiece);
+                        //         planTime.block = blockPerRound;
+
+                        //         planTimeList.push({ ...planTime });
+
+                        //         // อัปเดต pre_press_exit ของแถวแรก
+                        //         if (planTimeList.length > 1) {
+                        //             planTimeList[planTimeList.length - 2].pre_press_exit = planTime.pre_press_exit;
+                        //             planTimeList[planTimeList.length - 2].primary_press_start = planTime.primary_press_start;
+                        //             planTimeList[planTimeList.length - 2].stream_in = planTime.stream_in;
+                        //             planTimeList[planTimeList.length - 2].primary_press_exit = planTime.primary_press_exit;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_1_start = planTime.secondary_press_1_start;
+                        //             planTimeList[planTimeList.length - 2].temp_check_1 = planTime.temp_check_1;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_2_start = planTime.secondary_press_2_start;
+                        //             planTimeList[planTimeList.length - 2].temp_check_2 = planTime.temp_check_2;
+                        //             planTimeList[planTimeList.length - 2].cooling = planTime.cooling;
+                        //             planTimeList[planTimeList.length - 2].secondary_press_exit = planTime.secondary_press_exit;
+                        //             planTimeList[planTimeList.length - 2].remove_work = planTime.remove_work;
+                        //             planTimeList[planTimeList.length - 2].block = planTime.block;
+                        //         }
+                        //     }
+                        // }
+                        if ((i - 5) % 5 === 0) {
                             planTime.product_id = products[0].product_id;
                             planTime.run_no = planTimeList[planTimeList.length - 1].run_no + 1;
                             planTime.machine = mac[machineIndex];
@@ -184,7 +292,7 @@ export const addPlantime = async (req, res) => {
                             planTime.machine = mac[machineIndex];
                             planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                             planTime.program_no = null;
-                            planTime.start_time = planTimeList[planTimeList.length - 1].primary_press_exit;
+                            planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].extruder_exit_time);
                             planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
                             planTime.solid_block = addMinutes(planTime.mixing, config[0].solid_block);
                             planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
@@ -290,8 +398,8 @@ export const addPlantime = async (req, res) => {
                     }
                 }
             }
-        } else if (cGroup === 'RP-300S') {
-            for (let i = 0; i < round; i++) {
+        } else if (cGroup === 'RP-300S') { // แก้แล้ว
+            for (let i = 0; i < runRound; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
@@ -404,7 +512,7 @@ export const addPlantime = async (req, res) => {
                         planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                         planTime.program_no = null
-                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+                        planTime.start_time = addMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].adj_next_start);
                         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
                         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
                         planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
@@ -424,8 +532,8 @@ export const addPlantime = async (req, res) => {
                     }
                 }
             }
-        } else if (cGroup === 'B-4') {
-            for (let i = 0; i < round; i++) {
+        } else if (cGroup === 'B-4') { // แก้แล้ว
+            for (let i = 0; i < runRound; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
@@ -440,7 +548,7 @@ export const addPlantime = async (req, res) => {
                             planTime.program_no = null;
                             planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].adj_next_start);
                             planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
-                            planTime.extruder_exit = addMinutes(planTime.mixing, config[1].extruder_exit_time);
+                            planTime.extruder_exit = addMinutes(planTime.mixing, (config[1].extruder_exit_time / 2));
                             planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
                             planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
                             planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
@@ -619,7 +727,7 @@ export const addPlantime = async (req, res) => {
                         planTime.machine = mac[machineIndex];
                         planTime.batch_no = planTimeList[planTimeList.length - 1].batch_no + 1;
                         planTime.program_no = null
-                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[1].adj_next_start);
                         planTime.mixing = addMinutes(planTime.start_time, config[1].mixing_time);
                         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
                         planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
@@ -640,64 +748,116 @@ export const addPlantime = async (req, res) => {
                 }
             }
         } else if (cGroup === 'B-300FRE') {
-            for (let i = 0; i < round; i++) {
+            // if (blockUse === 6) {
+            // for (let i = 0; i < runRound; i++) {
+            //     const machineIndex = i % mac.length;
+            //     const planTime = {};
+
+            //     if (i >= 1) {
+            //         if (i === 1) {
+            //             currentBlock = blockPerRound;
+            //             planTime.product_id = products[0].product_id;
+            //             planTime.run_no = planTimeList.length + 1;
+            //             planTime.machine = mac[machineIndex];
+            //             planTime.batch_no = planTimeList.length + 1;
+            //             planTime.program_no = null
+            //             planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+            //             planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
+            //             planTime.extruder_exit = addMinutes(planTime.mixing, config[1].extruder_exit_time);
+            //             planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
+            //             planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+            //             planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+            //             planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+            //             planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+            //             planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+            //             planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+            //             planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+            //             planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+            //             planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+            //             planTime.block = blockUse;
+            //             prevBlock = currentBlock - planTime.block;
+
+            //             planTimeList.push({ ...planTime });
+            //         }
+            //         else {
+            //             currentBlock = blockPerRound;
+            //             planTime.product_id = products[0].product_id;
+            //             planTime.run_no = planTimeList.length + 1;
+            //             planTime.machine = mac[machineIndex];
+            //             planTime.batch_no = planTimeList.length + 1;
+            //             planTime.program_no = null
+            //             planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+            //             planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
+            //             planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+            //             planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
+            //             planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+            //             planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+            //             planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+            //             planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+            //             planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+            //             planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+            //             planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+            //             planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+            //             planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+            //             planTime.block = blockUse;
+            //             prevBlock = currentBlock - planTime.block;
+
+            //             planTimeList.push({ ...planTime });
+            //         }
+            //     }
+            //     else {
+            //         currentBlock = blockPerRound;
+            //         planTime.product_id = products[0].product_id;
+            //         planTime.run_no = planTimeList.length + 1;
+            //         planTime.machine = mac[machineIndex];
+            //         planTime.batch_no = planTimeList.length + 1;
+            //         planTime.program_no = null
+            //         planTime.start_time = startTimes;
+            //         planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
+            //         planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+            //         planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
+            //         planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
+            //         planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
+            //         planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
+            //         planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
+            //         planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
+            //         planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
+            //         planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
+            //         planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
+            //         planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
+            //         planTime.block = blockUse;
+            //         prevBlock = currentBlock - planTime.block;
+
+            //         planTimeList.push({ ...planTime });
+            //     }
+            // }
+            // } else if (blockUse === 9) {
+            for (let i = 0; i < runRound; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
-                if (i >= 1) {
-                    if (i === 1) {
-                        currentBlock = blockPerRound;
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList.length + 1;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
-                        planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[1].extruder_exit_time);
-                        planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                        planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                        planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                        planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                        planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                        planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                        planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                        planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                        planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                        planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                        planTime.block = blockUse;
-                        prevBlock = currentBlock - planTime.block;
+                if (i > 1) {
+                    planTime.product_id = products[0].product_id;
+                    planTime.run_no = planTimeList.length + 1;
+                    planTime.machine = mac[machineIndex];
+                    planTime.batch_no = planTimeList.length + 1;
+                    planTime.program_no = null
+                    planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
+                    planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
+                    planTime.solid_block = addMinutes(planTime.mixing, config[0].extruder_exit_time);
+                    planTime.extruder_exit = addMinutes(planTime.solid_block, config[0].pre_press_exit_time);
+                    planTime.mold_primary_press = addMinutes(planTime.mixing, config[1].primary_press_start);
+                    planTime.pre_press_exit = addMinutes(planTime.mold_primary_press, config[1].stream_in);
+                    planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_exit);
+                    planTime.primary_press_exit = addMinutes(planTime.primary_press_start, config[0].secondary_press_1_start);
+                    planTime.trolley_in = addMinutes(planTime.primary_press_exit, config[0].temp_check_1);
+                    planTime.trolley_out = addMinutes(planTime.trolley_in, config[0].secondary_press_2_start);
+                    planTime.remove_work = addMinutes(planTime.trolley_out, config[1].temp_check_2);
+                    planTime.block = blockUse;
 
-                        planTimeList.push({ ...planTime });
-                    }
-                    else {
-                        currentBlock = blockPerRound;
-                        planTime.product_id = products[0].product_id;
-                        planTime.run_no = planTimeList.length + 1;
-                        planTime.machine = mac[machineIndex];
-                        planTime.batch_no = planTimeList.length + 1;
-                        planTime.program_no = null
-                        planTime.start_time = reduceMinutes(planTimeList[planTimeList.length - 1].primary_press_exit, config[0].adj_next_start);
-                        planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                        planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                        planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                        planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                        planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                        planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                        planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                        planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                        planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                        planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                        planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                        planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                        planTime.block = blockUse;
-                        prevBlock = currentBlock - planTime.block;
-
-                        planTimeList.push({ ...planTime });
-                    }
+                    planTimeList.push({ ...planTime });
                 }
                 else {
-                    currentBlock = blockPerRound;
                     planTime.product_id = products[0].product_id;
                     planTime.run_no = planTimeList.length + 1;
                     planTime.machine = mac[machineIndex];
@@ -705,25 +865,12 @@ export const addPlantime = async (req, res) => {
                     planTime.program_no = null
                     planTime.start_time = startTimes;
                     planTime.mixing = addMinutes(planTime.start_time, config[0].mixing_time);
-                    planTime.extruder_exit = addMinutes(planTime.mixing, config[0].extruder_exit_time);
-                    planTime.pre_press_exit = addMinutes(planTime.extruder_exit, config[0].pre_press_exit_time);
-                    planTime.primary_press_start = addMinutes(planTime.pre_press_exit, config[0].primary_press_start);
-                    planTime.stream_in = addMinutes(planTime.primary_press_start, config[0].stream_in);
-                    planTime.primary_press_exit = addMinutes(planTime.stream_in, config[0].primary_press_exit);
-                    planTime.secondary_press_1_start = addMinutes(planTime.primary_press_exit, config[0].secondary_press_1_start);
-                    planTime.temp_check_1 = addMinutes(planTime.secondary_press_1_start, config[0].temp_check_1);
-                    planTime.secondary_press_2_start = addMinutes(planTime.temp_check_1, config[0].secondary_press_2_start);
-                    planTime.temp_check_2 = addMinutes(planTime.secondary_press_2_start, config[0].temp_check_2);
-                    planTime.cooling = addMinutes(planTime.temp_check_2, config[0].cooling_time);
-                    planTime.secondary_press_exit = addMinutes(planTime.cooling, config[0].secondary_press_exit);
-                    planTime.block = blockUse;
-                    prevBlock = currentBlock - planTime.block;
-
-                    planTimeList.push({ ...planTime });
+                    planTime.solid_block = addMinutes(planTime.mixing, config[0].extruder_exit_time);
                 }
             }
-        } else if (cGroup === 'A-110F') {
-            for (let i = 0; i < round; i++) {
+            // }
+        } else if (cGroup === 'A-110F') { // ปัญหาข้อมูลน้อยเกินไป
+            for (let i = 0; i < runRound; i++) {
                 const machineIndex = i % mac.length;
                 const planTime = {};
 
@@ -773,12 +920,20 @@ export const addPlantime = async (req, res) => {
         }
 
         // สร้าง plantime_id
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0'); // วัน
-        const mm = String(today.getMonth() + 1).padStart(2, '0'); // เดือน
-        const yyyy = today.getFullYear(); // ปี
-        const safeProduct = product_name.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(); // แปลงชื่อผลิตภัณฑ์ให้ปลอดภัยสำหรับการใช้ในฐานข้อมูล
-        const safeColor = color_name.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(); // แปลงชื่อสีให้ปลอดภัยสำหรับการใช้ในฐานข้อมูล
+        let today;
+        if (startDate) {
+            today = new Date(startDate);
+            if (isNaN(today.getTime())) {
+                today = new Date();
+            }
+        } else {
+            today = new Date();
+        }
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const safeProduct = product_name.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+        const safeColor = color_name.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
         let basePlntimeId = `PTID${yyyy}${mm}${dd}${safeProduct}${safeColor}`;
         let plantime_id = basePlntimeId;
 
@@ -793,10 +948,10 @@ export const addPlantime = async (req, res) => {
 
             const result = await pool.request().query(checkQuery);
             if (result.recordset[0].count === 0) {
-                isUnique = true; // ถ้าไม่มีข้อมูลซ้ำกัน
+                isUnique = true;
             } else {
                 suffix++;
-                plantime_id = `${basePlntimeId}_${suffix}`; // เพิ่ม suffix เพื่อสร้าง plantime_id ใหม่
+                plantime_id = `${basePlntimeId}_${suffix}`;
             }
         }
 
@@ -807,14 +962,14 @@ export const addPlantime = async (req, res) => {
 
             const query = `
                   INSERT INTO PT_plan_time_mst (
-                    product_id, plantime_id, run_no, machine, batch_no, start_time,
-                    mixing, solid_block, extruder_exit, mold_primary_press, pre_press_exit, primary_press_start,
+                    product_id, plantime_id, run_no, machine, batch_no, program_no,
+                    start_time, mixing, solid_block, extruder_exit, mold_primary_press, pre_press_exit, primary_press_start,
                     stream_in, primary_press_exit, secondary_press_1_start,
                     temp_check_1, secondary_press_2_start, temp_check_2, cooling, 
                     trolley_in, trolley_out, secondary_press_exit, remove_work, foam_block
                   ) VALUES (
                     ${sqlValue(plan.product_id)}, '${plantime_id}', ${sqlValue(plan.run_no)}, ${sqlValue(plan.machine)}, ${sqlValue(plan.batch_no)},
-                    ${sqlValue(plan.start_time)}, ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)}, 
+                    ${sqlValue(programName)}, ${sqlValue(plan.start_time)}, ${sqlValue(plan.mixing)}, ${sqlValue(plan.solid_block)}, ${sqlValue(plan.extruder_exit)},
                     ${sqlValue(plan.mold_primary_press)}, ${sqlValue(plan.pre_press_exit)}, ${sqlValue(plan.primary_press_start)}, 
                     ${sqlValue(plan.stream_in)}, ${sqlValue(plan.primary_press_exit)}, ${sqlValue(plan.secondary_press_1_start)},
                     ${sqlValue(plan.temp_check_1)}, ${sqlValue(plan.secondary_press_2_start)}, ${sqlValue(plan.temp_check_2)}, 
@@ -837,6 +992,8 @@ export const addPlantime = async (req, res) => {
             mac: Array.isArray(mcNames) ? mcNames : [],
             blockPerRound,
             blockUse,
+            blockTotal,
+            runRound,
             planTimeList
         });
 

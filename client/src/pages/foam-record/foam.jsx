@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation } from "react-router-dom";
+import qs from "qs";
 import {
   Container,
   Paper,
@@ -38,14 +39,14 @@ import {
 import axios from "axios";
 import "./foam.css";
 
+// steps array
 const steps = [
   "ข้อมูลพื้นฐาน",
-  "Chemical Name",
-  "Chemical Weight",
+  "Chemical Name & Weight",
   "Mixing Step",
   "Cutting Step",
   "Pre Press",
-  "Primary Press", // เพิ่ม step ใหม่
+  "Primary Press",
   "Secondary Press",
   "Foam Check",
 ];
@@ -53,11 +54,30 @@ const steps = [
 const FoamRecord = () => {
   const { productName } = useParams();
   const location = useLocation();
-  const productionId = location.state?.productionId;
-  const existingData = location.state?.existingData;
-  const isEdit = location.state?.isEdit || false;
-  const batchNo = location.state?.batchNo;
-  const batchId = location.state?.batchId;
+
+  // decode state from query string
+  const getStateFromQuery = () => {
+    const search = location.search;
+    if (!search) return null;
+    const params = qs.parse(search, { ignoreQueryPrefix: true });
+    if (params.state) {
+      try {
+        return JSON.parse(decodeURIComponent(params.state));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // รับ state จาก location หรือ query string
+  const state = location.state || getStateFromQuery() || {};
+  const productionId = state.productionId;
+  const existingData = state.existingData;
+  const isEdit = state.isEdit || false;
+  const runId = state.runId;
+  const runNo = state.runNo;
+  const autoNavigateToIncomplete = !!state?.autoNavigateToIncomplete;
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -69,72 +89,14 @@ const FoamRecord = () => {
 
   // Production Record State
   const [productionData, setProductionData] = useState({
-    batchNo: "",
-    recordDate: new Date().toISOString().split("T")[0],
+    runNo: "",
+    recordDate: new Date().toISOString().split("T")[0], // <-- ISO 8601: YYYY-MM-DD
     productStatus: "",
     programNo: "",
     productName: productName || "",
     shiftTime: "",
     operatorName: "",
   });
-
-  const getDataMaster = async () => {
-    try {
-      // productName ที่รับมาคือ "rp-300s (wh)"
-      const colorMatch = productName.match(/^(.+?)\s*\((.+)\)$/);
-      let extractedProductName, extractedColor;
-      if (colorMatch) {
-        extractedProductName = colorMatch[1].trim();
-        extractedColor = colorMatch[2].trim();
-      } else {
-        extractedProductName = productName;
-        extractedColor = null;
-      }
-
-      const params = new URLSearchParams({
-        product_name: extractedProductName,
-      });
-      if (extractedColor) params.append("color", extractedColor);
-
-      const response = await axios.get(
-        `/api/get/all-products?${params.toString()}`
-      );
-      const data = response.data;
-
-      setProductionData((prev) => ({
-        ...prev,
-        productName: data.productName || productName,
-        productStatus: data.status || prev.productStatus,
-      }));
-
-      // เช็คว่าเป็นการโหลดข้อมูลใหม่หรือมีข้อมูลเดิมแล้ว
-      if (Array.isArray(data.chemicals)) {
-        setChemicalNames((prevChemicals) => {
-          // เช็คว่ามีข้อมูล Chemical Names เดิมไหม
-          const hasExistingData = prevChemicals.some(
-            (chemical) =>
-              Object.values(chemical)[0] &&
-              Object.values(chemical)[0].trim() !== ""
-          );
-
-          if (hasExistingData) {
-            return prevChemicals;
-          }
-
-          const newChemicalNames = Array(15)
-            .fill("")
-            .map((_, i) => {
-              const chemicalName = data.chemicals[i] || "";
-              return { [`chemistry_${i + 1}`]: chemicalName };
-            });
-          return newChemicalNames;
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching product data:", error);
-      showAlert("❌ เกิดข้อผิดพลาดในการโหลดข้อมูลผลิตภัณฑ์", "error");
-    }
-  };
 
   // Chemical Name State
   const [chemicalNames, setChemicalNames] = useState(
@@ -143,9 +105,9 @@ const FoamRecord = () => {
       .map((_, i) => ({ [`chemistry_${i + 1}`]: "" }))
   );
 
-  // Chemical Weight State - ลบ ref field
+  // Chemical Weight State
   const [chemicalWeights, setChemicalWeights] = useState({
-    weights: Array(15).fill(""), // เก็บไว้ 15 ตัว
+    weights: Array(15).fill(""),
   });
 
   // Mixing Step State
@@ -202,7 +164,7 @@ const FoamRecord = () => {
     bakeTimePrimary: "",
   });
 
-  // Secondary Press State - แก้ไขให้ตรงกับ model
+  // Secondary Press State
   const [secondaryPressData, setSecondaryPressData] = useState({
     machineNo: "",
     programNo: "",
@@ -216,87 +178,56 @@ const FoamRecord = () => {
     tempOut: "",
   });
 
-  // Foam Check State - แก้ไขให้ตรงกับ model
+  // Foam Check State
   const [foamCheckData, setFoamCheckData] = useState({
     runNo: "",
-    foamBlock1: "", // เปลี่ยนเป็น "OK" หรือ "NG"
+    foamBlock1: "",
     foamBlock2: "",
     foamBlock3: "",
     foamBlock4: "",
     foamBlock5: "",
     foamBlock6: "",
     employeeRecord: "",
+    exitSecondaryPress: "",
   });
 
-  // เพิ่ม state สำหรับเก็บข้อมูล chemicals
   const [allChemicals, setAllChemicals] = useState([]);
   const [chemicalsLoading, setChemicalsLoading] = useState(false);
 
-  useEffect(() => {
-    // โหลด chemicals list ก่อนเสมอ
-    loadChemicals();
+  const hasInitialStepSet = useRef(false);
 
-    if (productName) {
-      setProductionData((prev) => ({
-        ...prev,
-        productName: decodeURIComponent(productName),
-        batchNo: batchNo || prev.batchNo,
-      }));
-
-      // ถ้าเป็นการแก้ไขและมีข้อมูลเดิม
-      if (isEdit && existingData) {
-        loadExistingData(existingData);
-
-        const incompleteStep = findFirstIncompleteStep(existingData);
-        setActiveStep(incompleteStep);
-        console.log(
-          `🎯 ไปที่ step ${incompleteStep} (${steps[incompleteStep]}) - ยังไม่บันทึก`
-        );
-
-        setTimeout(() => {
-          getDataMaster();
-        }, 100);
-      } else {
-        getDataMaster();
-
-        // ถ้ามี batchId ให้ลองเช็คข้อมูลเดิมด้วย
-        if (batchId) {
-          fetchBatchData();
-        }
+  // ฟังก์ชันแปลงวันที่เป็น YYYY-MM-DD (รองรับ MM/dd/yyyy, dd/MM/yyyy, yyyy-MM-dd)
+  const toISODate = useCallback((dateValue) => {
+    if (!dateValue) return "";
+    // ถ้าเป็น yyyy-MM-dd
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return dateValue;
+    // ถ้าเป็น dd/MM/yyyy หรือ MM/dd/yyyy
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateValue)) {
+      const [a, b, year] = dateValue.split("/");
+      // ถ้า a > 12 แปลว่าเป็น dd/MM/yyyy
+      if (parseInt(a, 10) > 12) {
+        return `${year}-${b.padStart(2, "0")}-${a.padStart(2, "0")}`;
       }
-    }
-  }, [productName, existingData, isEdit, batchNo, batchId]);
-
-  // เพิ่มฟังก์ชันใหม่สำหรับ fetch batch data
-  const fetchBatchData = async () => {
-    try {
-      const response = await axios.get(
-        `/api/get/production/record-data/batches/${batchId}`
-      );
-      const data = response.data?.[0];
-
-      if (data) {
-        loadExistingData(data);
-
-        // *** เพิ่มการเซ็ต active step ไปที่ step ที่ยังไม่เสร็จ ***
-        const incompleteStep = findFirstIncompleteStep(data);
-        setActiveStep(incompleteStep);
-
-        setTimeout(() => {
-          getDataMaster();
-        }, 100);
-      } else {
-        setActiveStep(0);
-        getDataMaster();
+      // ถ้า b > 12 แปลว่าเป็น MM/dd/yyyy
+      if (parseInt(b, 10) > 12) {
+        return `${year}-${a.padStart(2, "0")}-${b.padStart(2, "0")}`;
       }
-    } catch (error) {
-      console.error("Error fetching batch data:", error);
-      setActiveStep(0);
-      getDataMaster();
+      // ถ้าไม่แน่ใจ ให้เดาว่าเป็น MM/dd/yyyy
+      return `${year}-${a.padStart(2, "0")}-${b.padStart(2, "0")}`;
     }
-  };
+    // ถ้าเป็นรูปแบบอื่น
+    const d = new Date(dateValue);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split("T")[0];
+    }
+    return "";
+  }, []);
 
-  const loadChemicals = async () => {
+  const showAlert = useCallback((message, severity = "success") => {
+    setAlert({ open: true, message, severity });
+  }, []);
+
+  const loadChemicals = useCallback(async () => {
     setChemicalsLoading(true);
     try {
       const response = await axios.get("/api/get/chemicals");
@@ -307,11 +238,67 @@ const FoamRecord = () => {
     } finally {
       setChemicalsLoading(false);
     }
-  };
+  }, [showAlert]);
 
-  const showAlert = (message, severity = "success") => {
-    setAlert({ open: true, message, severity });
-  };
+  const getDataMaster = useCallback(async () => {
+    try {
+      const colorMatch = productName.match(/^(.+?)\s*\((.+)\)$/);
+      let extractedProductName, extractedColor;
+      if (colorMatch) {
+        extractedProductName = colorMatch[1].trim();
+        extractedColor = colorMatch[2].trim();
+      } else {
+        extractedProductName = productName;
+        extractedColor = null;
+      }
+
+      const params = new URLSearchParams({
+        product_name: extractedProductName,
+      });
+      if (extractedColor) params.append("color", extractedColor);
+
+      const response = await axios.get(
+        `/api/get/all-products?${params.toString()}`
+      );
+      const data = response.data;
+
+      setProductionData((prev) => ({
+        ...prev,
+        productName: data.productName || productName,
+        productStatus: data.status || prev.productStatus,
+      }));
+
+      if (Array.isArray(data.chemicals)) {
+        setChemicalNames((prevChemicals) => {
+          const hasExistingData = prevChemicals.some(
+            (chemical) =>
+              Object.values(chemical)[0] &&
+              Object.values(chemical)[0].trim() !== ""
+          );
+
+          if (hasExistingData) {
+            return prevChemicals;
+          }
+
+          const newChemicalNames = Array(15)
+            .fill("")
+            .map((_, i) => {
+              const chemicalName = data.chemicals[i] || "";
+              return { [`chemistry_${i + 1}`]: chemicalName };
+            });
+          return newChemicalNames;
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching product data:", error);
+      showAlert("❌ เกิดข้อผิดพลาดในการโหลดข้อมูลผลิตภัณฑ์", "error");
+    }
+  }, [productName, showAlert]);
+
+  useEffect(() => {
+    loadChemicals();
+    getDataMaster();
+  }, [loadChemicals, getDataMaster]);
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -324,47 +311,37 @@ const FoamRecord = () => {
   const handleSubmitStep = async (stepIndex) => {
     setLoading(true);
     try {
-      let response;
-      const currentBatchNo = parseInt(productionData.batchNo);
-
       switch (stepIndex) {
         case 0:
-          if (batchId) {
-            response = await axios.put(
-              `/api/put/production/update/record/${batchId}`,
-              {
-                batchNo: productionData.batchNo,
-                recordDate: productionData.recordDate,
-                productStatus: productionData.productStatus,
-                programNo: productionData.programNo,
-                productName: productionData.productName,
-                shiftTime: productionData.shiftTime,
-                operatorName: productionData.operatorName,
-              }
-            );
+          if (runId) {
+            await axios.put(`/api/put/production/update/record/${runId}`, {
+              runNo: productionData.runNo,
+              recordDate: productionData.recordDate,
+              productStatus: productionData.productStatus,
+              programNo: productionData.programNo,
+              productName: productionData.productName,
+              shiftTime: productionData.shiftTime,
+              operatorName: productionData.operatorName,
+            });
           } else {
-            showAlert("ไม่พบ batchId สำหรับอัพเดทข้อมูล", "error");
+            showAlert("ไม่พบ runId สำหรับอัพเดทข้อมูล", "error");
             return;
           }
           break;
 
         case 1: {
+          // Chemical Name
           const chemistryNames = chemicalNames.map((obj) => {
             const val = Object.values(obj)[0];
             return val === "" ? " " : val;
           });
 
-          response = await axios.post(
-            `/api/post/production/${batchId}/chemical-name/add`,
-            {
-              productionId: productionId,
-              chemistryName: chemistryNames,
-            }
-          );
-          break;
-        }
+          await axios.post(`/api/post/production/${runId}/chemical-name/add`, {
+            productionId: productionId,
+            chemistryName: chemistryNames,
+          });
 
-        case 2: {
+          // Chemical Weight
           const processedWeights = chemicalWeights.weights.map((w) => {
             if (w === "" || w === null || w === undefined) {
               return 0.0;
@@ -373,8 +350,8 @@ const FoamRecord = () => {
             return isNaN(numValue) ? 0.0 : numValue;
           });
 
-          response = await axios.post(
-            `/api/post/production/${batchId}/chemical-weight/add`,
+          await axios.post(
+            `/api/post/production/${runId}/chemical-weight/add`,
             {
               productionId: productionId,
               chemistryWeight: processedWeights,
@@ -383,70 +360,57 @@ const FoamRecord = () => {
           break;
         }
 
+        case 2:
+          await axios.post(`/api/post/production/${runId}/mixing-step/add`, {
+            productionId: productionId,
+            ...mixingData,
+          });
+          break;
+
         case 3:
-          response = await axios.post(
-            `/api/post/production/${batchId}/mixing-step/add`,
-            {
-              productionId: productionId,
-              ...mixingData,
-            }
-          );
+          await axios.post(`/api/post/production/${runId}/cutting-step/add`, {
+            productionId: productionId,
+            ...cuttingData,
+          });
           break;
 
         case 4:
-          response = await axios.post(
-            `/api/post/production/${batchId}/cutting-step/add`,
-            {
-              productionId: productionId,
-              ...cuttingData,
-            }
-          );
+          await axios.post(`/api/post/production/${runId}/pre-press-step/add`, {
+            productionId: productionId,
+            ...prePressData,
+          });
           break;
 
         case 5:
-          response = await axios.post(
-            `/api/post/production/${batchId}/pre-press-step/add`,
-            {
-              productionId: productionId,
-              ...prePressData,
-            }
-          );
+          await axios.post(`/api/post/production/${runId}/primary-press/add`, {
+            productionId: productionId,
+            ...primaryPressData,
+          });
           break;
 
         case 6:
-          response = await axios.post(
-            `/api/post/production/${batchId}/primary-press/add`,
-            {
-              productionId: productionId,
-              ...primaryPressData,
-            }
-          );
+          await axios.post(`/api/post/production/${runId}/second-press/add`, {
+            productionId: productionId,
+            ...secondaryPressData,
+          });
           break;
 
         case 7:
-          response = await axios.post(
-            `/api/post/production/${batchId}/second-press/add`,
-            {
-              productionId: productionId,
-              ...secondaryPressData,
-            }
-          );
-          break;
-
-        case 8:
-          response = await axios.post(
-            `/api/post/production/${batchId}/foam-check/add`,
-            {
-              productionId: productionId,
-              ...foamCheckData,
-            }
-          );
+          await axios.post(`/api/post/production/${runId}/foam-check/add`, {
+            productionId: productionId,
+            ...foamCheckData,
+          });
           break;
       }
 
       showAlert(`✅ ${steps[stepIndex]} บันทึกสำเร็จ!`);
       if (stepIndex < steps.length - 1) {
         handleNext();
+      } else {
+        // ถ้าเป็น step สุดท้าย (Foam Check) ให้ปิดแท็บ
+        setTimeout(() => {
+          window.close();
+        }, 800); // รอ 0.8 วิ ให้เห็น snackbar
       }
     } catch (error) {
       console.error("Error saving step:", error);
@@ -460,7 +424,6 @@ const FoamRecord = () => {
     const icons = [
       <AccountIcon />,
       <ScienceIcon />,
-      <ScaleIcon />,
       <BlenderIcon />,
       <CutIcon />,
       <CompressIcon />,
@@ -471,6 +434,7 @@ const FoamRecord = () => {
     return icons[step];
   };
 
+  // แก้ไข renderStepContent
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -497,136 +461,207 @@ const FoamRecord = () => {
                 />
               </Box>
 
-              <Grid container spacing={3} className="foam-form-grid">
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Batch Number"
-                    type="number"
-                    value={productionData.batchNo}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        batchNo: e.target.value,
-                      })
-                    }
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    required
-                  />
+              <Grid container spacing={2} className="foam-form-grid">
+                {/* Run Number */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        Run Number
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        type="number"
+                        value={productionData.runNo}
+                        onChange={(e) =>
+                          setProductionData({
+                            ...productionData,
+                            runNo: e.target.value,
+                          })
+                        }
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                        disabled={isEdit}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="ชื่อผลิตภัณฑ์"
-                    value={productionData.productName}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        productName: e.target.value,
-                      })
-                    }
-                    className="foam-text-field foam-disabled-field"
-                    disabled
-                    required
-                  />
+                {/* Product Name */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        ชื่อผลิตภัณฑ์
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        value={productionData.productName}
+                        onChange={(e) =>
+                          setProductionData({
+                            ...productionData,
+                            productName: e.target.value,
+                          })
+                        }
+                        className="foam-text-field foam-disabled-field"
+                        disabled
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="สถานะ"
-                    value={productionData.productStatus}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        productStatus: e.target.value,
-                      })
-                    }
-                    className="foam-text-field foam-disabled-field"
-                    disabled
-                    required
-                  />
+                {/* สถานะ */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>สถานะ</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        value={productionData.productStatus}
+                        onChange={(e) =>
+                          setProductionData({
+                            ...productionData,
+                            productStatus: e.target.value,
+                          })
+                        }
+                        className="foam-text-field foam-disabled-field"
+                        disabled
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="โปรแกรมหมายเลข"
-                    type="number"
-                    value={productionData.programNo}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        programNo: e.target.value,
-                      })
-                    }
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    required
-                  />
+                {/* โปรแกรม */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        โปรแกรม
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        type="number"
+                        value={productionData.programNo}
+                        onChange={(e) =>
+                          setProductionData({
+                            ...productionData,
+                            programNo: e.target.value,
+                          })
+                        }
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                        disabled={isEdit}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="วันที่บันทึก"
-                    type="text" // เปลี่ยนจาก "date" เป็น "text"
-                    value={formatDateForDisplay(productionData.recordDate)} // แสดงเป็น dd/MM/yyyy
-                    onChange={(e) => {
-                      // ถ้าต้องการให้แก้ไขได้ ต้องเพิ่ม validation และ conversion
-                      if (!isEdit) {
-                        setProductionData({
-                          ...productionData,
-                          recordDate: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    placeholder="dd/MM/yyyy"
-                    InputLabelProps={{ shrink: true }}
-                    required
-                  />
+                {/* วันที่บันทึก */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        วันที่บันทึก
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        type="date"
+                        value={productionData.recordDate}
+                        onChange={(e) => {
+                          setProductionData({
+                            ...productionData,
+                            recordDate: e.target.value,
+                          });
+                        }}
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                        disabled={isEdit}
+                        InputLabelProps={{ shrink: true }}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="ชื่อผู้ปฏิบัติงาน"
-                    value={productionData.operatorName}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        operatorName: e.target.value,
-                      })
-                    }
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    required
-                  />
+                {/* ชื่อผู้ปฏิบัติงาน */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        ชื่อผู้ปฏิบัติงาน
+                      </Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        value={productionData.operatorName}
+                        onChange={(e) =>
+                          setProductionData({
+                            ...productionData,
+                            operatorName: e.target.value,
+                          })
+                        }
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                        disabled={isEdit}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="กะ"
-                    value={productionData.shiftTime}
-                    onChange={(e) =>
-                      setProductionData({
-                        ...productionData,
-                        shiftTime: e.target.value,
-                      })
-                    }
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    required
-                  />
+                {/* กะ */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid size={{ xs: 4 }}>
+                      <Typography sx={{ fontWeight: 500 }}>กะ</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 8 }}>
+                      <FormControl
+                        fullWidth
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                      >
+                        <Select
+                          value={productionData.shiftTime}
+                          onChange={(e) =>
+                            setProductionData({
+                              ...productionData,
+                              shiftTime: e.target.value,
+                            })
+                          }
+                          disabled={isEdit}
+                          required
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <em>เลือกกะ</em>
+                          </MenuItem>
+                          <MenuItem value="เช้า">เช้า</MenuItem>
+                          <MenuItem value="ดึก">ดึก</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
             </Paper>
@@ -634,13 +669,14 @@ const FoamRecord = () => {
         );
 
       case 1:
+        // รวม Chemical Name และ Weight ในหน้าเดียว
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
               <Box className="foam-step-header">
                 <ScienceIcon className="foam-step-icon" />
                 <Typography variant="h6" className="foam-step-title">
-                  Chemical Names (15 สารเคมี)
+                  Chemical Names & Weights
                   {isEdit && (
                     <Chip
                       label="โหมดดูข้อมูล"
@@ -657,151 +693,116 @@ const FoamRecord = () => {
                 />
               </Box>
 
-              <Grid container spacing={2} className="foam-form-grid">
+              <Box sx={{ p: 2 }}>
                 {chemicalNames.map((item, index) => (
-                  <Grid item xs={12} md={6} lg={4} key={index}>
-                    <FormControl
-                      fullWidth
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                    >
-                      <InputLabel id={`chemistry-${index}-label`}>
-                        Chemistry {index + 1}
-                      </InputLabel>
-                      <Select
-                        labelId={`chemistry-${index}-label`}
-                        value={Object.values(item)[0] === " " ? "" : Object.values(item)[0]}
-                        label={`Chemistry ${index + 1}`}
+                  <Grid
+                    container
+                    spacing={2}
+                    sx={{ alignItems: "center", mb: 1 }}
+                    key={index
+                    }
+                  >
+                    {/* Label สารเคมีตัวที่ n */}
+                    <Grid size={{ xs: 12, md: 3, lg: 2 }}>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        {`สารเคมีตัวที่ ${index + 1}`}
+                      </Typography>
+                    </Grid>
+                    {/* Select Chemical Name */}
+                    <Grid size={{ xs: 12, md: 5, lg: 5 }}>
+                      <FormControl
+                        fullWidth
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                      >
+                        <Select
+                          value={
+                            Object.values(item)[0] === " "
+                              ? ""
+                              : Object.values(item)[0]
+                          }
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              const newChemicals = [...chemicalNames];
+                              newChemicals[index] = {
+                                [`chemistry_${index + 1}`]: e.target.value,
+                              };
+                              setChemicalNames(newChemicals);
+                            }
+                          }}
+                          disabled={isEdit || chemicalsLoading}
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <em>-- เลือกสารเคมี --</em>
+                          </MenuItem>
+                          {allChemicals.map((chemical, chemIndex) => (
+                            <MenuItem
+                              key={`chemical-${chemIndex}`}
+                              value={chemical.name}
+                            >
+                              {chemical.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    {/* ช่องกรอกน้ำหนัก */}
+                    <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        value={chemicalWeights.weights[index]}
+                        placeholder="0.00"
                         onChange={(e) => {
                           if (!isEdit) {
-                            const newChemicals = [...chemicalNames];
-                            newChemicals[index] = {
-                              [`chemistry_${index + 1}`]: e.target.value,
-                            };
-                            setChemicalNames(newChemicals);
+                            const newWeights = [...chemicalWeights.weights];
+                            newWeights[index] = e.target.value;
+                            setChemicalWeights({
+                              weights: newWeights,
+                            });
                           }
                         }}
-                        disabled={isEdit || chemicalsLoading}
-                      >
-                        <MenuItem value="">
-                          <em>-- เลือกสารเคมี --</em>
-                        </MenuItem>
-                        {allChemicals.map((chemical, chemIndex) => (
-                          <MenuItem
-                            key={`chemical-${chemIndex}`}
-                            value={chemical.name}
-                          >
-                            {chemical.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        className={`foam-text-field ${
+                          isEdit ? "foam-disabled-field" : ""
+                        }`}
+                        disabled={isEdit}
+                        InputProps={{
+                          inputProps: {
+                            min: 0,
+                            step: "0.01",
+                            style: {
+                              color:
+                                chemicalWeights.weights[index] === ""
+                                  ? "#999"
+                                  : "inherit",
+                            },
+                          },
+                        }}
+                      />
+                    </Grid>
                   </Grid>
                 ))}
-              </Grid>
-
-              {chemicalsLoading && (
-                <Box display="flex" justifyContent="center" mt={2}>
-                  <CircularProgress size={24} />
-                  <Typography variant="body2" sx={{ ml: 1 }}>
-                    กำลังโหลดรายการสารเคมี...
-                  </Typography>
-                </Box>
-              )}
+                {chemicalsLoading && (
+                  <Box display="flex" justifyContent="center" mt={2}>
+                    <CircularProgress size={24} />
+                    <Typography variant="body2" sx={{ ml: 1 }}>
+                      กำลังโหลดรายการสารเคมี...
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Paper>
           </Fade>
         );
 
       case 2:
-        return (
-          <Fade in timeout={500}>
-            <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <ScaleIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Chemical Weights
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+        // Mixing Step - แก้ไขให้เหมือน Secondary Press
+        const mixingKeys = Object.keys(mixingData);
+        const mixingLeftKeys = mixingKeys.slice(0, 6); // ครึ่งแรก
+        const mixingRightKeys = mixingKeys.slice(6); // ครึ่งหลัง
 
-              {/* เพิ่ม Ref Chip */}
-              <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
-                <Chip
-                  label={`Ref: ${
-                    productionData.batchNo
-                      ? (parseFloat(productionData.batchNo) + 0.3).toFixed(1)
-                      : "0.3"
-                  }`}
-                  color="primary"
-                  variant="outlined"
-                  size="large"
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: "bold",
-                    py: 2,
-                    px: 3,
-                    height: "auto",
-                    "& .MuiChip-label": {
-                      px: 2,
-                      py: 1,
-                    },
-                  }}
-                />
-              </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                {chemicalWeights.weights.map((weight, index) => (
-                  <Grid item xs={12} md={6} lg={4} key={index}>
-                    <TextField
-                      fullWidth
-                      label={`Weight ${index + 1}`}
-                      type="number"
-                      value={weight}
-                      placeholder="0.00" // เพิ่ม placeholder
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          const newWeights = [...chemicalWeights.weights];
-                          newWeights[index] = e.target.value;
-                          setChemicalWeights({
-                            weights: newWeights,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                      InputProps={{
-                        inputProps: {
-                          min: 0,
-                          step: "0.01",
-                          style: {
-                            color: weight === "" ? "#999" : "inherit", // สีอ่อนถ้าเป็นช่องว่าง
-                          },
-                        },
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Paper>
-          </Fade>
-        );
-
-      case 3:
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -824,52 +825,118 @@ const FoamRecord = () => {
                   className="foam-production-chip"
                 />
               </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                {Object.entries(mixingData).map(([key, value]) => (
-                  <Grid item xs={12} md={6} lg={4} key={key}>
-                    <TextField
-                      fullWidth
-                      label={key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                      type={
-                        [
-                          "programNo",
-                          "hopperWeight",
-                          "lipHeat",
-                          "casingA",
-                          "casingB",
-                          "tempHopper",
-                          "longScrew",
-                          "shortScrew",
-                          "waterHeat",
-                        ].includes(key)
-                          ? "number"
-                          : "text"
-                      }
-                      value={value}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setMixingData({
-                            ...mixingData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                    />
-                  </Grid>
-                ))}
+              <Grid container spacing={2}>
+                {/* ฝั่งซ้าย */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {mixingLeftKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {mixingLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            [
+                              "programNo",
+                              "hopperWeight",
+                              "casingA",
+                              "casingB",
+                              "tempHopper",
+                              "longScrew",
+                              "shortScrew",
+                              "waterHeat",
+                            ].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={mixingData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setMixingData({
+                                ...mixingData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+                {/* ฝั่งขวา */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {mixingRightKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {mixingLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            [
+                              "programNo",
+                              "hopperWeight",
+                              "casingA",
+                              "casingB",
+                              "tempHopper",
+                              "longScrew",
+                              "shortScrew",
+                              "waterHeat",
+                            ].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={mixingData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setMixingData({
+                                ...mixingData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
               </Grid>
             </Paper>
           </Fade>
         );
 
-      case 4:
+      case 3:
+        // Cutting Step - แก้ไขให้เหมือน Secondary Press
+        const cuttingKeys = Object.keys(cuttingData);
+        const cuttingLeftKeys = cuttingKeys.slice(0, 5); // wb1-wb5
+        const cuttingRightKeys = cuttingKeys.slice(5); // wb5-wb9, weightRemain, staffSave, startPress, mixFinish
+
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -892,100 +959,118 @@ const FoamRecord = () => {
                   className="foam-production-chip"
                 />
               </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                <Grid item xs={12}>
-                  <Typography
-                    variant="subtitle1"
-                    className="foam-section-title"
-                  >
-                    Weight Blocks (1-9)
-                  </Typography>
+              <Grid container spacing={2}>
+                {/* ฝั่งซ้าย */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {cuttingLeftKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {cuttingLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type="number"
+                          value={cuttingData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setCuttingData({
+                                ...cuttingData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                          placeholder="0.00"
+                          InputProps={{
+                            inputProps: {
+                              min: 0,
+                              step: "0.01",
+                            },
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
                 </Grid>
-                {[
-                  "wb1",
-                  "wb2",
-                  "wb3",
-                  "wb4",
-                  "wb5",
-                  "wb6",
-                  "wb7",
-                  "wb8",
-                  "wb9",
-                ].map((key) => (
-                  <Grid item xs={12} md={6} lg={4} key={key}>
-                    <TextField
-                      fullWidth
-                      label={`Weight Block ${key.slice(-1)}`}
-                      type="number"
-                      value={cuttingData[key]}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setCuttingData({
-                            ...cuttingData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                      InputProps={{
-                        inputProps: {
-                          min: 0,
-                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
-                          placeholder: "0.00",
-                        },
-                      }}
-                    />
-                  </Grid>
-                ))}
-                <Grid item xs={12}>
-                  <Typography
-                    variant="subtitle1"
-                    className="foam-section-title"
-                  >
-                    Additional Information
-                  </Typography>
+                {/* ฝั่งขวา */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {cuttingRightKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {cuttingLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            ["staffSave", "startPress", "mixFinish"].includes(key)
+                              ? "text"
+                              : "number"
+                          }
+                          value={cuttingData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setCuttingData({
+                                ...cuttingData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                          placeholder={
+                            ["staffSave", "startPress", "mixFinish"].includes(key)
+                              ? ""
+                              : "0.00"
+                          }
+                          InputProps={
+                            !["staffSave", "startPress", "mixFinish"].includes(key)
+                              ? {
+                                  inputProps: {
+                                    min: 0,
+                                    step: "0.01",
+                                  },
+                                }
+                              : undefined
+                          }
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
                 </Grid>
-                {["weightRemain"].map((key) => (
-                  <Grid item xs={12} md={6} key={key}>
-                    <TextField
-                      fullWidth
-                      label={key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                      type={key === "weightRemain" ? "number" : "text"}
-                      value={cuttingData[key]}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setCuttingData({
-                            ...cuttingData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                      InputProps={{
-                        inputProps: {
-                          min: 0,
-                          step: "0.01", // รองรับทศนิยม 2 ตำแหน่ง
-                          placeholder: "0.00",
-                        },
-                      }}
-                    />
-                  </Grid>
-                ))}
               </Grid>
             </Paper>
           </Fade>
         );
 
-      case 5:
+      case 4:
+        // Pre Press Step - แก้ไขให้เหมือน Secondary Press
+        const prePressKeys = Object.keys(prePressData);
+        const prePressLeftKeys = prePressKeys.slice(0, 2); // tempPrePress, waterHeat1
+        const prePressRightKeys = prePressKeys.slice(2); // waterHeat2, bakeTimePrePress
+
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -1002,94 +1087,106 @@ const FoamRecord = () => {
                     />
                   )}
                 </Typography>
+                <Chip
+                  label={`Production ID: ${productionId}`}
+                  variant="outlined"
+                  className="foam-production-chip"
+                />
               </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Temperature Pre Press"
-                    type="number"
-                    value={prePressData.tempPrePress}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setPrePressData({
-                          ...prePressData,
-                          tempPrePress: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                  />
+              <Grid container spacing={2}>
+                {/* ฝั่งซ้าย */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {prePressLeftKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {prePressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            ["tempPrePress", "waterHeat1"].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={prePressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setPrePressData({
+                                ...prePressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Water Heat 1"
-                    type="number"
-                    value={prePressData.waterHeat1}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setPrePressData({
-                          ...prePressData,
-                          waterHeat1: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Water Heat 2"
-                    type="number"
-                    value={prePressData.waterHeat2}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setPrePressData({
-                          ...prePressData,
-                          waterHeat2: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Bake Time Pre Press"
-                    value={prePressData.bakeTimePrePress}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setPrePressData({
-                          ...prePressData,
-                          bakeTimePrePress: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                  />
+                {/* ฝั่งขวา */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {prePressRightKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {prePressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            ["waterHeat2"].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={prePressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setPrePressData({
+                                ...prePressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
                 </Grid>
               </Grid>
             </Paper>
           </Fade>
         );
 
-      case 6:
+      case 5:
+        // Primary Press Step - แก้ไขให้เหมือน Secondary Press
+        const primaryKeys = Object.keys(primaryPressData);
+        const primaryLeftKeys = primaryKeys.slice(0, 5); // programNo-tempBlock3
+        const primaryRightKeys = primaryKeys.slice(5); // tempBlock4-bakeTimePrimary
+
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -1106,52 +1203,116 @@ const FoamRecord = () => {
                     />
                   )}
                 </Typography>
+                <Chip
+                  label={`Production ID: ${productionId}`}
+                  variant="outlined"
+                  className="foam-production-chip"
+                />
               </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                {Object.entries(primaryPressData).map(([key, value]) => (
-                  <Grid item xs={12} md={6} lg={4} key={key}>
-                    <TextField
-                      fullWidth
-                      label={key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                      type={
-                        [
-                          "programNo",
-                          "topTemp",
-                          "tempBlock1",
-                          "tempBlock2",
-                          "tempBlock3",
-                          "tempBlock4",
-                          "tempBlock5",
-                          "tempBlock6",
-                        ].includes(key)
-                          ? "number"
-                          : "text"
-                      }
-                      value={value}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setPrimaryPressData({
-                            ...primaryPressData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                    />
-                  </Grid>
-                ))}
+              <Grid container spacing={2}>
+                {/* ฝั่งซ้าย */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {primaryLeftKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {primaryPressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            [
+                              "programNo",
+                              "topTemp",
+                              "tempBlock1",
+                              "tempBlock2",
+                              "tempBlock3",
+                            ].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={primaryPressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setPrimaryPressData({
+                                ...primaryPressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+                {/* ฝั่งขวา */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {primaryRightKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {primaryPressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            [
+                              "tempBlock4",
+                              "tempBlock5",
+                              "tempBlock6",
+                            ].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={primaryPressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setPrimaryPressData({
+                                ...primaryPressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
               </Grid>
             </Paper>
           </Fade>
         );
 
-      case 7:
+      case 6:
+        // Secondary Press Step
+        const secondaryKeys = Object.keys(secondaryPressData);
+        const leftKeys = secondaryKeys.slice(0, 5); // machineNo-foamLength
+        const rightKeys = secondaryKeys.slice(5);
+
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -1174,50 +1335,103 @@ const FoamRecord = () => {
                   className="foam-production-chip"
                 />
               </Box>
-
-              <Grid container spacing={3} className="foam-form-grid">
-                {Object.entries(secondaryPressData).map(([key, value]) => (
-                  <Grid item xs={12} md={6} lg={4} key={key}>
-                    <TextField
-                      fullWidth
-                      label={key
-                        .replace(/([A-Z])/g, " $1")
-                        .replace(/^./, (str) => str.toUpperCase())}
-                      type={
-                        [
-                          "machineNo",
-                          "programNo",
-                          "foamWidth",
-                          "foamLength",
-                          "tempCheck1",
-                          "tempCheck2",
-                          "tempOut",
-                        ].includes(key)
-                          ? "number"
-                          : "text"
-                      }
-                      value={value}
-                      onChange={(e) => {
-                        if (!isEdit) {
-                          setSecondaryPressData({
-                            ...secondaryPressData,
-                            [key]: e.target.value,
-                          });
-                        }
-                      }}
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
-                      disabled={isEdit}
-                    />
-                  </Grid>
-                ))}
+              <Grid container spacing={2}>
+                {/* ฝั่งซ้าย */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {leftKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {secondaryPressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            [
+                              "machineNo",
+                              "programNo",
+                              "foamWidth",
+                              "foamLength",
+                            ].includes(key)
+                              ? "number"
+                              : "text"
+                          }
+                          value={secondaryPressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setSecondaryPressData({
+                                ...secondaryPressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+                {/* ฝั่งขวา */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  {rightKeys.map((key) => (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{ alignItems: "center", mb: 1 }}
+                      key={key}
+                    >
+                      <Grid size={{ xs: 12, md: 5 }}>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          {secondaryPressLabels[key] || key}
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 7 }}>
+                        <TextField
+                          fullWidth
+                          type={
+                            ["tempCheck1", "tempCheck2", "tempOut"].includes(
+                              key
+                            )
+                              ? "number"
+                              : "text"
+                          }
+                          value={secondaryPressData[key]}
+                          onChange={(e) => {
+                            if (!isEdit) {
+                              setSecondaryPressData({
+                                ...secondaryPressData,
+                                [key]: e.target.value,
+                              });
+                            }
+                          }}
+                          className={`foam-text-field ${
+                            isEdit ? "foam-disabled-field" : ""
+                          }`}
+                          disabled={isEdit}
+                          sx={{ maxWidth: 250 }}
+                        />
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
               </Grid>
             </Paper>
           </Fade>
         );
 
-      case 8:
+      case 7:
+        // Foam Check
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
@@ -1241,85 +1455,132 @@ const FoamRecord = () => {
                 />
               </Box>
 
-              <Grid container spacing={3} className="foam-form-grid">
+              {/* ปรับตรงนี้ให้ 3 ช่องในแถวเดียว พร้อม label ข้างหน้า */}
+              <Grid container spacing={3} className="foam-form-grid" sx={{ mb: 2 }}>
                 {/* Run Number */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Run Number"
-                    type="number"
-                    value={foamCheckData.runNo}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setFoamCheckData({
-                          ...foamCheckData,
-                          runNo: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                    required
-                  />
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid container sx={{ alignItems: "center" }} spacing={1}>
+                    <Grid size={{ xs: 5 }}>
+                      <Typography sx={{ fontWeight: 500 }}>Run Number</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 7 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        type="number"
+                        value={foamCheckData.runNo}
+                        onChange={(e) => {
+                          if (!isEdit) {
+                            setFoamCheckData({
+                              ...foamCheckData,
+                              runNo: e.target.value,
+                            });
+                          }
+                        }}
+                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
+                        disabled={isEdit}
+                        required
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
-
                 {/* Employee Record */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Employee Record"
-                    value={foamCheckData.employeeRecord}
-                    onChange={(e) => {
-                      if (!isEdit) {
-                        setFoamCheckData({
-                          ...foamCheckData,
-                          employeeRecord: e.target.value,
-                        });
-                      }
-                    }}
-                    className={`foam-text-field ${
-                      isEdit ? "foam-disabled-field" : ""
-                    }`}
-                    disabled={isEdit}
-                  />
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid container sx={{ alignItems: "center" }} spacing={1}>
+                    <Grid size={{ xs: 6 }}>
+                      <Typography sx={{ fontWeight: 500 }}>พนักงานตรวจสอบโฟม</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        value={foamCheckData.employeeRecord}
+                        onChange={(e) => {
+                          if (!isEdit) {
+                            setFoamCheckData({
+                              ...foamCheckData,
+                              employeeRecord: e.target.value,
+                            });
+                          }
+                        }}
+                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
+                        disabled={isEdit}
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
+                {/* Exit Secondary Press */}
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Grid container sx={{ alignItems: "center" }} spacing={1}>
+                    <Grid size={{ xs: 7 }}>
+                      <Typography sx={{ fontWeight: 500 }}>เวลาออกจากเซคเค็นดารีเพรส</Typography>
+                    </Grid>
+                    <Grid size={{ xs: 5 }}>
+                      <TextField
+                        fullWidth
+                        label=""
+                        value={foamCheckData.exitSecondaryPress}
+                        onChange={(e) => {
+                          if (!isEdit) {
+                            setFoamCheckData({
+                              ...foamCheckData,
+                              exitSecondaryPress: e.target.value,
+                            });
+                          }
+                        }}
+                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
+                        disabled={isEdit}
+                      />
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
 
-                {/* Section Title สำหรับ Foam Blocks */}
-                <Grid item xs={12}>
+              {/* Section Title สำหรับ Foam Blocks */}
+              <Grid container>
+                <Grid size={{ xs: 12 }}>
                   <Typography
                     variant="subtitle1"
                     className="foam-section-title"
                     sx={{ mt: 2, mb: 1, fontWeight: 600 }}
                   >
-                    Foam Block Quality Check (OK/NG)
+                    Foam Block Quality Check (OK/NG/Rework)
                   </Typography>
                 </Grid>
+              </Grid>
 
-                {/* Foam Blocks 1-6 - เปลี่ยนเป็น Dropdown */}
-                {[
-                  "foamBlock1",
-                  "foamBlock2",
-                  "foamBlock3",
-                  "foamBlock4",
-                  "foamBlock5",
-                  "foamBlock6",
-                ].map((key, index) => (
-                  <Grid item xs={12} md={6} lg={4} key={key}>
+              {/* Foam Blocks 1-6 */}
+              { [
+                "foamBlock1",
+                "foamBlock2",
+                "foamBlock3",
+                "foamBlock4",
+                "foamBlock5",
+                "foamBlock6",
+              ].map((key, index) => (
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{ alignItems: "center", mb: 1 }}
+                  key={key}
+                >
+                  <Grid size={{ xs: 12, md: 4, lg: 1.5 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        textAlign: { xs: "left", md: "right" },
+                      }}
+                    >
+                      {`โฟมก้อนที่ ${index + 1}`}
+                    </Typography>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 8, lg: 6 }}>
                     <FormControl
                       fullWidth
-                      className={`foam-text-field ${
-                        isEdit ? "foam-disabled-field" : ""
-                      }`}
+                      className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
                     >
-                      <InputLabel id={`foam-block-${index + 1}-label`}>
-                        Foam Block {index + 1}
-                      </InputLabel>
                       <Select
-                        labelId={`foam-block-${index + 1}-label`}
                         value={foamCheckData[key]}
-                        label={`Foam Block ${index + 1}`}
                         onChange={(e) => {
                           if (!isEdit) {
                             setFoamCheckData({
@@ -1329,6 +1590,7 @@ const FoamRecord = () => {
                           }
                         }}
                         disabled={isEdit}
+                        displayEmpty
                         sx={{
                           "& .MuiSelect-select": {
                             color:
@@ -1336,6 +1598,8 @@ const FoamRecord = () => {
                                 ? "green"
                                 : foamCheckData[key] === "NG"
                                 ? "red"
+                                : foamCheckData[key] === "RW"
+                                ? "#ff9800"
                                 : "inherit",
                           },
                         }}
@@ -1355,11 +1619,17 @@ const FoamRecord = () => {
                         >
                           ✗ NG
                         </MenuItem>
+                        <MenuItem
+                          value="RW"
+                          sx={{ color: "#ff9800", fontWeight: "bold" }}
+                        >
+                          ⟳ Rework
+                        </MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
-                ))}
-              </Grid>
+                </Grid>
+              ))}
             </Paper>
           </Fade>
         );
@@ -1369,243 +1639,152 @@ const FoamRecord = () => {
     }
   };
 
-  const loadExistingData = (data) => {
-    try {
-      const convertDateForInput = (dateString) => {
-        if (!dateString) return new Date().toISOString().split("T")[0];
+  const loadExistingData = useCallback(
+    (data) => {
+      try {
+        setProductionData((prev) => ({
+          ...prev,
+          runNo: data.FMBR_runNo || "",
+          recordDate: toISODate(data.FMBR_recDate) || "",
+          productStatus: data.FMBR_productStatus || "",
+          programNo: data.FMBR_programNo || "",
+          productName: data.FMPR_productName || "",
+          shiftTime: data.FMBR_shift || "",
+          operatorName: data.FMBR_operator || "",
+        }));
 
-        if (dateString.includes("/")) {
-          const parts = dateString.split("/");
-          if (parts.length === 3) {
-            const [day, month, year] = parts;
-            return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-          }
-        }
-
-        try {
-          const date = new Date(dateString);
-          if (!isNaN(date.getTime())) {
-            return date.toISOString().split("T")[0];
-          }
-        } catch {
-          return new Date().toISOString().split("T")[0];
-        }
-
-        return new Date().toISOString().split("T")[0];
-      };
-
-      // โหลดข้อมูลพื้นฐาน
-      setProductionData((prev) => ({
-        ...prev,
-        batchNo: data.FMBR_batchNo || prev.batchNo,
-        recordDate: convertDateForInput(data.FMBR_recDate) || prev.recordDate,
-        productStatus: data.FMBR_productStatus || prev.productStatus,
-        programNo: data.FMBR_programNo || prev.programNo,
-        productName: data.FMPR_productName || prev.productName,
-        shiftTime: data.FMBR_shift || prev.shiftTime,
-        operatorName: data.FMBR_operator || prev.operatorName,
-      }));
-
-      // โหลด chemical names - *** เปลี่ยนให้แสดง " " แทน "-- ไม่ได้เลือก --" ***
-      const chemicalNames = [];
-      let hasChemicalData = false;
-
-      for (let i = 1; i <= 15; i++) {
-        const chemicalValue = data[`FMCN_chemicalName_${i}`] || "";
-        let displayValue = chemicalValue;
-        if (chemicalValue === " " || chemicalValue.trim() === "") {
-          displayValue = " ";
-        }
-
-        if (chemicalValue.trim() !== "" && chemicalValue !== " ") {
-          hasChemicalData = true;
-        }
-
-        chemicalNames.push({ [`chemistry_${i}`]: displayValue });
-      }
-
-      if (hasChemicalData || data.FMCN_chemicalName_1) {
+        // Chemical Names
+        const chemicalNames = Array.from({ length: 15 }, (_, i) => ({
+          [`chemistry_${i + 1}`]: data[`FMCN_chemicalName_${i + 1}`] || " ",
+        }));
         setChemicalNames(chemicalNames);
+
+        // Chemical Weights
+        const weights = Array.from({ length: 15 }, (_, i) =>
+          parseFloat(data[`FMCW_chemicalWeight_${i + 1}`] || "0.00").toFixed(2)
+        );
+        setChemicalWeights({ weights });
+
+        // Mixing Step
+        setMixingData({
+          programNo: data.FMMX_programNo || "",
+          hopperWeight: data.FMMX_hopperWeight || "",
+          actualStart: data.FMMX_actualStart || "",
+          mixFinish: data.FMMX_mixFinish || "",
+          lip: data.FMMX_lip || "",
+          casingA: data.FMMX_casingA || "",
+          casingB: data.FMMX_casingB || "",
+          tempHopper: data.FMMX_tempHopper || "",
+          longScrew: data.FMMX_longScrew || "",
+          shortScrew: data.FMMX_shortScrew || "",
+          waterHeat: data.FMMX_waterHeat || "",
+        });
+
+        // Cutting Step
+        setCuttingData({
+          wb1: data.FMCU_weightBlock_1 || "",
+          wb2: data.FMCU_weightBlock_2 || "",
+          wb3: data.FMCU_weightBlock_3 || "",
+          wb4: data.FMCU_weightBlock_4 || "",
+          wb5: data.FMCU_weightBlock_5 || "",
+          wb6: data.FMCU_weightBlock_6 || "",
+          wb7: data.FMCU_weightBlock_7 || "",
+          wb8: data.FMCU_weightBlock_8 || "",
+          wb9: data.FMCU_weightBlock_9 || "",
+          weightRemain: data.FMCU_weightBlockRemain || "",
+        });
+
+        // Pre Press
+        setPrePressData({
+          tempPrePress: data.FMPP_tempPrePress || "",
+          waterHeat1: data.FMPP_waterHeat_1 || "",
+          waterHeat2: data.FMPP_waterHeat_2 || "",
+          bakeTimePrePress: data.FMPP_bakeTimePrePress || "",
+        });
+
+        // Primary Press
+        setPrimaryPressData({
+          programNo: data.FMPMP_programNo || "",
+          topTemp: data.FMPMP_topTemp || "",
+          tempBlock1: data.FMPMP_tempBlock_1 || "",
+          tempBlock2: data.FMPMP_tempBlock_2 || "",
+          tempBlock3: data.FMPMP_tempBlock_3 || "",
+          tempBlock4: data.FMPMP_tempBlock_4 || "",
+          tempBlock5: data.FMPMP_tempBlock_5 || "",
+          tempBlock6: data.FMPMP_tempBlock_6 || "",
+          empSpray: data.FMPMP_empSpray || "",
+          bakeTimePrimary: data.FMPMP_bakeTimePrimary || "",
+        });
+
+        // Secondary Press
+        setSecondaryPressData({
+          machineNo: data.FMSP_machineNo || "",
+          programNo: data.FMSP_programNo || "",
+          streamInPress: data.FMSP_steamInPress || "",
+          foamWidth: data.FMSP_widthFoam || "",
+          foamLength: data.FMSP_lengthFoam || "",
+          bakeSecondaryTime: data.FMSP_bakeSecondaryTime || "",
+          injectEmp: data.FMSP_injectEmp || "",
+          tempCheck1: data.FMSP_tempCheck_1 || "",
+          tempCheck2: data.FMSP_tempCheck_2 || "",
+          tempOut: data.FMSP_tempOut || "",
+        });
+
+        // Foam Check
+        setFoamCheckData({
+          runNo: data.FMFC_runNo || "",
+          foamBlock1: data.FMFC_foamBlock_1 || "",
+          foamBlock2: data.FMFC_foamBlock_2 || "",
+          foamBlock3: data.FMFC_foamBlock_3 || "",
+          foamBlock4: data.FMFC_foamBlock_4 || "",
+          foamBlock5: data.FMFC_foamBlock_5 || "",
+          foamBlock6: data.FMFC_foamBlock_6 || "",
+          employeeRecord: data.FMFC_employeeRecord || "",
+          exitSecondaryPress: data.FMFC_exitSecondaryPress || "",
+        });
+      } catch (error) {
+        console.error("Error loading existing data:", error);
       }
-
-      // โหลด chemical weights - แสดง "0.00" แทนช่องว่าง
-      const weights = [];
-
-      for (let i = 1; i <= 15; i++) {
-        const weightValue = data[`FMCW_chemicalWeight_${i}`];
-        let finalWeight = "0.00";
-
-        // เช็คว่ามีค่าจริงหรือไม่
-        if (weightValue !== null && weightValue !== undefined && weightValue !== "") {
-          const numWeight = parseFloat(weightValue);
-          if (!isNaN(numWeight)) {
-            finalWeight = numWeight.toFixed(2);
-          }
-        }
-
-        weights.push(finalWeight);
-      }
-
-      setChemicalWeights({
-        weights: weights,
-      });
-
-      // โหลด mixing step
-      setMixingData({
-        programNo: data.FMMX_programNo || data.FMBR_programNo || "",
-        hopperWeight: data.FMMX_hopperWeight || "",
-        actualStart: data.FMMX_actualStart || "", // เปลี่ยนจาก actualTime
-        mixFinish: data.FMMX_mixFinish || "",
-        lip: data.FMMX_lip || "",
-        casingA: data.FMMX_casingA || "",
-        casingB: data.FMMX_casingB || "",
-        tempHopper: data.FMMX_tempHopper || "",
-        longScrew: data.FMMX_longScrew || "",
-        shortScrew: data.FMMX_shortScrew || "",
-        waterHeat: data.FMMX_waterHeat || "",
-      });
-
-      // โหลด cutting step
-      setCuttingData({
-        wb1: data.FMCU_weightBlock_1 || "",
-        wb2: data.FMCU_weightBlock_2 || "",
-        wb3: data.FMCU_weightBlock_3 || "",
-        wb4: data.FMCU_weightBlock_4 || "",
-        wb5: data.FMCU_weightBlock_5 || "",
-        wb6: data.FMCU_weightBlock_6 || "",
-        wb7: data.FMCU_weightBlock_7 || "",
-        wb8: data.FMCU_weightBlock_8 || "",
-        wb9: data.FMCU_weightBlock_9 || "",
-        weightRemain: data.FMCU_weightBlockRemain || "",
-      });
-
-      // โหลด pre press step (เหลือ 4 fields)
-      setPrePressData({
-        tempPrePress: data.FMPP_tempPrePress || "",
-        waterHeat1: data.FMPP_waterHeat_1 || "",
-        waterHeat2: data.FMPP_waterHeat_2 || "",
-        bakeTimePrePress: data.FMPP_bakeTimePrePress || "",
-      });
-
-      // โหลด primary press step (ใหม่)
-      setPrimaryPressData({
-        programNo: data.FMPMP_programNo || data.FMBR_programNo || "",
-        topTemp: data.FMPMP_topTemp || "",
-        tempBlock1: data.FMPMP_tempBlock_1 || "",
-        tempBlock2: data.FMPMP_tempBlock_2 || "",
-        tempBlock3: data.FMPMP_tempBlock_3 || "",
-        tempBlock4: data.FMPMP_tempBlock_4 || "",
-        tempBlock5: data.FMPMP_tempBlock_5 || "",
-        tempBlock6: data.FMPMP_tempBlock_6 || "",
-        empSpray: data.FMPMP_empSpray || "",
-        bakeTimePrimary: data.FMPMP_bakeTimePrimary || "",
-      });
-
-      // โหลด secondary press step
-      setSecondaryPressData({
-        machineNo: data.FMSP_machineNo || "",
-        programNo: data.FMSP_programNo || data.FMBR_programNo || "",
-        streamInPress: data.FMSP_steamInPress || "",
-        foamWidth: data.FMSP_widthFoam || "",
-        foamLength: data.FMSP_lengthFoam || "",
-        bakeSecondaryTime: data.FMSP_bakeSecondaryTime || "",
-        injectEmp: data.FMSP_injectEmp || "",
-        tempCheck1: data.FMSP_tempCheck_1 || "",
-        tempCheck2: data.FMSP_tempCheck_2 || "",
-        tempOut: data.FMSP_tempOut || "",
-      });
-
-      // โหลด foam check step - รองรับทั้ง OK/NG และตัวเลข
-      setFoamCheckData({
-        runNo: data.FMFC_runNo || "",
-        foamBlock1: data.FMFC_foamBlock_1 || "",
-        foamBlock2: data.FMFC_foamBlock_2 || "",
-        foamBlock3: data.FMFC_foamBlock_3 || "",
-        foamBlock4: data.FMFC_foamBlock_4 || "",
-        foamBlock5: data.FMFC_foamBlock_5 || "",
-        foamBlock6: data.FMFC_foamBlock_6 || "",
-        employeeRecord: data.FMFC_employeeRecord || "",
-      });
-
-      showAlert(
-        `✅ โหลดข้อมูลเดิมของ Batch ${data.FMBR_batchNo} สำเร็จ`,
-        "info"
-      );
-    } catch (error) {
-      console.error("Error loading existing data:", error);
-      showAlert("❌ เกิดข้อผิดพลาดในการโหลดข้อมูลเดิม", "error");
-    }
-  };
-
-  // ฟังก์ชันแปลงวันที่เป็น dd/MM/yyyy สำหรับการแสดงผล
-  const formatDateForDisplay = (dateValue) => {
-    if (!dateValue) return "";
-
-    try {
-      // ถ้า dateValue เป็น yyyy-MM-dd
-      if (dateValue.includes("-") && dateValue.length === 10) {
-        const [year, month, day] = dateValue.split("-");
-        return `${day}/${month}/${year}`;
-      }
-
-      // ถ้าเป็นรูปแบบอื่น
-      const date = new Date(dateValue);
-      if (!isNaN(date.getTime())) {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-      }
-
-      return dateValue;
-    } catch {
-      return dateValue;
-    }
-  };
+    },
+    [toISODate]
+  );
 
   // เพิ่มฟังก์ชันเช็คว่า step ไหนยังไม่บันทึก
-  const checkStepCompletion = (stepIndex, data) => {
+  const checkStepCompletion = useCallback((stepIndex, data) => {
     switch (stepIndex) {
-      case 0:
+      case 0: // ข้อมูลพื้นฐาน
         return !!(
-          data.FMBR_operator && 
-          data.FMBR_shift && 
+          data.FMBR_operator &&
+          data.FMBR_shift &&
           data.FMBR_programNo &&
-          data.FMBR_batchNo &&
+          data.FMBR_runNo &&
           data.FMBR_recDate &&
           data.FMBR_productStatus &&
           data.FMPR_productName
         );
-
-      case 1:
+      case 1: // Chemical Name & Weight
+        // ถ้ามี chemical name หรือ weight อย่างน้อย 1 ตัว
+        let hasChemName = false,
+          hasChemWeight = false;
         for (let i = 1; i <= 15; i++) {
-          const chemValue = data[`FMCN_chemicalName_${i}`];
-          if (chemValue && (chemValue.trim() !== "" || chemValue === " ")) {
-            return true;
-          }
-        }
-        return false;
-
-      case 2: {
-        let hasWeights = false;
-        for (let i = 1; i <= 15; i++) {
-          const weightValue = data[`FMCW_chemicalWeight_${i}`];
           if (
-            weightValue !== null &&
-            weightValue !== undefined &&
-            weightValue !== ""
+            data[`FMCN_chemicalName_${i}`] &&
+            data[`FMCN_chemicalName_${i}`].trim() !== ""
           ) {
-            const numWeight = parseFloat(weightValue);
-            if (!isNaN(numWeight) && numWeight >= 0) { // *** เปลี่ยนจาก > 0 เป็น >= 0 ***
-              hasWeights = true;
-              break;
-            }
+            hasChemName = true;
+          }
+          const w = data[`FMCW_chemicalWeight_${i}`];
+          if (
+            w !== null &&
+            w !== undefined &&
+            w !== "" &&
+            !isNaN(parseFloat(w))
+          ) {
+            hasChemWeight = true;
           }
         }
-        return hasWeights;
-      }
-
-      case 3:
+        return hasChemName && hasChemWeight;
+      case 2: // Mixing Step
         return !!(
           data.FMMX_programNo ||
           data.FMMX_hopperWeight ||
@@ -1619,10 +1798,9 @@ const FoamRecord = () => {
           data.FMMX_shortScrew ||
           data.FMMX_waterHeat
         );
-
-      case 4:
+      case 3: // Cutting Step
         return !!(
-          data.FMCU_weightBlock_1 || 
+          data.FMCU_weightBlock_1 ||
           data.FMCU_weightBlock_2 ||
           data.FMCU_weightBlock_3 ||
           data.FMCU_weightBlock_4 ||
@@ -1633,16 +1811,14 @@ const FoamRecord = () => {
           data.FMCU_weightBlock_9 ||
           data.FMCU_weightBlockRemain
         );
-
-      case 5:
+      case 4: // Pre Press
         return !!(
           data.FMPP_tempPrePress ||
           data.FMPP_waterHeat_1 ||
           data.FMPP_waterHeat_2 ||
           data.FMPP_bakeTimePrePress
         );
-
-      case 6:
+      case 5: // Primary Press
         return !!(
           data.FMPMP_programNo ||
           data.FMPMP_topTemp ||
@@ -1655,8 +1831,7 @@ const FoamRecord = () => {
           data.FMPMP_empSpray ||
           data.FMPMP_bakeTimePrimary
         );
-
-      case 7:
+      case 6: // Secondary Press
         return !!(
           data.FMSP_machineNo ||
           data.FMSP_programNo ||
@@ -1669,8 +1844,7 @@ const FoamRecord = () => {
           data.FMSP_tempCheck_2 ||
           data.FMSP_tempOut
         );
-
-      case 8:
+      case 7: // Foam Check
         return !!(
           data.FMFC_runNo ||
           data.FMFC_foamBlock_1 ||
@@ -1679,34 +1853,124 @@ const FoamRecord = () => {
           data.FMFC_foamBlock_4 ||
           data.FMFC_foamBlock_5 ||
           data.FMFC_foamBlock_6 ||
-          data.FMFC_employeeRecord
+          data.FMFC_employeeRecord ||
+          data.FMFC_exitSecondaryPress
         );
-
       default:
         return false;
     }
-  };
+  }, []);
 
   // เพิ่มฟังก์ชันหา step แรกที่ยังไม่บันทึก
-  const findFirstIncompleteStep = (existingData) => {
-    if (!existingData) return 0;
-    
-    for (let i = 0; i < steps.length; i++) {
-      const isCompleted = checkStepCompletion(i, existingData);
-      
-      if (!isCompleted) {
-        return i;
+  const findFirstIncompleteStep = useCallback(
+    (existingData) => {
+      if (!existingData) return 0;
+
+      for (let i = 0; i < steps.length; i++) {
+        const isCompleted = checkStepCompletion(i, existingData);
+
+        if (!isCompleted) {
+          return i;
+        }
       }
-    }
-    
-    return 0;
-  };
+
+      return 0;
+    },
+    [checkStepCompletion]
+  );
 
   const getStepStatus = (stepIndex) => {
     if (!existingData) return "pending";
 
     const isCompleted = checkStepCompletion(stepIndex, existingData);
     return isCompleted ? "completed" : "pending";
+  };
+
+  // Preload existing data after callbacks are defined
+  useEffect(() => {
+    if (existingData && !hasInitialStepSet.current) {
+      loadExistingData(existingData);
+      const targetStep = autoNavigateToIncomplete
+        ? findFirstIncompleteStep(existingData)
+        : 0;
+      setActiveStep(targetStep);
+      hasInitialStepSet.current = true;
+    }
+  }, [
+    existingData,
+    loadExistingData,
+    findFirstIncompleteStep,
+    autoNavigateToIncomplete,
+  ]);
+
+  // เพิ่มฟังก์ชันสำหรับการคลิกไปยัง step (อนุญาตทุก step)
+  const handleStepClick = (stepIndex) => {
+    setActiveStep(stepIndex);
+  };
+
+  // label สำหรับ Mixing Step
+  const mixingLabels = {
+    programNo: "โปรแกรม No.",
+    hopperWeight: "Auto Hopper Weight",
+    actualStart: "เวลากดปุ่ม Auto Start",
+    mixFinish: "เวลาผสมเสร็จ",
+    lip: "อุณหภูมิ Lip",
+    casingA: "อุณหภูมิ Casing A",
+    casingB: "อุณหภูมิ Casing B",
+    tempHopper: "อุณหภูมิ Hopper",
+    longScrew: "อุณหภูมิ Long Screw",
+    shortScrew: "อุณหภูมิ Short Screw",
+    waterHeat: "Water Heat",
+  };
+
+  const prePressLabels = {
+    tempPrePress: "อุณหภูมิ Pre Press",
+    waterHeat1: "Water Heat 1",
+    waterHeat2: "Water Heat 2",
+    bakeTimePrePress: "เวลาในการอบชิ้นงาน",
+  };
+
+  const primaryPressLabels = {
+    programNo: "โปรแกรม No.",
+    topTemp: "อุณหภูมิ Top",
+    tempBlock1: "อุณหภูมิชั้นที่ 1",
+    tempBlock2: "อุณหภูมิชั้นที่ 2",
+    tempBlock3: "อุณหภูมิชั้นที่ 3",
+    tempBlock4: "อุณหภูมิชั้นที่ 4",
+    tempBlock5: "อุณหภูมิชั้นที่ 5",
+    tempBlock6: "อุณหภูมิชั้นที่ 6",
+    empSpray: "ผู้ฉีดสเปร์ย",
+    bakeTimePrimary: "เวลาที่เริ่มอบ",
+  };
+
+  const secondaryPressLabels = {
+    machineNo: "เครื่องจักรที่",
+    programNo: "โปรแกรม No.",
+    streamInPress: "เวลากดปุ่ม Stream In",
+    foamWidth: "ความกว้างโฟม (mm.)",
+    foamLength: "ความยาวโฟม (mm.)",
+    bakeSecondaryTime: "เวลาที่เริ่มอบ",
+    injectEmp: "ผู้ฉีดสเปรย์",
+    tempCheck1: "เช็คอุณหภูมิครั้งที่ 1",
+    tempCheck2: "เช็คอุณหภูมิครั้งที่ 2",
+    tempOut: "อุณหภูมิชิ้นงานออก",
+  };
+
+  // เพิ่ม label สำหรับ Cutting Step หลัง secondaryPressLabels
+  const cuttingLabels = {
+    wb1: "น้ำหนักบล็อคที่ 1",
+    wb2: "น้ำหนักบล็อคที่ 2", 
+    wb3: "น้ำหนักบล็อคที่ 3",
+    wb4: "น้ำหนักบล็อคที่ 4",
+    wb5: "น้ำหนักบล็อคที่ 5",
+    wb6: "น้ำหนักบล็อคที่ 6",
+    wb7: "น้ำหนักบล็อคที่ 7",
+    wb8: "น้ำหนักบล็อคที่ 8",
+    wb9: "น้ำหนักบล็อคที่ 9",
+    weightRemain: "น้ำหนักคงเหลือ",
+    staffSave: "พนักงานที่บันทึก",
+    startPress: "เวลาเริ่มเข้าเพรส",
+    mixFinish: "เวลาผสมเสร็จ",
   };
 
   return (
@@ -1726,7 +1990,7 @@ const FoamRecord = () => {
               </Typography>
               <Typography variant="subtitle1" className="foam-page-subtitle">
                 สำหรับผลิตภัณฑ์: {decodeURIComponent(productName || "")}
-                {batchNo && ` | Batch: ${batchNo}`}
+                {runNo && ` | Run: ${runNo}`}
                 {isEdit && (
                   <Chip
                     label="สมบูรณ์"
@@ -1751,12 +2015,17 @@ const FoamRecord = () => {
                       key={label}
                       className={`foam-step ${
                         stepStatus === "completed" ? "completed-step" : ""
-                      }`}
+                      } clickable-step`} // เพิ่ม clickable-step ให้ทุก step
                       completed={stepStatus === "completed"}
                     >
                       <StepLabel
                         icon={getStepIcon(index)}
                         className="foam-step-label"
+                        onClick={() => handleStepClick(index)} // ลบเงื่อนไข isClickable
+                        style={{
+                          cursor: "pointer", // cursor pointer สำหรับทุก step
+                          transition: "all 0.3s ease",
+                        }}
                       >
                         <Box>
                           {label}

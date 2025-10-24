@@ -1,12 +1,15 @@
 /* ============ MAIN LAYOUT ============ */
 .foam-main-container {
   min-height: 100vh;
+  height: auto !important;
   background: #f5f5f5;
   padding: 20px 0;
 }
 
 .foam-container {
   padding: 2rem 1rem !important;
+  height: auto !important;
+  min-height: 100vh;
 }
 
 .foam-paper {
@@ -108,6 +111,9 @@
 /* ============ STEP CONTENT ============ */
 .foam-step-content-container {
   margin-bottom: 3rem;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
 .foam-step-content {
@@ -118,6 +124,9 @@
   padding: 2.5rem !important;
   transition: all 0.3s ease !important;
   animation: foam-slideInUp 0.5s ease-out;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
 .foam-step-content:hover {
@@ -470,6 +479,16 @@
       font-size: 0.8rem !important;
     }
   }
+
+  /* Chemical Sections */
+  .foam-chemical-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .foam-chemical-section .foam-section-title {
+    font-size: 1.1rem !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -498,5 +517,91 @@
 
   .foam-navigation-buttons {
     padding: 1.5rem 0;
+  }
+}
+
+/* แก้ไข CSS สำหรับ clickable steps - ให้ทุก step คลิกได้ */
+.clickable-step .MuiStepLabel-root {
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.clickable-step .MuiStepLabel-root:hover {
+  transform: scale(1.05);
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.clickable-step .MuiStepLabel-root:hover .MuiStepIcon-root {
+  transform: scale(1.1);
+  background: rgba(25, 118, 210, 0.1);
+  border-radius: 50%;
+}
+
+.clickable-step .MuiStepLabel-root:active {
+  transform: scale(0.98);
+}
+
+/* Completed steps มี hover effect สีเขียว */
+.completed-step.clickable-step .MuiStepLabel-root:hover {
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.completed-step.clickable-step .MuiStepLabel-root:hover .MuiStepIcon-root {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+/* Chemical Sections - Side by Side Layout */
+.foam-chemical-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  height: 100%; /* ให้สูงเท่ากัน */
+}
+
+.foam-chemical-section .foam-section-title {
+  margin-bottom: 1.5rem !important;
+  color: #1976d2 !important;
+  font-size: 1.25rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  justify-content: center;
+}
+
+/* Vertical Form Layout */
+.foam-form-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.foam-form-vertical .foam-text-field {
+  margin-bottom: 0 !important;
+}
+
+.foam-form-vertical .MuiFormControl-root {
+  margin-bottom: 0 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 960px) {
+  .foam-chemical-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .foam-chemical-section .foam-section-title {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .foam-chemical-section {
+    padding: 0.75rem;
   }
 }
