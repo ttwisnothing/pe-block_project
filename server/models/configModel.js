@@ -23,7 +23,7 @@ export const addConfig = async (req, res) => {
     } = req.body;
 
     const query = `
-        INSERT INTO config_time (
+        INSERT INTO PT_config_time (
             config_group,
             mixing_time,
             extruder_exit_time,

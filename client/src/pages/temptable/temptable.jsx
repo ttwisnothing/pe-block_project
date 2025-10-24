@@ -1,48 +1,123 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-} from "@mui/material";
+import { Button } from "@mui/material";
 import axios from "axios";
 import "./temptable.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "../../components/table/table.jsx";
+import CustomTable from "../../components/table/table";
+import CustomTableB150 from "../../components/table/tableb";
+import DigitalClock from "../../components/clock/digitalClock";
+import Swal from "sweetalert2";
+import CloseIcon from "@mui/icons-material/Close";
+import BuildIcon from "@mui/icons-material/Build";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
-const TempTable = ({ url }) => {
+let alertAudio = null;
+
+const playAlertSound = (alertDuration) => {
+  alertAudio = new Audio("/sounds/warning-beeping.mp3");
+  alertAudio.play();
+
+  setTimeout(() => {
+    if (alertAudio) {
+      alertAudio.pause();
+      alertAudio.currentTime = 0;
+    }
+  }, alertDuration);
+};
+
+const TempTable = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { productName, colorName } = location.state || {};
+  const intervalRef = useRef(null);
+
+  // รับ plantimeId, productName, colorName จาก state
+  const { plantimeId, productName, colorName } = location.state || {};
   const [tempPlanTimes, setTempPlanTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [currentRow, setCurrentRow] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [tableType, setTableType] = useState("default");
+
+  // อัปเดตเวลาปัจจุบันทุกวินาที
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // ฟังก์ชันสำหรับกำหนดประเภทตาราง
+  const determineTableType = (productName) => {
+    if (productName && productName.includes("B-150")) {
+      setTableType("b150");
+    } else if (productName && productName.includes("RP-300S")) {
+      setTableType("default");
+    } else {
+      setTableType("default");
+    }
+  };
+
+  // ฟังก์ชันสำหรับเลือกตารางที่เหมาะสม
+  const renderTable = () => {
+    switch (tableType) {
+      case "b150":
+        return (
+          <CustomTableB150
+            data={tempPlanTimes}
+            formatTime={formatTime}
+            currentRow={currentRow}
+          />
+        );
+      case "default":
+      default:
+        return (
+          <CustomTable
+            data={tempPlanTimes}
+            formatTime={formatTime}
+            currentRow={currentRow}
+          />
+        );
+    }
+  };
 
   // ฟังก์ชันสำหรับแปลงเวลา
   const formatTime = (time) => {
-    if (!time) return "";
+    if (!time || typeof time !== "string" || !time.includes(":")) return "";
     const [hours, minutes] = time.split(":");
     return `${hours}:${minutes}`;
   };
 
   useEffect(() => {
-    if (!productName) {
-      console.error("❌ No recipeName provided");
+    if (!plantimeId) {
       setError(true);
       setLoading(false);
       return;
     }
 
+    determineTableType(productName);
+
     const fetchTempPlanTimes = async () => {
       try {
-        const response = await axios.get(`${url}/api/get/temp-time-asc/${productName}`);
-        setTempPlanTimes(response.data.tempPlanTimes || []);
+        const response = await axios.get(
+          `/api/get/tempplantime/${plantimeId}`
+        );
+        const sortedTempPlanTimes = [...(response.data.tempPlanTimes || [])].sort((a, b) => {
+          if (a.run_no !== b.run_no) {
+            return a.run_no - b.run_no;
+          }
+          return a.batch_no - b.batch_no;
+        });
+
+        setTempPlanTimes(sortedTempPlanTimes);
         setError(false);
       } catch (err) {
-        console.error("❌ ERROR fetching Temp Plan Times:", err);
         setError(true);
       } finally {
         setLoading(false);
@@ -50,110 +125,291 @@ const TempTable = ({ url }) => {
     };
 
     fetchTempPlanTimes();
-  }, [url, productName]);
+  }, [plantimeId, productName]);
 
   // ฟังก์ชันสำหรับเรียก API addTempPlanTime ด้วย axios
   const handleMachineBreakdown = async () => {
+    setIsLoading(true);
+
     try {
+      const pendingToastId = toast.loading("⏳ กำลังเพิ่มข้อมูลแผนชั่วคราว...");
+
       const response = await axios.post(
-        `${url}/api/post/plantime/temp-mb/add/${productName}`
+        `/api/post/plantime/temp-mb/add/${productName}`
       );
 
-      if (response.status === 200) {
-        alert(response.data.message || "✅ Temp Plan Time added successfully");
+      if (response.status !== 200) {
+        throw new Error("❌ ไม่สามารถเพิ่มข้อมูลแผนชั่วคราวได้");
+      }
 
-        // นำทางไปยังหน้า edit-temp พร้อมส่ง recipeName
+      toast.update(pendingToastId, {
+        render: response.data.message || "✅ เพิ่มข้อมูลแผนชั่วคราวสำเร็จ",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      setTimeout(() => {
         navigate("/edit-temp", {
           state: { productName, colorName },
         });
-      } else {
-        throw new Error("❌ Failed to add Temp Plan Time");
-      }
+      }, 3000);
     } catch (error) {
-      console.error('❌ ERROR in handleMachineBreakdown:', error);
-      alert(error.response?.data?.message || "❌ Failed to add Temp Plan Time");
+      toast.error(error.message || "❌ ไม่สามารถเพิ่มข้อมูลแผนชั่วคราวได้");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>เกิดข้อผิดพลาดในการโหลดข้อมูล</div>;
+  // ฟังก์ชันสำหรับรีเฟรชข้อมูล
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const response = await axios.get(`/api/get/tempplantime/${plantimeId}`);
+      if (response.data && response.data.tempPlanTimes) {
+        const sortedTempPlanTimes = [...response.data.tempPlanTimes].sort((a, b) => {
+          if (a.run_no !== b.run_no) {
+            return a.run_no - b.run_no;
+          }
+          return a.batch_no - b.batch_no;
+        });
+        setTempPlanTimes(sortedTempPlanTimes);
+        toast.success("✅ ข้อมูลถูกอัพเดทแล้ว");
+      }
+    } catch (error) {
+      toast.error("❌ ไม่สามารถอัพเดทข้อมูลได้");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    const NOTICATION_INTERVAL = 60000; // 1 นาที
+    const NOTIFY_BEFORE_MS = 5 * 60 * 1000;
+    const NOTIFY_WITHIN_MS = 10 * 60 * 1000;
+    const EXACT_MATCH_THRESHOLD_MS = 60 * 1000;
+
+    const alertNotification = () => {
+      const currentTime = new Date();
+      let closestRow = null;
+      let closestDiff = Infinity;
+
+      // ฟิลด์ที่ต้องการแจ้งเตือน
+      const notifyFields = [
+        "start_time",
+        "extruder_exit",
+        "primary_press_start",
+        "stream_in",
+        "primary_press_exit",
+        "secondary_press_1_start",
+        "secondary_press_exit",
+      ];
+
+      tempPlanTimes.forEach((row) => {
+        Object.entries(row).forEach(([key, timeValue]) => {
+          if (
+            !timeValue ||
+            typeof timeValue !== "string" ||
+            !timeValue.includes(":") ||
+            !notifyFields.includes(key) ||
+            ["run_no", "batch_no", "temp_id", "product_id", "machine"].includes(key)
+          )
+            return;
+
+          const [hours, minutes, seconds] = timeValue.split(":");
+          const eventTime = new Date(currentTime);
+          eventTime.setHours(+hours, +minutes, +(seconds || 0), 0);
+
+          const diff = eventTime - currentTime;
+
+          if (Math.abs(diff) < closestDiff) {
+            closestDiff = Math.abs(diff);
+            closestRow = { ...row, closestField: key };
+          }
+
+          if (diff >= 0 && diff >= NOTIFY_BEFORE_MS && diff <= NOTIFY_WITHIN_MS) {
+            const minutesLeft = Math.floor(diff / 60000);
+            toast.warn(
+              `⏰ เตือน! ขั้นตอน ${key.replace("_", " ")} สำหรับ ${productName} จะเกิดขึ้นในอีก ${minutesLeft} นาที (${eventTime.toLocaleTimeString(
+                "th-TH",
+                { hour12: false }
+              )})`
+            );
+          }
+
+          if (Math.abs(diff) <= EXACT_MATCH_THRESHOLD_MS) {
+            let timeInterval;
+            const alertDuration = 10000;
+
+            Swal.fire({
+              title: "🚨 ถึงเวลาดำเนินการ!",
+              html: `<div class="temptable-alert-content">
+                     <p><strong>ขั้นตอน:</strong> ${key.replace("_", " ")}</p>
+                     <p><strong>เวลา:</strong> ${eventTime.toLocaleTimeString(
+                       "th-TH",
+                       { hour12: false }
+                     )}</p>
+                     <p><strong>สินค้า:</strong> ${productName} (${colorName || "-"})</p>
+                     </div>`,
+              timer: alertDuration,
+              timerProgressBar: true,
+              showConfirmButton: true,
+              confirmButtonText: "รับทราบ",
+              didOpen: () => {
+                playAlertSound(alertDuration);
+                Swal.showLoading();
+                timeInterval = setInterval(() => {
+                  const timer = Swal.getHtmlContainer().querySelector("b.timer-left");
+                  if (timer) {
+                    timer.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+                  }
+                }, 100);
+              },
+              willClose: () => {
+                clearInterval(timeInterval);
+              },
+              didDestroy: () => {
+                if (alertAudio) {
+                  alertAudio.pause();
+                  alertAudio.currentTime = 0;
+                }
+              },
+            });
+          }
+        });
+      });
+
+      setCurrentRow(closestRow);
+    };
+
+    const setupAlertInterval = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      const now = new Date();
+      const delay = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+
+      const timeoutId = setTimeout(() => {
+        alertNotification();
+        intervalRef.current = setInterval(
+          alertNotification,
+          NOTICATION_INTERVAL
+        );
+      }, delay);
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    };
+
+    return setupAlertInterval();
+  }, [tempPlanTimes, productName, colorName]);
+
+  if (loading) {
+    return (
+      <div className="temptable-loading-container">
+        <div className="temptable-loading-spinner"></div>
+        <p>กำลังโหลดข้อมูล...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="temptable-error-container">
+        <p>❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="table-container">
-          {/* ปุ่มย้อนกลับ */}
-          <div className="top-buttons">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => navigate("/plantime")}
-            >
-              Back
-            </Button>
+    <div className="temptable-container">
+      <div className="temptable-header-section">
+        <div className="temptable-clock-wrapper">
+          <DigitalClock showDate={true} showSeconds={true} is24Hour={true} />
+        </div>
+
+        <div className="temptable-top-buttons">
+          <Button
+            variant="contained"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="temptable-refresh-button"
+          >
+            {refreshing ? "กำลังอัพเดท..." : "รีเฟรช"}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<CloseIcon />}
+            onClick={() => window.close()}
+            className="temptable-close-button"
+          >
+            ปิดตารางเวลา
+          </Button>
+        </div>
+      </div>
+ 
+      <div className="temptable-product-info-section">
+        <div className="temptable-table-header">
+          <h2>
+            <span className="temptable-product-label">สินค้า:</span>
+            <span className="temptable-product-name">{productName}</span>
+            {colorName && <span className="temptable-product-color">({colorName})</span>}
+          </h2>
+        </div>
+
+        {/* แสดงแถวปัจจุบันที่ใกล้เวลาปัจจุบันที่สุด */}
+        {currentRow && (
+          <div className="temptable-current-step">
+            <div className="temptable-current-step-icon"></div>
+            <div className="temptable-current-step-content">
+              <div className="temptable-current-step-label">ขั้นตอนปัจจุบัน:</div>
+              <div className="temptable-current-step-value">
+                {currentRow.closestField &&
+                  currentRow.closestField.replace("_", " ")}
+              </div>
+            </div>
+            <div className="temptable-current-step-time">
+              {currentTime.toLocaleTimeString("th-TH", { hour12: false })}
+            </div>
           </div>
-    
-          <div className="table-header">
-            <h2>Product: {productName}({colorName}) PlanTime</h2>
+        )}
+      </div>
+
+      {/* ใช้ CustomTable */}
+      <div className="temptable-table-responsive">{renderTable()}</div>
+
+      <div className="temptable-footer-actions">
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<BuildIcon />}
+          onClick={handleMachineBreakdown}
+          disabled={isLoading}
+          className="temptable-machine-button"
+        >
+          {isLoading ? "⏳ กำลังดำเนินการ..." : "ตรวจสอบเครื่องจักร"}
+        </Button>
+        
+        <div className="temptable-status-info">
+          <div className="temptable-status-item">
+            <span className="temptable-status-label">จำนวนแผน:</span>
+            <span className="temptable-status-value">{tempPlanTimes.length} รายการ</span>
           </div>
-    
-          <TableContainer component={Paper} className="custom-table-container">
-            <Table className="custom-table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Run No</TableCell>
-                  <TableCell>Machine</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Start Time</TableCell>
-                  <TableCell>Mixing</TableCell>
-                  <TableCell>Extruder Exit</TableCell>
-                  <TableCell>Pre-Press Exit</TableCell>
-                  <TableCell>Primary Press Start</TableCell>
-                  <TableCell>Stream In</TableCell>
-                  <TableCell>Primary Press Exit</TableCell>
-                  <TableCell>Secondary Press 1 Start</TableCell>
-                  <TableCell>Temp Check 1</TableCell>
-                  <TableCell>Secondary Press 2 Start</TableCell>
-                  <TableCell>Temp Check 2</TableCell>
-                  <TableCell>Cooling</TableCell>
-                  <TableCell>Secondary Press Exit</TableCell>
-                  <TableCell>Block</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tempPlanTimes.map((plan, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{plan.run_no}</TableCell>
-                    <TableCell>{plan.machine}</TableCell>
-                    <TableCell>{plan.batch_no}</TableCell>
-                    <TableCell>{formatTime(plan.start_time)}</TableCell>
-                    <TableCell>{formatTime(plan.mixing)}</TableCell>
-                    <TableCell>{formatTime(plan.extruder_exit)}</TableCell>
-                    <TableCell>{formatTime(plan.pre_press_exit)}</TableCell>
-                    <TableCell>{formatTime(plan.primary_press_start)}</TableCell>
-                    <TableCell>{formatTime(plan.stream_in)}</TableCell>
-                    <TableCell>{formatTime(plan.primary_press_exit)}</TableCell>
-                    <TableCell>{formatTime(plan.secondary_press_1_start)}</TableCell>
-                    <TableCell>{formatTime(plan.temp_check_1)}</TableCell>
-                    <TableCell>{formatTime(plan.secondary_press_2_start)}</TableCell>
-                    <TableCell>{formatTime(plan.temp_check_2)}</TableCell>
-                    <TableCell>{formatTime(plan.cooling)}</TableCell>
-                    <TableCell>{formatTime(plan.secondary_press_exit)}</TableCell>
-                    <TableCell>{plan.block}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-    
-          <div className="footer-button">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleMachineBreakdown}
-            >
-              Machine Inspection
-            </Button>
+          <div className="temptable-status-item">
+            <span className="temptable-status-label">วันที่:</span>
+            <span className="temptable-status-value">{currentTime.toLocaleDateString("th-TH")}</span>
           </div>
         </div>
+      </div>
+
+      <ToastContainer position="top-right" limit={3} />
+    </div>
   );
 };
 

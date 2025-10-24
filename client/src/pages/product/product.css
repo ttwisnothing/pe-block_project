@@ -1,130 +1,654 @@
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f9f9fc;
-  margin: 0;
-  padding: 0;
+/* Product Page Specific Styles */
+.product-page-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1e293b;
 }
 
-.product-container {
-  max-width: 1000px;
-  margin: 30px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.product-title {
-  text-align: center;
-  color: #333;
+.product-main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-top: 20px;
   margin-bottom: 20px;
-  font-size: 24px;
 }
 
-.product-form {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
-  grid-gap: 20px; /* ระยะห่างระหว่างช่อง */
+/* Loading Screen */
+.product-loading-screen {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 24px;
+  margin: 20px;
 }
 
-.form-row {
-  grid-column: span 5; /* ใช้สำหรับจัดกลุ่มแถว */
-  display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 คอลัมน์ */
-  gap: 20px;
-}
-
-.form-group {
+.product-loading-animation {
+  text-align: center;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 24px;
 }
 
-.form-label {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #555;
-  font-size: 14px;
+.product-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: product-spin 1s linear infinite;
 }
 
-.form-input,
-.form-select {
-  width: 100%;
-  padding: 10px; /* ปรับ padding ให้เหมือนกัน */
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  background-color: #fdfdfd;
-  transition: border-color 0.3s ease;
-  height: 40px; /* กำหนดความสูงให้เท่ากัน */
-  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาด */
+.product-loading-text {
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
 }
 
-.form-input:focus,
-.form-select:focus {
-  border-color: #4caf50;
-  outline: none;
+@keyframes product-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.chemicals-grid {
-  grid-column: span 5; /* Chemicals กินพื้นที่เต็มแถว */
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
-  grid-gap: 20px;
+/* Header Styles */
+.product-page-header {
+  position: relative;
+  padding: 50px 40px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  overflow: hidden;
 }
 
-.loading-text {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
+.product-header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-.form-actions {
-  grid-column: span 5; /* ปุ่มอยู่เต็มแถว */
+.product-header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 64, 175, 0.1);
+}
+
+.product-header-decoration {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.product-header-content {
+  position: relative;
+  z-index: 2;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 32px;
+}
+
+.product-brand-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.product-icon-svg {
+  width: 40px;
+  height: 40px;
+  fill: currentColor;
+}
+
+.product-header-text {
+  flex: 1;
+}
+
+.product-main-title {
+  margin: 0 0 12px 0;
+  font-size: 2.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.product-main-subtitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Form Container */
+.product-form-container {
+  padding: 50px 40px;
+}
+
+.product-main-form {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Form Sections */
+.product-form-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.product-form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 20px 20px 0 0;
+}
+
+.product-form-section:hover {
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+}
+
+.product-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.product-section-title {
+  color: #1e40af;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.product-section-icon {
+  font-size: 1.8rem;
+}
+
+.product-section-badge {
+  padding: 8px 20px;
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-badge-required {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.product-badge-important {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.product-badge-production {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+/* Form Grids */
+.product-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 28px;
+}
+
+.product-production-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+/* Input Groups */
+.product-input-group {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.add-chemical-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 15px;
-  font-size: 14px;
+.product-input-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.product-required-asterisk {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.product-optional-text {
+  color: #6b7280;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Form Inputs */
+.product-text-input,
+.product-select-input,
+.product-number-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.product-text-input:focus,
+.product-select-input:focus,
+.product-number-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.product-text-input::placeholder,
+.product-number-input::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.product-select-input {
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.add-chemical-button:hover {
-  background-color: #0056b3;
+/* Number Input with Unit */
+.product-number-input-wrapper {
+  position: relative;
 }
 
-.save-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 15px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+.product-input-unit {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  pointer-events: none;
 }
 
-.save-button:hover {
-  background-color: #45a049;
-  transform: scale(1.02);
-}
-
-.alert {
-  text-align: center;
-  color: red;
-  font-size: 14px;
-}
-
-p {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
+.product-input-description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-style: italic;
   margin: 0;
+  padding-left: 4px;
+}
+
+/* Measurement Cards */
+.product-measurement-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-measurement-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.product-measurement-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+  transform: translateY(-2px);
+}
+
+.product-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.product-card-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.product-card-icon {
+  font-size: 1.5rem;
+}
+
+/* Chemical Cards */
+.product-chemicals-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 24px;
+}
+
+.product-chemical-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.product-chemical-card:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+}
+
+.product-chemical-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.product-chemical-number-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.product-chemical-card-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.product-remove-chemical-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.product-remove-chemical-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Action Buttons */
+.product-add-chemical-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.product-add-chemical-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.product-button-icon {
+  font-size: 1.1rem;
+}
+
+/* Form Actions */
+.product-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 32px;
+  border-top: 2px solid #f1f5f9;
+  margin-top: 20px;
+}
+
+.product-reset-button {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.product-reset-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.4);
+}
+
+.product-submit-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 36px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+  position: relative;
+}
+
+.product-submit-button:hover:not(.product-submitting) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.product-submit-button.product-submitting {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.product-submit-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: product-spin 1s linear infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .product-main-container {
+    margin: 10px;
+    border-radius: 16px;
+  }
+  
+  .product-page-header {
+    padding: 40px 30px;
+  }
+  
+  .product-form-container {
+    padding: 40px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-page-header {
+    padding: 30px 20px;
+  }
+  
+  .product-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 24px;
+  }
+  
+  .product-main-title {
+    font-size: 2.2rem;
+  }
+  
+  .product-form-container {
+    padding: 30px 20px;
+  }
+  
+  .product-form-section {
+    padding: 30px 20px;
+  }
+  
+  .product-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-production-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-chemicals-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-form-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .product-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-main-title {
+    font-size: 1.8rem;
+  }
+  
+  .product-main-subtitle {
+    font-size: 1rem;
+  }
+  
+  .product-form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .product-chemicals-container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Focus States for Accessibility */
+.product-text-input:focus,
+.product-select-input:focus,
+.product-number-input:focus,
+.product-add-chemical-button:focus,
+.product-submit-button:focus,
+.product-reset-button:focus,
+.product-remove-chemical-button:focus {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom Scrollbar */
+.product-page-wrapper ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.product-page-wrapper ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.product-page-wrapper ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 4px;
+}
+
+.product-page-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 }

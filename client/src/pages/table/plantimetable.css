@@ -1,128 +1,457 @@
 /* Container for the table */
-.table-container {
+.plantimetable-container {
   padding: 20px;
-  background-color: #f9f9f9;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e8f1f5 100%);
   position: relative;
-  width: 100%; /* ขยายตารางให้เต็มพื้นที่ */
-  max-width: none; /* ยกเลิกความกว้างสูงสุด */
-  margin: 0; /* ลบระยะขอบ */
-  border-radius: 0; /* ลบมุมโค้ง */
-  box-shadow: none; /* ลบเงา */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
-  flex-direction: column; /* จัดเรียงเนื้อหาในแนวตั้ง */
-  gap: 20px; /* เพิ่มระยะห่างระหว่างตารางและปุ่ม */
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Title for the table */
-.table-title {
-  text-align: center;
-  font-size: 1.5rem;
+/* Header Section */
+.plantimetable-header-section {
+  display: flex;
+  justify-content: flex-start; /* เปลี่ยนจาก space-between เป็น flex-start */
+  align-items: center;
   margin-bottom: 20px;
-  color: #333;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 20px; /* เพิ่ม gap เพื่อให้มีระยะห่างระหว่าง elements */
+}
+
+.plantimetable-clock-wrapper {
+  flex: 1;
+  order: 2; /* ให้นาฬิกาอยู่หลัง */
+  display: flex;
+  justify-content: flex-end; /* จัดนาฬิกาไปทางขวา */
+}
+
+/* Top buttons container */
+.plantimetable-top-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  order: 1; /* ให้ปุ่มอยู่ก่อน */
+}
+
+.plantimetable-refresh-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: white !important;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 160px;
+  height: 48px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.plantimetable-refresh-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.plantimetable-refresh-button:disabled {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.plantimetable-close-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 160px;
+  height: 48px;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.plantimetable-close-button:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Product Info Section */
+.plantimetable-product-info-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Header for Recipe */
-.table-header {
+.plantimetable-table-header {
   display: flex;
-  justify-content: flex-start; /* Align to the left */
+  justify-content: flex-start;
   margin-bottom: 20px;
-  padding-left: 20px; /* เพิ่มระยะห่างจากขอบซ้าย */
+  padding: 0;
 }
 
-.table-header h2 {
-  font-size: 1.8rem;
-  color: #333;
+.plantimetable-table-header h2 {
+  font-size: 2rem;
+  color: #1e293b;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
 }
 
-/* Custom table container */
-.custom-table-container {
-  width: 100%;
-  overflow-x: auto; /* Allow horizontal scrolling if needed */
-  border: 1px solid black; /* เส้นรอบตาราง */
+.plantimetable-product-label {
+  color: #64748b;
+  font-weight: 600;
 }
 
-/* Custom table */
-.custom-table {
-  width: 100%;
-  table-layout: fixed; /* Fix column widths */
-  border-collapse: collapse;
-  font-size: 0.9rem; /* ลดขนาดตัวอักษร */
+.plantimetable-product-name {
+  color: #2563eb;
+  font-weight: 700;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid #93c5fd;
 }
 
-/* Table header */
-.custom-table thead th {
-  background-color: #007bff;
-  color: white;
-  text-align: center;
-  padding: 10px;
-  font-weight: bold;
-  border: 1px solid #ddd; /* เพิ่มเส้นขอบ */
+.plantimetable-product-color {
+  color: #059669;
+  font-weight: 600;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid #6ee7b7;
+  font-style: italic;
 }
 
-/* Table body rows */
-.custom-table tbody tr {
-  text-align: center;
+/* Current Step Display */
+.plantimetable-current-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 6px solid #f59e0b;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s ease;
 }
 
-.custom-table tbody tr:nth-child(even) {
-  background-color: #f2f2f2; /* Alternate row color */
+.plantimetable-current-step-icon {
+  font-size: 2rem;
+  color: #d97706;
 }
 
-.custom-table tbody tr:hover {
-  background-color: #e6f7ff; /* Highlight row on hover */
+.plantimetable-current-step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Table cells */
-.custom-table td {
-  padding: 10px;
-  word-wrap: break-word; /* Wrap long text */
-  text-align: center;
-  border: 1px solid #ddd; /* เพิ่มเส้นขอบ */
-}
-
-.custom-table th,
-.custom-table td {
-  border: 1px solid black; /* เส้นรอบเซลล์ */
-}
-
-/* Footer button */
-.footer-button {
-  align-self: flex-start; /* จัดปุ่มให้อยู่ด้านซ้าย */
-}
-
-.footer-button button {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 24px; /* เพิ่มขนาดปุ่ม */
-  border: none;
-  border-radius: 5px;
+.plantimetable-current-step-label {
+  font-weight: 600;
+  color: #92400e;
   font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.footer-button button:hover {
-  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
-  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+.plantimetable-current-step-value {
+  color: #d97706;
+  font-weight: 700;
+  font-size: 1.3rem;
+  text-transform: capitalize;
 }
 
-/* ปุ่ม Back */
-.top-buttons button {
-  background-color: #007bff; /* สีพื้นหลัง */
-  color: white; /* สีตัวอักษร */
-  padding: 12px 24px; /* ขนาดปุ่ม */
+.plantimetable-current-step-time {
+  color: #92400e;
+  font-weight: 600;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Table Responsive Container */
+.plantimetable-table-responsive {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Footer Actions */
+.plantimetable-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 20px;
+}
+
+.plantimetable-machine-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #000 !important;
+  padding: 14px 28px;
   border: none;
-  border-radius: 5px; /* มุมโค้ง */
-  font-size: 1rem; /* ขนาดตัวอักษร */
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 200px; /* กำหนดความกว้างให้เท่ากัน */
-  height: 50px; /* กำหนดความสูงให้เท่ากัน */
-  text-align: center; /* จัดข้อความให้อยู่ตรงกลาง */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+  height: 56px;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.top-buttons button:hover {
-  background-color: #0056b3; /* สีเข้มขึ้นเมื่อ hover */
-  transform: scale(1.05); /* ขยายเล็กน้อยเมื่อ hover */
+.plantimetable-machine-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.plantimetable-machine-button:disabled {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
+  color: #ffffff !important;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.plantimetable-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plantimetable-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plantimetable-status-label {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.plantimetable-status-value {
+  color: #1e293b;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+/* Digital Clock Styling */
+.plantimetable-digital-clock {
+  font-family: 'Courier New', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Alert Content */
+.plantimetable-alert-content {
+  text-align: left;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.plantimetable-alert-content p {
+  margin: 8px 0;
+}
+
+.plantimetable-alert-content strong {
+  color: #1e293b;
+}
+
+/* Animation for Current Step */
+@keyframes plantimetable-pulse {
+  0% {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    transform: scale(1);
+  }
+  50% {
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+    transform: scale(1.02);
+  }
+  100% {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    transform: scale(1);
+  }
+}
+
+.plantimetable-current-step {
+  animation: plantimetable-pulse 3s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .plantimetable-container {
+    padding: 12px;
+    gap: 16px;
+  }
+  
+  .plantimetable-header-section {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 16px;
+  }
+  
+  .plantimetable-top-buttons {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .plantimetable-refresh-button,
+  .plantimetable-close-button,
+  .plantimetable-machine-button {
+    width: 100%;
+    max-width: 280px;
+    min-width: auto;
+  }
+  
+  .plantimetable-table-header h2 {
+    font-size: 1.6rem;
+    text-align: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .plantimetable-current-step {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .plantimetable-current-step-content {
+    text-align: center;
+  }
+  
+  .plantimetable-footer-actions {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .plantimetable-status-info {
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .plantimetable-container {
+    padding: 8px;
+  }
+  
+  .plantimetable-product-info-section,
+  .plantimetable-header-section,
+  .plantimetable-footer-actions {
+    padding: 16px;
+  }
+  
+  .plantimetable-table-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .plantimetable-current-step-label,
+  .plantimetable-current-step-value {
+    font-size: 1rem;
+  }
+  
+  .plantimetable-current-step-icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .plantimetable-header-section,
+  .plantimetable-footer-actions,
+  .plantimetable-top-buttons {
+    display: none !important;
+  }
+  
+  .plantimetable-container {
+    background: white;
+    box-shadow: none;
+    padding: 0;
+  }
+  
+  .plantimetable-product-info-section,
+  .plantimetable-table-responsive {
+    box-shadow: none;
+    border: 1px solid #000;
+    background: white;
+  }
+  
+  .plantimetable-current-step {
+    animation: none;
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Loading Animation */
+@keyframes plantimetable-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.plantimetable-loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: plantimetable-spin 1s ease-in-out infinite;
 }

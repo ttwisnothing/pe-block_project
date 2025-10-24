@@ -1,0 +1,607 @@
+/* ============ MAIN LAYOUT ============ */
+.foam-main-container {
+  min-height: 100vh;
+  height: auto !important;
+  background: #f5f5f5;
+  padding: 20px 0;
+}
+
+.foam-container {
+  padding: 2rem 1rem !important;
+  height: auto !important;
+  min-height: 100vh;
+}
+
+.foam-paper {
+  border-radius: 16px !important;
+  background: white !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #e0e0e0 !important;
+  padding: 3rem !important;
+  overflow: hidden;
+}
+
+/* ============ HEADER ============ */
+.foam-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.foam-page-title {
+  font-weight: 700 !important;
+  color: #1976d2 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.foam-page-subtitle {
+  color: #666 !important;
+  font-weight: 500 !important;
+  font-size: 1.1rem !important;
+}
+
+/* ============ STEPPER ============ */
+.foam-stepper-container {
+  margin-bottom: 3rem;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+}
+
+.foam-stepper {
+  .MuiStepLabel-root .MuiStepLabel-iconContainer .Mui-active {
+    color: #1976d2 !important;
+    background: rgba(25, 118, 210, 0.1);
+    border-radius: 50%;
+  }
+
+  .MuiStepLabel-root .MuiStepLabel-iconContainer .Mui-completed {
+    color: #4caf50 !important;
+    background: rgba(76, 175, 80, 0.1);
+    border-radius: 50%;
+  }
+
+  .MuiStepConnector-line {
+    border-color: #e0e0e0 !important;
+    border-top-width: 2px !important;
+  }
+
+  .MuiStepConnector-root.Mui-active .MuiStepConnector-line {
+    border-color: #1976d2 !important;
+  }
+
+  .MuiStepConnector-root.Mui-completed .MuiStepConnector-line {
+    border-color: #4caf50 !important;
+  }
+}
+
+.foam-step-label {
+  .MuiStepLabel-label {
+    font-weight: 600 !important;
+    color: #666 !important;
+  }
+
+  .MuiStepLabel-label.Mui-active {
+    color: #1976d2 !important;
+  }
+
+  .MuiStepLabel-label.Mui-completed {
+    color: #4caf50 !important;
+  }
+}
+
+/* Step completion states */
+.completed-step .MuiStepLabel-root {
+  color: #4caf50 !important;
+}
+
+.completed-step .MuiStepIcon-root {
+  color: #4caf50 !important;
+}
+
+.foam-step.completed-step {
+  opacity: 0.8;
+}
+
+.foam-step:not(.completed-step) .MuiStepIcon-root {
+  color: #ff9800 !important;
+}
+
+/* ============ STEP CONTENT ============ */
+.foam-step-content-container {
+  margin-bottom: 3rem;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.foam-step-content {
+  border-radius: 12px !important;
+  background: white !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid #e0e0e0 !important;
+  padding: 2.5rem !important;
+  transition: all 0.3s ease !important;
+  animation: foam-slideInUp 0.5s ease-out;
+  min-height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.foam-step-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Step Header */
+.foam-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.foam-step-icon {
+  color: #1976d2 !important;
+  font-size: 2rem !important;
+  background: rgba(25, 118, 210, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+  margin-right: 1rem;
+}
+
+.foam-step-title {
+  font-weight: 700 !important;
+  color: #333 !important;
+  margin: 0 !important;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.foam-production-chip {
+  background: #1976d2 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  height: auto !important;
+}
+
+/* Section Title */
+.foam-section-title {
+  font-weight: 700 !important;
+  color: #333 !important;
+  margin-bottom: 1rem !important;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+/* ============ FORM ELEMENTS ============ */
+.foam-form-grid {
+  margin-top: 1rem !important;
+}
+
+/* Text Fields */
+.foam-text-field {
+  margin-bottom: 1.5rem !important;
+
+  .MuiOutlinedInput-root {
+    border-radius: 8px !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+
+    &:hover {
+      background: #fafafa !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    &.Mui-focused {
+      background: white !important;
+      box-shadow: 0 2px 12px rgba(25, 118, 210, 0.15) !important;
+    }
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: #e0e0e0 !important;
+    border-width: 1px !important;
+  }
+
+  .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: #bdbdbd !important;
+  }
+
+  .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #1976d2 !important;
+    border-width: 2px !important;
+  }
+
+  .MuiInputLabel-root {
+    color: #666 !important;
+    font-weight: 500 !important;
+  }
+
+  .MuiInputLabel-root.Mui-focused {
+    color: #1976d2 !important;
+  }
+}
+
+/* Special Field States */
+.foam-disabled-field {
+  .MuiOutlinedInput-root {
+    background: #f5f5f5 !important;
+    color: #999 !important;
+  }
+}
+
+.foam-disabled-field.Mui-disabled {
+  background-color: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.foam-disabled-field.Mui-disabled .MuiOutlinedInput-notchedOutline {
+  border-color: #ddd !important;
+  background-color: #f9f9f9 !important;
+}
+
+.foam-disabled-field.Mui-disabled .MuiInputLabel-root {
+  color: #999 !important;
+}
+
+.foam-ref-field {
+  .MuiOutlinedInput-root {
+    background: rgba(25, 118, 210, 0.05) !important;
+    border: 1px solid rgba(25, 118, 210, 0.2) !important;
+  }
+}
+
+/* Select Fields */
+.foam-text-field .MuiSelect-select {
+  border-radius: 8px !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.foam-text-field .MuiSelect-select:hover {
+  background: #fafafa !important;
+}
+
+.foam-text-field .MuiSelect-select.Mui-focused {
+  background: white !important;
+}
+
+/* Select Menu */
+.MuiMenu-paper {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  max-height: 300px !important;
+}
+
+.MuiMenuItem-root {
+  padding: 12px 16px !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.MuiMenuItem-root:hover {
+  background: rgba(25, 118, 210, 0.08) !important;
+}
+
+.MuiMenuItem-root.Mui-selected {
+  background: rgba(25, 118, 210, 0.12) !important;
+}
+
+.MuiMenuItem-root.Mui-selected:hover {
+  background: rgba(25, 118, 210, 0.16) !important;
+}
+
+/* ============ NAVIGATION BUTTONS ============ */
+.foam-navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 0;
+  border-top: 2px solid #f0f0f0;
+  gap: 1rem;
+}
+
+.foam-back-button {
+  color: #666 !important;
+  border-color: #e0e0e0 !important;
+  border-width: 1px !important;
+  padding: 12px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  transition: all 0.3s ease !important;
+  background: white !important;
+}
+
+.foam-back-button:hover {
+  background: #f5f5f5 !important;
+  border-color: #bdbdbd !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.foam-save-button {
+  background: #1976d2 !important;
+  color: white !important;
+  padding: 14px 40px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  font-size: 1rem !important;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3) !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+.foam-save-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.4) !important;
+  background: #1565c0 !important;
+}
+
+.foam-save-button:disabled {
+  background: #bdbdbd !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.foam-next-button {
+  background: #4caf50 !important;
+  color: white !important;
+  padding: 12px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+.foam-next-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4) !important;
+  background: #43a047 !important;
+}
+
+/* ============ ALERTS & NOTIFICATIONS ============ */
+.foam-snackbar {
+  .MuiSnackbar-root {
+    z-index: 9999;
+  }
+}
+
+.foam-alert {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ============ ANIMATIONS ============ */
+@keyframes foam-slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============ SCROLLBAR ============ */
+.foam-step-content-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.foam-step-content-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.foam-step-content-container::-webkit-scrollbar-thumb {
+  background: #bdbdbd;
+  border-radius: 3px;
+}
+
+.foam-step-content-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ============ RESPONSIVE DESIGN ============ */
+@media (max-width: 1024px) {
+  .foam-container {
+    padding: 1.5rem 1rem !important;
+  }
+
+  .foam-paper {
+    padding: 2rem !important;
+  }
+
+  .foam-stepper-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .foam-main-container {
+    padding: 10px 0;
+  }
+
+  .foam-container {
+    padding: 1rem 0.5rem !important;
+  }
+
+  .foam-paper {
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+  }
+
+  .foam-step-content {
+    padding: 1.5rem !important;
+  }
+
+  .foam-step-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .foam-step-title {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .foam-navigation-buttons {
+    flex-direction: column;
+    gap: 1rem;
+
+    .foam-back-button,
+    .foam-save-button,
+    .foam-next-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .foam-stepper {
+    .MuiStepLabel-label {
+      font-size: 0.8rem !important;
+    }
+  }
+
+  /* Chemical Sections */
+  .foam-chemical-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .foam-chemical-section .foam-section-title {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .foam-page-title {
+    font-size: 1.75rem !important;
+  }
+
+  .foam-step-header {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .foam-step-icon {
+    font-size: 1.5rem !important;
+    padding: 8px;
+    margin-right: 0.5rem;
+  }
+
+  .foam-step-title {
+    font-size: 1.1rem !important;
+  }
+
+  .foam-stepper-container {
+    padding: 1rem;
+  }
+
+  .foam-navigation-buttons {
+    padding: 1.5rem 0;
+  }
+}
+
+/* แก้ไข CSS สำหรับ clickable steps - ให้ทุก step คลิกได้ */
+.clickable-step .MuiStepLabel-root {
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+
+.clickable-step .MuiStepLabel-root:hover {
+  transform: scale(1.05);
+  background: rgba(25, 118, 210, 0.08);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.clickable-step .MuiStepLabel-root:hover .MuiStepIcon-root {
+  transform: scale(1.1);
+  background: rgba(25, 118, 210, 0.1);
+  border-radius: 50%;
+}
+
+.clickable-step .MuiStepLabel-root:active {
+  transform: scale(0.98);
+}
+
+/* Completed steps มี hover effect สีเขียว */
+.completed-step.clickable-step .MuiStepLabel-root:hover {
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.completed-step.clickable-step .MuiStepLabel-root:hover .MuiStepIcon-root {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+/* Chemical Sections - Side by Side Layout */
+.foam-chemical-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  height: 100%; /* ให้สูงเท่ากัน */
+}
+
+.foam-chemical-section .foam-section-title {
+  margin-bottom: 1.5rem !important;
+  color: #1976d2 !important;
+  font-size: 1.25rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  justify-content: center;
+}
+
+/* Vertical Form Layout */
+.foam-form-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.foam-form-vertical .foam-text-field {
+  margin-bottom: 0 !important;
+}
+
+.foam-form-vertical .MuiFormControl-root {
+  margin-bottom: 0 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 960px) {
+  .foam-chemical-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .foam-chemical-section .foam-section-title {
+    font-size: 1.1rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .foam-chemical-section {
+    padding: 0.75rem;
+  }
+}

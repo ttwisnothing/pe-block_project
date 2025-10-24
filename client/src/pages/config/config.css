@@ -1,53 +1,684 @@
-.config-container {
+/* Config Page Specific Styles */
+.config-page-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #1e293b;
   padding: 20px;
-  background-color: #f9f9f9;
 }
 
-.config-title {
-  font-size: 24px;
+.config-main-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Header Styles */
+.config-page-header {
+  position: relative;
+  padding: 50px 40px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  overflow: hidden;
+}
+
+.config-header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.config-header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 64, 175, 0.1);
+}
+
+.config-header-decoration {
+  position: absolute;
+  top: -150px;
+  right: -150px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.config-header-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 30px;
+}
+
+.config-brand-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.config-icon-svg {
+  width: 40px;
+  height: 40px;
+  fill: currentColor;
+}
+
+.config-header-text {
+  flex: 1;
+}
+
+.config-main-title {
+  margin: 0 0 12px 0;
+  font-size: 2.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.config-main-subtitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Progress Indicator */
+.config-progress-indicator {
+  position: relative;
+  z-index: 2;
+}
+
+.config-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.config-progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.config-progress-text {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Form Container */
+.config-form-container {
+  padding: 50px 40px;
+}
+
+.config-main-form {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Sections Grid */
+.config-sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 32px;
+}
+
+/* Form Sections */
+.config-form-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 32px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.config-form-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 20px 20px 0 0;
+}
+
+.config-form-section:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+}
+
+.config-large-section {
+  grid-column: 1 / -1;
+}
+
+.config-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.config-section-title-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1;
+}
+
+.config-icon-container {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.config-section-emoji {
+  font-size: 1.4rem;
+}
+
+.config-section-info {
+  flex: 1;
+}
+
+.config-section-title {
+  margin: 0 0 6px 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e40af;
+  line-height: 1.3;
+}
+
+.config-section-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.config-section-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.config-badge-number {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.config-badge-text {
+  font-size: 0.8rem;
+}
+
+/* Form Grid */
+.config-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Form Groups */
+.config-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-form-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.config-label-text {
+  font-weight: 600;
+}
+
+.config-required-asterisk {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.config-unit-label {
+  color: #6b7280;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Form Inputs */
+.config-input-container {
+  position: relative;
+}
+
+.config-form-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.config-form-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.config-form-input.config-input-filled {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.config-form-input::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.config-input-unit {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  pointer-events: none;
+}
+
+.config-input-check {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: #f0fdf4;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #10b981;
+}
+
+.config-input-helper {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0;
+  padding-left: 4px;
+  line-height: 1.3;
+}
+
+/* Summary และ Actions */
+.config-form-summary-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: start;
+  padding-top: 32px;
+  border-top: 2px solid #f1f5f9;
+}
+
+/* Form Summary */
+.config-form-summary {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.config-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-.config-form {
+.config-summary-icon {
+  font-size: 1.3rem;
+}
+
+.config-summary-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.config-summary-content {
   display: flex;
-  flex-wrap: wrap; /* ทำให้ฟอร์มสามารถจัดเรียงหลายแถวได้ */
-  gap: 15px; /* ระยะห่างระหว่างช่อง */
+  flex-direction: column;
+  gap: 12px;
 }
 
-.form-group {
-  flex: 1 1 calc(25% - 15px); /* ช่องแต่ละช่องจะมีขนาด 25% ของแถว (5 ช่องต่อแถว) */
-  min-width: 150px; /* กำหนดขนาดขั้นต่ำ */
+.config-summary-item {
   display: flex;
-  flex-direction: column; /* จัด label และ input ให้อยู่ในคอลัมน์เดียวกัน */
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.form-label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
-  text-align: left; /* จัด label ให้อยู่ชิดซ้าย */
+.config-summary-item:last-child {
+  border-bottom: none;
 }
 
-.form-input {
-  padding: 8px;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box; /* ทำให้ padding ไม่กระทบขนาดของ input */
-  height: 40px; /* กำหนดความสูงให้เท่ากัน */
+.config-summary-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
 }
 
-.form-submit-button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
+.config-summary-value {
+  font-weight: 500;
+  color: #1f2937;
+  text-align: right;
+}
+
+.config-count-highlight {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.config-count-total {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.config-summary-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.config-status-valid {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.config-status-invalid {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.config-summary-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.config-mini-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.config-mini-progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.config-mini-progress-text {
+  font-weight: 600;
+  color: #3b82f6;
+  font-size: 0.85rem;
+}
+
+/* Form Actions */
+.config-form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 200px;
+}
+
+.config-reset-button,
+.config-cancel-button,
+.config-submit-button {
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 20px;
-  width: 100%; /* ปุ่ม Submit จะเต็มความกว้าง */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
 }
 
-.form-submit-button:hover {
-  background-color: #0056b3;
+.config-reset-button {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.config-reset-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(107, 114, 128, 0.4);
+}
+
+.config-cancel-button {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.config-cancel-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.config-submit-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+  position: relative;
+}
+
+.config-submit-button:hover:not(.config-submit-disabled):not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.config-submit-button.config-submit-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.config-submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.config-button-icon {
+  font-size: 1.1rem;
+}
+
+.config-button-text {
+  font-weight: 600;
+}
+
+.config-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: config-spin 1s linear infinite;
+}
+
+@keyframes config-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .config-sections-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .config-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .config-page-wrapper {
+    padding: 10px;
+  }
+  
+  .config-page-header {
+    padding: 40px 30px;
+  }
+  
+  .config-header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 24px;
+  }
+  
+  .config-main-title {
+    font-size: 2.2rem;
+  }
+  
+  .config-form-container {
+    padding: 40px 30px;
+  }
+  
+  .config-form-section {
+    padding: 24px;
+  }
+  
+  .config-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .config-form-summary-actions {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .config-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .config-main-title {
+    font-size: 1.8rem;
+  }
+  
+  .config-main-subtitle {
+    font-size: 1rem;
+  }
+  
+  .config-form-container {
+    padding: 20px;
+  }
+  
+  .config-form-section {
+    padding: 20px;
+  }
+}
+
+/* Focus States for Accessibility */
+.config-form-input:focus,
+.config-reset-button:focus,
+.config-cancel-button:focus,
+.config-submit-button:focus {
+  outline: 3px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Custom Scrollbar */
+.config-page-wrapper ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.config-page-wrapper ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.config-page-wrapper ::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 4px;
+}
+
+.config-page-wrapper ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
 }

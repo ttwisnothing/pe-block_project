@@ -1,18 +1,36 @@
 import express from 'express';
-import { getPlanTime } from './../controllers/plantimeController.js';
+import { getNewPlantime, getPlanTime, listPlantime } from './../controllers/plantimeController.js';
 import { getTempPlanTime, getTempPlanTimeASC } from '../controllers/tempController.js';
-import { getProducts, getChemicals } from './../controllers/productController.js';
-// import { testPlantime } from '../models/plantimeModel.js';
+import { getChemicals, getProducts, getProductsName } from './../controllers/productController.js';
+import { getProduction, getRunRecord, getRunRecordData, getRunStatus } from '../controllers/productionController.js';
+import { addPlantime } from '../models/plantimeModel.js';
+import { updateNewStartTime } from '../models/tempplanModel.js';
+import { AvailabilityQuery, MachineOEEQuery, MachineQuery, OEEQuery, PerformanceQuery, QualityQuery, selectPlanId } from '../models/oeeModel.js';
 
 const router = express.Router();
 
 router.get('/chemicals', getChemicals);
-router.get('/products', getProducts);
-router.get('/plantime/:productName', getPlanTime);
-router.get('/tempplantime/:product_name', getTempPlanTime);
-router.get('/temp-time-asc/:product_name', getTempPlanTimeASC);
-// router.get('/machine/:product_name', updateMac);
-// router.get('/test/update/temp/:product_name/:temp_id', updateNewStartTime)
-// router.get('/test/get/plantime/:product_name', testPlantime);
+router.get('/products', getProductsName);
+router.get('/plantime/:plantimeId', getPlanTime);
+router.get('/tempplantime/:plantime_id', getTempPlanTime);
+router.get('/temp-time-asc/:plantime_id', getTempPlanTimeASC);
+router.get('/all-products', getProducts);
+router.get('/list-plantime', listPlantime);
+router.get('/production/all', getProduction);
+router.get('/production/:productionId/run', getRunRecord);
+router.get('/production/record-data/run/:recordId', getRunRecordData);
+router.get('/production/run/status/:productionId', getRunStatus);
+router.get('/oee/availability/', AvailabilityQuery);
+router.get('/oee/performance/', PerformanceQuery);
+router.get('/oee/quality/', QualityQuery);
+router.get('/oee/', OEEQuery);
+router.get('/oee/machine/block-total', MachineQuery);
+router.get('/oee/machine/oee/', MachineOEEQuery);
+router.get('/oee/select-date', selectPlanId);
+
+// test route for plantime
+router.get('/test-plantime/:product_name', addPlantime);
+router.get('/test-new-plantime/:plantimeId', getNewPlantime);
+router.get('/test-temp-plantime/:product_name/:temp_id', updateNewStartTime);
 
 export default router;
