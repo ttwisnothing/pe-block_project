@@ -38,6 +38,10 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import "./foam.css";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import th from "date-fns/locale/th";
 
 // steps array
 const steps = [
@@ -90,7 +94,7 @@ const FoamRecord = () => {
   // Production Record State
   const [productionData, setProductionData] = useState({
     runNo: "",
-    recordDate: new Date().toISOString().split("T")[0], // <-- ISO 8601: YYYY-MM-DD
+    recordDate: new Date().toISOString().split("T")[0],
     productStatus: "",
     programNo: "",
     productName: productName || "",
@@ -110,12 +114,14 @@ const FoamRecord = () => {
     weights: Array(15).fill(""),
   });
 
-  // Mixing Step State
+  // Mixing Step State - ลบ programNo
   const [mixingData, setMixingData] = useState({
-    programNo: "",
+    programHopper: "",
     hopperWeight: "",
+    programKneader: "",
     actualStart: "",
     mixFinish: "",
+    programExtruder: "",
     lip: "",
     casingA: "",
     casingB: "",
@@ -570,7 +576,7 @@ const FoamRecord = () => {
                     </Grid>
                   </Grid>
                 </Grid>
-                {/* วันที่บันทึก */}
+                {/* วันที่บันทึก - แก้เป็น DatePicker */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Grid container sx={{ alignItems: "center" }}>
                     <Grid size={{ xs: 4 }}>
@@ -579,24 +585,47 @@ const FoamRecord = () => {
                       </Typography>
                     </Grid>
                     <Grid size={{ xs: 8 }}>
-                      <TextField
-                        fullWidth
-                        label=""
-                        type="date"
-                        value={productionData.recordDate}
-                        onChange={(e) => {
-                          setProductionData({
-                            ...productionData,
-                            recordDate: e.target.value,
-                          });
-                        }}
-                        className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
-                        }`}
-                        disabled={isEdit}
-                        InputLabelProps={{ shrink: true }}
-                        required
-                      />
+                      <LocalizationProvider
+                        dateAdapter={AdapterDateFns}
+                        adapterLocale={th}
+                      >
+                        <DatePicker
+                          value={
+                            productionData.recordDate
+                              ? new Date(productionData.recordDate)
+                              : null
+                          }
+                          onChange={(date) => {
+                            if (!isEdit && date) {
+                              // แปลงเป็น yyyy-MM-dd
+                              const year = date.getFullYear();
+                              const month = String(date.getMonth() + 1).padStart(
+                                2,
+                                "0"
+                              );
+                              const day = String(date.getDate()).padStart(2, "0");
+                              const formattedDate = `${year}-${month}-${day}`;
+
+                              setProductionData({
+                                ...productionData,
+                                recordDate: formattedDate,
+                              });
+                            }
+                          }}
+                          format="dd/MM/yyyy"
+                          disabled={isEdit}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              variant: "outlined",
+                              className: `foam-text-field ${
+                                isEdit ? "foam-disabled-field" : ""
+                              }`,
+                              required: true,
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -798,10 +827,10 @@ const FoamRecord = () => {
         );
 
       case 2:
-        // Mixing Step - แก้ไขให้เหมือน Secondary Press
+        // Mixing Step - อัพเดทการแบ่ง keys
         const mixingKeys = Object.keys(mixingData);
-        const mixingLeftKeys = mixingKeys.slice(0, 6); // ครึ่งแรก
-        const mixingRightKeys = mixingKeys.slice(6); // ครึ่งหลัง
+        const mixingLeftKeys = mixingKeys.slice(0, 7);
+        const mixingRightKeys = mixingKeys.slice(7);
 
         return (
           <Fade in timeout={500}>
@@ -843,20 +872,7 @@ const FoamRecord = () => {
                       <Grid size={{ xs: 12, md: 7 }}>
                         <TextField
                           fullWidth
-                          type={
-                            [
-                              "programNo",
-                              "hopperWeight",
-                              "casingA",
-                              "casingB",
-                              "tempHopper",
-                              "longScrew",
-                              "shortScrew",
-                              "waterHeat",
-                            ].includes(key)
-                              ? "number"
-                              : "text"
-                          }
+                          type="text"
                           value={mixingData[key]}
                           onChange={(e) => {
                             if (!isEdit) {
@@ -893,20 +909,7 @@ const FoamRecord = () => {
                       <Grid size={{ xs: 12, md: 7 }}>
                         <TextField
                           fullWidth
-                          type={
-                            [
-                              "programNo",
-                              "hopperWeight",
-                              "casingA",
-                              "casingB",
-                              "tempHopper",
-                              "longScrew",
-                              "shortScrew",
-                              "waterHeat",
-                            ].includes(key)
-                              ? "number"
-                              : "text"
-                          }
+                          type="text"
                           value={mixingData[key]}
                           onChange={(e) => {
                             if (!isEdit) {
@@ -1667,10 +1670,12 @@ const FoamRecord = () => {
 
         // Mixing Step
         setMixingData({
-          programNo: data.FMMX_programNo || "",
+          programHopper: data.FMMX_programHopper || "",
           hopperWeight: data.FMMX_hopperWeight || "",
+          programKneader: data.FMMX_programKneader || "",
           actualStart: data.FMMX_actualStart || "",
           mixFinish: data.FMMX_mixFinish || "",
+          programExtruder: data.FMMX_programExtruder || "",
           lip: data.FMMX_lip || "",
           casingA: data.FMMX_casingA || "",
           casingB: data.FMMX_casingB || "",
@@ -1763,7 +1768,6 @@ const FoamRecord = () => {
           data.FMPR_productName
         );
       case 1: // Chemical Name & Weight
-        // ถ้ามี chemical name หรือ weight อย่างน้อย 1 ตัว
         let hasChemName = false,
           hasChemWeight = false;
         for (let i = 1; i <= 15; i++) {
@@ -1786,7 +1790,7 @@ const FoamRecord = () => {
         return hasChemName && hasChemWeight;
       case 2: // Mixing Step
         return !!(
-          data.FMMX_programNo ||
+          data.FMMX_programHopper ||
           data.FMMX_hopperWeight ||
           data.FMMX_actualStart ||
           data.FMMX_mixFinish ||
@@ -1796,7 +1800,9 @@ const FoamRecord = () => {
           data.FMMX_tempHopper ||
           data.FMMX_longScrew ||
           data.FMMX_shortScrew ||
-          data.FMMX_waterHeat
+          data.FMMX_waterHeat ||
+          data.FMMX_programKneader ||
+          data.FMMX_programExtruder
         );
       case 3: // Cutting Step
         return !!(
@@ -1861,7 +1867,6 @@ const FoamRecord = () => {
     }
   }, []);
 
-  // เพิ่มฟังก์ชันหา step แรกที่ยังไม่บันทึก
   const findFirstIncompleteStep = useCallback(
     (existingData) => {
       if (!existingData) return 0;
@@ -1886,7 +1891,6 @@ const FoamRecord = () => {
     return isCompleted ? "completed" : "pending";
   };
 
-  // Preload existing data after callbacks are defined
   useEffect(() => {
     if (existingData && !hasInitialStepSet.current) {
       loadExistingData(existingData);
@@ -1903,17 +1907,17 @@ const FoamRecord = () => {
     autoNavigateToIncomplete,
   ]);
 
-  // เพิ่มฟังก์ชันสำหรับการคลิกไปยัง step (อนุญาตทุก step)
   const handleStepClick = (stepIndex) => {
     setActiveStep(stepIndex);
   };
 
-  // label สำหรับ Mixing Step
   const mixingLabels = {
-    programNo: "โปรแกรม No.",
+    programHopper: "โปรแกรม Hopper",
     hopperWeight: "Auto Hopper Weight",
+    programKneader: "โปรแกรม Kneader",
     actualStart: "เวลากดปุ่ม Auto Start",
     mixFinish: "เวลาผสมเสร็จ",
+    programExtruder: "โปรแกรม Extruder",
     lip: "อุณหภูมิ Lip",
     casingA: "อุณหภูมิ Casing A",
     casingB: "อุณหภูมิ Casing B",
@@ -1956,7 +1960,6 @@ const FoamRecord = () => {
     tempOut: "อุณหภูมิชิ้นงานออก",
   };
 
-  // เพิ่ม label สำหรับ Cutting Step หลัง secondaryPressLabels
   const cuttingLabels = {
     wb1: "น้ำหนักบล็อคที่ 1",
     wb2: "น้ำหนักบล็อคที่ 2", 
@@ -2015,15 +2018,15 @@ const FoamRecord = () => {
                       key={label}
                       className={`foam-step ${
                         stepStatus === "completed" ? "completed-step" : ""
-                      } clickable-step`} // เพิ่ม clickable-step ให้ทุก step
+                      } clickable-step`}
                       completed={stepStatus === "completed"}
                     >
                       <StepLabel
                         icon={getStepIcon(index)}
                         className="foam-step-label"
-                        onClick={() => handleStepClick(index)} // ลบเงื่อนไข isClickable
+                        onClick={() => handleStepClick(index)}
                         style={{
-                          cursor: "pointer", // cursor pointer สำหรับทุก step
+                          cursor: "pointer",
                           transition: "all 0.3s ease",
                         }}
                       >

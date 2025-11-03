@@ -175,19 +175,23 @@ export const addChemicalWeightStep = async (req, res) => {
 
 export const addMixingStep = async (req, res) => {
     const { runId } = req.params; 
-    const { programNo, hopperWeight, actualStart,
+    const { hopperWeight, actualStart,
         mixFinish, lip, casingA, casingB,
-        tempHopper, longScrew, shortScrew, waterHeat } = req.body;
+        tempHopper, longScrew, shortScrew, waterHeat,
+        programHopper, programKneader, programExtruder
+    } = req.body;
 
     const query = `
         INSERT INTO FM_mixing_step (
-            run_record_id, program_no, hopper_weight, actual_start,
+            run_record_id, hopper_weight, actual_start,
             mix_finish, lip, casing_a, casing_b,
-            temp_hopper, long_screw, short_screw, water_heat
+            temp_hopper, long_screw, short_screw, water_heat, 
+            program_hopper, program_kneader, program_extruder
         ) VALUES (
-            @runId, @programNo, @hopperWeight, @actualStart,
+            @runId, @hopperWeight, @actualStart,
             @mixFinish, @lip, @casingA, @casingB,
-            @tempHopper, @longScrew, @shortScrew, @waterHeat
+            @tempHopper, @longScrew, @shortScrew, @waterHeat,
+            @programHopper, @programKneader, @programExtruder
         )
     `
 
@@ -196,7 +200,6 @@ export const addMixingStep = async (req, res) => {
         const request = pool.request();
 
         request.input("runId", sql.Int, runId);
-        request.input("programNo", sql.Int, programNo);
         request.input("hopperWeight", sql.Int, hopperWeight);
         request.input("actualStart", sql.NVarChar, actualStart);
         request.input("mixFinish", sql.NVarChar, mixFinish);
@@ -207,13 +210,15 @@ export const addMixingStep = async (req, res) => {
         request.input("longScrew", sql.Int, longScrew);
         request.input("shortScrew", sql.Int, shortScrew);
         request.input("waterHeat", sql.Int, waterHeat);
+        request.input("programHopper", sql.Int, programHopper);
+        request.input("programKneader", sql.Int, programKneader);
+        request.input("programExtruder", sql.Int, programExtruder);
 
         await request.query(query);
         res.status(201).json({
             message: "✅ Mixing step added successfully",
             data: {
                 run_no: runId,
-                program_no: programNo,
                 hopper_weight: hopperWeight,
                 actual_start: actualStart,
                 mixing_finish: mixFinish,
@@ -223,7 +228,10 @@ export const addMixingStep = async (req, res) => {
                 temp_hopper: tempHopper,
                 long_screw: longScrew,
                 short_screw: shortScrew,
-                water_heating: waterHeat
+                water_heating: waterHeat,
+                program_hopper: programHopper,
+                program_kneader: programKneader,
+                program_extruder: programExtruder
             }
         });
     } catch (error) {

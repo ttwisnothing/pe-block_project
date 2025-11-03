@@ -3,6 +3,8 @@ import { useNavigate, useLocation, useOutletContext } from "react-router-dom";
 import axios from "axios";
 import "./analytics.css";
 import * as echarts from "echarts";
+import secodaryPressImage from "../../../assets/secondary-press.png"
+import primaryPressImage from "../../../assets/primary-press.png"
 
 const navRoutes = {
   HOME: "/dashboard",
@@ -380,92 +382,67 @@ const Analytics = () => {
                     </h4>
                   </div>
                   <div className="analytics-machine-metrics">
-                    <div className="analytics-machine-metric oee-metric">
-                      <div className="analytics-metric-label">OEE</div>
+                    {/* Left Section - Machine Image */}
+                    <div className="analytics-metrics-left">
+                      <div className="analytics-machine-image-wrapper">
+                        <img
+                          src={secodaryPressImage}
+                          alt={machine.name}
+                          className="analytics-machine-image"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right Section - Chart */}
+                    <div className="analytics-metrics-right">
                       <div
-                        className={`analytics-metric-value ${
+                        className="analytics-machine-metric chart-section"
+                        onClick={() =>
+                          hasData && setExpandedChart(machine.machineNo)
+                        }
+                        style={{
+                          cursor: hasData ? "pointer" : "not-allowed",
+                          opacity: hasData ? 1 : 0.6,
+                        }}
+                        title={
                           hasData
-                            ? Number(oee.OEE) >= 90
-                              ? "oee-excellent"
-                              : Number(oee.OEE) >= 80
-                              ? "oee-good"
-                              : "oee-warning"
-                            : "oee-no-data"
-                        }`}
+                            ? "คลิกเพื่อขยายกราฟ"
+                            : "ไม่มีข้อมูลสำหรับแสดงกราฟ"
+                        }
                       >
-                        {hasData ? `${oee.OEE}%` : "N/A"}
-                      </div>
-                      {!hasData && (
-                        <div className="analytics-no-data-message">
-                          ไม่มีข้อมูล
-                        </div>
-                      )}
-                    </div>
-                    <div className="analytics-machine-metric availability-metric">
-                      <div className="analytics-metric-label">Availability</div>
-                      <div className="analytics-metric-value">
-                        {hasData ? `${oee.Availability}%` : "N/A"}
-                      </div>
-                    </div>
-                    <div className="analytics-machine-metric performance-metric">
-                      <div className="analytics-metric-label">Performance</div>
-                      <div className="analytics-metric-value">
-                        {hasData ? `${oee.Performance}%` : "N/A"}
-                      </div>
-                    </div>
-                    <div className="analytics-machine-metric quality-metric">
-                      <div className="analytics-metric-label">Quality</div>
-                      <div className="analytics-metric-value">
-                        {hasData ? `${oee.Quality}%` : "N/A"}
-                      </div>
-                    </div>
-                    <div
-                      className="analytics-machine-metric chart-section"
-                      onClick={() =>
-                        hasData && setExpandedChart(machine.machineNo)
-                      }
-                      style={{
-                        cursor: hasData ? "pointer" : "not-allowed",
-                        opacity: hasData ? 1 : 0.6,
-                      }}
-                      title={
-                        hasData
-                          ? "คลิกเพื่อขยายกราฟ"
-                          : "ไม่มีข้อมูลสำหรับแสดงกราฟ"
-                      }
-                    >
-                      <div className="analytics-chart-item">
-                        <div className="analytics-chart-label">
-                          {hasData ? "OEE Analysis" : "ไม่มีข้อมูล"}
-                        </div>
-                        {hasData ? (
-                          <div
-                            ref={(el) => (chartRefs.current[idx] = el)}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              minWidth: "180px",
-                              minHeight: "120px",
-                            }}
-                          ></div>
-                        ) : (
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              minWidth: "180px",
-                              minHeight: "120px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#9ca3af",
-                              fontSize: "14px",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            📊 ไม่มีข้อมูล
+                        <div className="analytics-chart-item">
+                          <div className="analytics-chart-label">
+                            {hasData ? "OEE ANALYSIS" : "ไม่มีข้อมูล"}
                           </div>
-                        )}
+                          {hasData ? (
+                            <div
+                              ref={(el) => (chartRefs.current[idx] = el)}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                minWidth: "180px",
+                                minHeight: "120px",
+                              }}
+                            ></div>
+                          ) : (
+                            <div
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                minWidth: "180px",
+                                minHeight: "120px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#9ca3af",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              📊 ไม่มีข้อมูล
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -906,17 +883,24 @@ const Analytics = () => {
                             style={{
                               fontWeight: "800",
                               color:
-                                oee.planProductionTime &&
-                                oee.runTime &&
-                                oee.runTime <= oee.planProductionTime
-                                  ? "#16a34a"
-                                  : "#dc2626",
+                                oee.planProductionTime && oee.runTime
+                                  ? (() => {
+                                      const eff = Math.min(
+                                        (oee.planProductionTime / oee.runTime) *
+                                          100,
+                                        100
+                                      );
+                                      if (eff >= 98) return "#16a34a";
+                                      if (eff >= 95) return "#f59e0b";
+                                      return "#dc2626";
+                                    })()
+                                  : "#6b7280",
                               fontSize: "16px",
                             }}
                           >
                             {oee.planProductionTime && oee.runTime
-                              ? `${(
-                                  (oee.runTime / oee.planProductionTime) *
+                              ? `${Math.min(
+                                  (oee.planProductionTime / oee.runTime) * 100,
                                   100
                                 ).toFixed(1)}%`
                               : "N/A"}

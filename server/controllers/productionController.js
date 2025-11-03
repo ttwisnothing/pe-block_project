@@ -116,6 +116,7 @@ export const getRunRecordData = async (req, res) => {
     if (!recordId) {
         return res.status(400).json({ message: "Missing recordId parameter." });
     }
+
     const query = `
         SELECT 
         	-- Prodcution Record Table
@@ -137,8 +138,9 @@ export const getRunRecordData = async (req, res) => {
 	        FMCW.chemical_weight_11 AS FMCW_chemicalWeight_11, FMCW.chemical_weight_12 AS FMCW_chemicalWeight_12, FMCW.chemical_weight_13 AS FMCW_chemicalWeight_13, FMCW.chemical_weight_14 AS FMCW_chemicalWeight_14, FMCW.chemical_weight_15 AS FMCW_chemicalWeight_15,
 
             -- Mix Table
-            FMMX.program_no AS FMMX_programNo, FMMX.hopper_weight AS FMMX_hopperWeight, FMMX.actual_start AS FMMX_actualStart, FMMX.mix_finish AS FMMX_mixFinish,FMMX.lip AS FMMX_lip,
+            FMMX.hopper_weight AS FMMX_hopperWeight, FMMX.actual_start AS FMMX_actualStart, FMMX.mix_finish AS FMMX_mixFinish,FMMX.lip AS FMMX_lip,
             FMMX.casing_a AS FMMX_casingA, FMMX.casing_b AS FMMX_casingB, FMMX.temp_hopper AS FMMX_tempHopper, FMMX.long_screw AS FMMX_longScrew, FMMX.short_screw AS FMMX_shortScrew, FMMX.water_heat AS FMMX_waterHeat,
+            FMMX.program_hopper AS FMMX_programHopper, FMMX.program_kneader AS FMMX_programKneader, FMMX.program_extruder AS FMMX_programExtruder,
 
             -- Cut Table
             FMCU.weight_block_1 AS FMCU_weightBlock_1, FMCU.weight_block_2 AS FMCU_weightBlock_2, FMCU.weight_block_3 AS FMCU_weightBlock_3, FMCU.weight_block_4 AS FMCU_weightBlock_4, FMCU.weight_block_5 AS FMCU_weightBlock_5,
@@ -147,7 +149,7 @@ export const getRunRecordData = async (req, res) => {
             -- Pre Press Table
             FMPP.temp_pre_press AS FMPP_tempPrePress, FMPP.water_heat_1 AS FMPP_waterHeat_1, FMPP.water_heat_2 AS FMPP_waterHeat_2, FMPP.bake_time_pre_press AS FMPP_bakeTimePrePress,
 
-            -- Prinary Press Table
+            -- Primary Press Table
             FMPMP.program_no AS FMPMP_programNo, FMPMP.top_temp AS FMPMP_topTemp, FMPMP.temp_block_1 AS FMPMP_tempBlock_1, FMPMP.temp_block_2 AS FMPMP_tempBlock_2, FMPMP.temp_block_3 AS FMPMP_tempBlock_3,
             FMPMP.temp_block_4 AS FMPMP_tempBlock_4, FMPMP.temp_block_5 AS FMPMP_tempBlock_5, FMPMP.temp_block_6 AS FMPMP_tempBlock_6, FMPMP.emp_spray AS FMPMP_empSpray, FMPMP.bake_time_primary AS FMPMP_bakeTimePrimary,
 
@@ -171,6 +173,7 @@ export const getRunRecordData = async (req, res) => {
             LEFT JOIN FM_foam_check_step AS FMFC ON FMBR.id = FMFC.run_record_id
         WHERE FMBR.id = @recordId
     `;
+    
     try {
         const pool = await getPool();
         const request = pool.request();
