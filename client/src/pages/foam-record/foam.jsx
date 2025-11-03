@@ -56,6 +56,8 @@ const steps = [
 ];
 
 const FoamRecord = () => {
+  // เพิ่ม state สำหรับควบคุมโหมดแก้ไข
+  const [isEditMode, setIsEditMode] = useState(false);
   const { productName } = useParams();
   const location = useLocation();
 
@@ -314,6 +316,18 @@ const FoamRecord = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  const handleToggleEditMode = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    // โหลดข้อมูลเดิมกลับมา
+    if (existingData) {
+      loadExistingData(existingData);
+    }
+  };
+
   const handleSubmitStep = async (stepIndex) => {
     setLoading(true);
     try {
@@ -440,33 +454,75 @@ const FoamRecord = () => {
     return icons[step];
   };
 
-  // แก้ไข renderStepContent
   const renderStepContent = (step) => {
+    const shouldDisable = isEdit && !isEditMode;
+
+    // ส่วน Header ที่ใช้ซ้ำในทุก step
+    const renderStepHeader = (icon, title) => (
+      <Box className="foam-step-header">
+        {icon}
+        <Typography variant="h6" className="foam-step-title">
+          {title}
+          {isEdit && (
+            <Chip
+              label={isEditMode ? "โหมดแก้ไข" : "โหมดดูข้อมูล"}
+              color={isEditMode ? "warning" : "info"}
+              size="small"
+              sx={{ ml: 2 }}
+            />
+          )}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Chip
+            label={`Production ID: ${productionId}`}
+            variant="outlined"
+            className="foam-production-chip"
+          />
+          {/* ปุ่มแก้ไข/ยกเลิก - แสดงในทุก step เมื่ออยู่ในโหมดดูข้อมูล */}
+          {isEdit && (
+            <>
+              {!isEditMode ? (
+                <Button
+                  variant="contained"
+                  color="warning"
+                  size="small"
+                  startIcon={<SaveIcon />}
+                  onClick={handleToggleEditMode}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                  }}
+                >
+                  แก้ไขข้อมูล
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={handleCancelEdit}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                  }}
+                >
+                  ยกเลิก
+                </Button>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+    );
+
     switch (step) {
       case 0:
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <AccountIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  ข้อมูลพื้นฐานการผลิต
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
-
+              {renderStepHeader(<AccountIcon className="foam-step-icon" />, "ข้อมูลพื้นฐานการผลิต")}
               <Grid container spacing={2} className="foam-form-grid">
                 {/* Run Number */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -489,9 +545,9 @@ const FoamRecord = () => {
                           })
                         }
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
-                        disabled={isEdit}
+                        disabled={shouldDisable}
                         required
                       />
                     </Grid>
@@ -568,9 +624,9 @@ const FoamRecord = () => {
                           })
                         }
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
-                        disabled={isEdit}
+                        disabled={shouldDisable}
                         required
                       />
                     </Grid>
@@ -596,8 +652,7 @@ const FoamRecord = () => {
                               : null
                           }
                           onChange={(date) => {
-                            if (!isEdit && date) {
-                              // แปลงเป็น yyyy-MM-dd
+                            if (!shouldDisable && date) {
                               const year = date.getFullYear();
                               const month = String(date.getMonth() + 1).padStart(
                                 2,
@@ -613,13 +668,13 @@ const FoamRecord = () => {
                             }
                           }}
                           format="dd/MM/yyyy"
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           slotProps={{
                             textField: {
                               fullWidth: true,
                               variant: "outlined",
                               className: `foam-text-field ${
-                                isEdit ? "foam-disabled-field" : ""
+                                shouldDisable ? "foam-disabled-field" : ""
                               }`,
                               required: true,
                             },
@@ -649,9 +704,9 @@ const FoamRecord = () => {
                           })
                         }
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
-                        disabled={isEdit}
+                        disabled={shouldDisable}
                         required
                       />
                     </Grid>
@@ -667,7 +722,7 @@ const FoamRecord = () => {
                       <FormControl
                         fullWidth
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
                       >
                         <Select
@@ -678,7 +733,7 @@ const FoamRecord = () => {
                               shiftTime: e.target.value,
                             })
                           }
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           required
                           displayEmpty
                         >
@@ -698,30 +753,11 @@ const FoamRecord = () => {
         );
 
       case 1:
-        // รวม Chemical Name และ Weight ในหน้าเดียว
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <ScienceIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Chemical Names & Weights
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
-
+              {renderStepHeader(<ScienceIcon className="foam-step-icon" />, "Chemical Names & Weights")}
+              
               <Box sx={{ p: 2 }}>
                 {chemicalNames.map((item, index) => (
                   <Grid
@@ -731,18 +767,16 @@ const FoamRecord = () => {
                     key={index
                     }
                   >
-                    {/* Label สารเคมีตัวที่ n */}
                     <Grid size={{ xs: 12, md: 3, lg: 2 }}>
                       <Typography sx={{ fontWeight: 500 }}>
                         {`สารเคมีตัวที่ ${index + 1}`}
                       </Typography>
                     </Grid>
-                    {/* Select Chemical Name */}
                     <Grid size={{ xs: 12, md: 5, lg: 5 }}>
                       <FormControl
                         fullWidth
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
                       >
                         <Select
@@ -752,7 +786,7 @@ const FoamRecord = () => {
                               : Object.values(item)[0]
                           }
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               const newChemicals = [...chemicalNames];
                               newChemicals[index] = {
                                 [`chemistry_${index + 1}`]: e.target.value,
@@ -760,7 +794,7 @@ const FoamRecord = () => {
                               setChemicalNames(newChemicals);
                             }
                           }}
-                          disabled={isEdit || chemicalsLoading}
+                          disabled={shouldDisable || chemicalsLoading}
                           displayEmpty
                         >
                           <MenuItem value="">
@@ -777,7 +811,6 @@ const FoamRecord = () => {
                         </Select>
                       </FormControl>
                     </Grid>
-                    {/* ช่องกรอกน้ำหนัก */}
                     <Grid size={{ xs: 12, md: 4, lg: 3 }}>
                       <TextField
                         fullWidth
@@ -785,7 +818,7 @@ const FoamRecord = () => {
                         value={chemicalWeights.weights[index]}
                         placeholder="0.00"
                         onChange={(e) => {
-                          if (!isEdit) {
+                          if (!shouldDisable) {
                             const newWeights = [...chemicalWeights.weights];
                             newWeights[index] = e.target.value;
                             setChemicalWeights({
@@ -794,19 +827,13 @@ const FoamRecord = () => {
                           }
                         }}
                         className={`foam-text-field ${
-                          isEdit ? "foam-disabled-field" : ""
+                          shouldDisable ? "foam-disabled-field" : ""
                         }`}
-                        disabled={isEdit}
+                        disabled={shouldDisable}
                         InputProps={{
                           inputProps: {
                             min: 0,
                             step: "0.01",
-                            style: {
-                              color:
-                                chemicalWeights.weights[index] === ""
-                                  ? "#999"
-                                  : "inherit",
-                            },
                           },
                         }}
                       />
@@ -827,7 +854,6 @@ const FoamRecord = () => {
         );
 
       case 2:
-        // Mixing Step - อัพเดทการแบ่ง keys
         const mixingKeys = Object.keys(mixingData);
         const mixingLeftKeys = mixingKeys.slice(0, 7);
         const mixingRightKeys = mixingKeys.slice(7);
@@ -835,25 +861,8 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <BlenderIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Mixing Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<BlenderIcon className="foam-step-icon" />, "Mixing Step")}
+              
               <Grid container spacing={2}>
                 {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -875,7 +884,7 @@ const FoamRecord = () => {
                           type="text"
                           value={mixingData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setMixingData({
                                 ...mixingData,
                                 [key]: e.target.value,
@@ -883,9 +892,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -912,7 +921,7 @@ const FoamRecord = () => {
                           type="text"
                           value={mixingData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setMixingData({
                                 ...mixingData,
                                 [key]: e.target.value,
@@ -920,9 +929,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -935,35 +944,16 @@ const FoamRecord = () => {
         );
 
       case 3:
-        // Cutting Step - แก้ไขให้เหมือน Secondary Press
         const cuttingKeys = Object.keys(cuttingData);
-        const cuttingLeftKeys = cuttingKeys.slice(0, 5); // wb1-wb5
-        const cuttingRightKeys = cuttingKeys.slice(5); // wb5-wb9, weightRemain, staffSave, startPress, mixFinish
+        const cuttingLeftKeys = cuttingKeys.slice(0, 5);
+        const cuttingRightKeys = cuttingKeys.slice(5);
 
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <CutIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Cutting Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<CutIcon className="foam-step-icon" />, "Cutting Step")}
+              
               <Grid container spacing={2}>
-                {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {cuttingLeftKeys.map((key) => (
                     <Grid
@@ -983,7 +973,7 @@ const FoamRecord = () => {
                           type="number"
                           value={cuttingData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setCuttingData({
                                 ...cuttingData,
                                 [key]: e.target.value,
@@ -991,23 +981,15 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
-                          placeholder="0.00"
-                          InputProps={{
-                            inputProps: {
-                              min: 0,
-                              step: "0.01",
-                            },
-                          }}
                         />
                       </Grid>
                     </Grid>
                   ))}
                 </Grid>
-                {/* ฝั่งขวา */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {cuttingRightKeys.map((key) => (
                     <Grid
@@ -1031,7 +1013,7 @@ const FoamRecord = () => {
                           }
                           value={cuttingData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setCuttingData({
                                 ...cuttingData,
                                 [key]: e.target.value,
@@ -1039,9 +1021,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                           placeholder={
                             ["staffSave", "startPress", "mixFinish"].includes(key)
@@ -1069,35 +1051,16 @@ const FoamRecord = () => {
         );
 
       case 4:
-        // Pre Press Step - แก้ไขให้เหมือน Secondary Press
         const prePressKeys = Object.keys(prePressData);
-        const prePressLeftKeys = prePressKeys.slice(0, 2); // tempPrePress, waterHeat1
-        const prePressRightKeys = prePressKeys.slice(2); // waterHeat2, bakeTimePrePress
+        const prePressLeftKeys = prePressKeys.slice(0, 2);
+        const prePressRightKeys = prePressKeys.slice(2);
 
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <CompressIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Pre Press Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Pre Press Step")}
+              
               <Grid container spacing={2}>
-                {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {prePressLeftKeys.map((key) => (
                     <Grid
@@ -1121,7 +1084,7 @@ const FoamRecord = () => {
                           }
                           value={prePressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setPrePressData({
                                 ...prePressData,
                                 [key]: e.target.value,
@@ -1129,16 +1092,15 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
                     </Grid>
                   ))}
                 </Grid>
-                {/* ฝั่งขวา */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {prePressRightKeys.map((key) => (
                     <Grid
@@ -1162,7 +1124,7 @@ const FoamRecord = () => {
                           }
                           value={prePressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setPrePressData({
                                 ...prePressData,
                                 [key]: e.target.value,
@@ -1170,9 +1132,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -1185,35 +1147,16 @@ const FoamRecord = () => {
         );
 
       case 5:
-        // Primary Press Step - แก้ไขให้เหมือน Secondary Press
         const primaryKeys = Object.keys(primaryPressData);
-        const primaryLeftKeys = primaryKeys.slice(0, 5); // programNo-tempBlock3
-        const primaryRightKeys = primaryKeys.slice(5); // tempBlock4-bakeTimePrimary
+        const primaryLeftKeys = primaryKeys.slice(0, 5);
+        const primaryRightKeys = primaryKeys.slice(5);
 
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <CompressIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Primary Press Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Primary Press Step")}
+              
               <Grid container spacing={2}>
-                {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {primaryLeftKeys.map((key) => (
                     <Grid
@@ -1243,7 +1186,7 @@ const FoamRecord = () => {
                           }
                           value={primaryPressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setPrimaryPressData({
                                 ...primaryPressData,
                                 [key]: e.target.value,
@@ -1251,16 +1194,15 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
                     </Grid>
                   ))}
                 </Grid>
-                {/* ฝั่งขวา */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   {primaryRightKeys.map((key) => (
                     <Grid
@@ -1288,7 +1230,7 @@ const FoamRecord = () => {
                           }
                           value={primaryPressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setPrimaryPressData({
                                 ...primaryPressData,
                                 [key]: e.target.value,
@@ -1296,9 +1238,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -1311,33 +1253,15 @@ const FoamRecord = () => {
         );
 
       case 6:
-        // Secondary Press Step
         const secondaryKeys = Object.keys(secondaryPressData);
-        const leftKeys = secondaryKeys.slice(0, 5); // machineNo-foamLength
+        const leftKeys = secondaryKeys.slice(0, 5);
         const rightKeys = secondaryKeys.slice(5);
 
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <CompressIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Secondary Press Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Secondary Press Step")}
+              
               <Grid container spacing={2}>
                 {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -1368,7 +1292,7 @@ const FoamRecord = () => {
                           }
                           value={secondaryPressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setSecondaryPressData({
                                 ...secondaryPressData,
                                 [key]: e.target.value,
@@ -1376,9 +1300,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -1411,7 +1335,7 @@ const FoamRecord = () => {
                           }
                           value={secondaryPressData[key]}
                           onChange={(e) => {
-                            if (!isEdit) {
+                            if (!shouldDisable) {
                               setSecondaryPressData({
                                 ...secondaryPressData,
                                 [key]: e.target.value,
@@ -1419,9 +1343,9 @@ const FoamRecord = () => {
                             }
                           }}
                           className={`foam-text-field ${
-                            isEdit ? "foam-disabled-field" : ""
+                            shouldDisable ? "foam-disabled-field" : ""
                           }`}
-                          disabled={isEdit}
+                          disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                         />
                       </Grid>
@@ -1434,33 +1358,12 @@ const FoamRecord = () => {
         );
 
       case 7:
-        // Foam Check
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              <Box className="foam-step-header">
-                <VerifiedIcon className="foam-step-icon" />
-                <Typography variant="h6" className="foam-step-title">
-                  Foam Check Step
-                  {isEdit && (
-                    <Chip
-                      label="โหมดดูข้อมูล"
-                      color="info"
-                      size="small"
-                      sx={{ ml: 2 }}
-                    />
-                  )}
-                </Typography>
-                <Chip
-                  label={`Production ID: ${productionId}`}
-                  variant="outlined"
-                  className="foam-production-chip"
-                />
-              </Box>
+              {renderStepHeader(<VerifiedIcon className="foam-step-icon" />, "Foam Check Step")}
 
-              {/* ปรับตรงนี้ให้ 3 ช่องในแถวเดียว พร้อม label ข้างหน้า */}
               <Grid container spacing={3} className="foam-form-grid" sx={{ mb: 2 }}>
-                {/* Run Number */}
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 5 }}>
@@ -1473,21 +1376,20 @@ const FoamRecord = () => {
                         type="number"
                         value={foamCheckData.runNo}
                         onChange={(e) => {
-                          if (!isEdit) {
+                          if (!shouldDisable) {
                             setFoamCheckData({
                               ...foamCheckData,
                               runNo: e.target.value,
                             });
                           }
                         }}
-                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
-                        disabled={isEdit}
+                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        disabled={shouldDisable}
                         required
                       />
                     </Grid>
                   </Grid>
                 </Grid>
-                {/* Employee Record */}
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 6 }}>
@@ -1499,20 +1401,19 @@ const FoamRecord = () => {
                         label=""
                         value={foamCheckData.employeeRecord}
                         onChange={(e) => {
-                          if (!isEdit) {
+                          if (!shouldDisable) {
                             setFoamCheckData({
                               ...foamCheckData,
                               employeeRecord: e.target.value,
                             });
                           }
                         }}
-                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
-                        disabled={isEdit}
+                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        disabled={shouldDisable}
                       />
                     </Grid>
                   </Grid>
                 </Grid>
-                {/* Exit Secondary Press */}
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 7 }}>
@@ -1524,22 +1425,21 @@ const FoamRecord = () => {
                         label=""
                         value={foamCheckData.exitSecondaryPress}
                         onChange={(e) => {
-                          if (!isEdit) {
+                          if (!shouldDisable) {
                             setFoamCheckData({
                               ...foamCheckData,
                               exitSecondaryPress: e.target.value,
                             });
                           }
                         }}
-                        className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
-                        disabled={isEdit}
+                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        disabled={shouldDisable}
                       />
                     </Grid>
                   </Grid>
                 </Grid>
               </Grid>
 
-              {/* Section Title สำหรับ Foam Blocks */}
               <Grid container>
                 <Grid size={{ xs: 12 }}>
                   <Typography
@@ -1552,7 +1452,6 @@ const FoamRecord = () => {
                 </Grid>
               </Grid>
 
-              {/* Foam Blocks 1-6 */}
               { [
                 "foamBlock1",
                 "foamBlock2",
@@ -1580,19 +1479,19 @@ const FoamRecord = () => {
                   <Grid size={{ xs: 12, md: 8, lg: 6 }}>
                     <FormControl
                       fullWidth
-                      className={`foam-text-field ${isEdit ? "foam-disabled-field" : ""}`}
+                      className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
                     >
                       <Select
                         value={foamCheckData[key]}
                         onChange={(e) => {
-                          if (!isEdit) {
+                          if (!shouldDisable) {
                             setFoamCheckData({
                               ...foamCheckData,
                               [key]: e.target.value,
                             });
                           }
                         }}
-                        disabled={isEdit}
+                        disabled={shouldDisable}
                         displayEmpty
                         sx={{
                           "& .MuiSelect-select": {
@@ -2063,8 +1962,8 @@ const FoamRecord = () => {
                 ย้อนกลับ
               </Button>
 
-              {/* ซ่อนปุ่มบันทึกเมื่อเป็นโหมดดูข้อมูล */}
-              {!isEdit && (
+              {/* แสดงปุ่มบันทึกเมื่อ: ไม่ใช่โหมดดูข้อมูล หรือ อยู่ในโหมดแก้ไข */}
+              {(!isEdit || isEditMode) && (
                 <Button
                   variant="contained"
                   onClick={() => handleSubmitStep(activeStep)}
@@ -2093,24 +1992,26 @@ const FoamRecord = () => {
                 </Button>
               )}
             </Box>
+
+            <Snackbar
+              open={alert.open}
+              autoHideDuration={6000}
+              onClose={() => setAlert({ ...alert, open: false })}
+              className="foam-snackbar"
+            >
+              <Alert
+                onClose={() => setAlert({ ...alert, open: false })}
+                severity={alert.severity}
+                className="foam-alert"
+                sx={{ width: "100%" }}
+              >
+                {alert.message}
+              </Alert>
+            </Snackbar>
           </Paper>
         </Fade>
 
-        <Snackbar
-          open={alert.open}
-          autoHideDuration={6000}
-          onClose={() => setAlert({ ...alert, open: false })}
-          className="foam-snackbar"
-        >
-          <Alert
-            onClose={() => setAlert({ ...alert, open: false })}
-            severity={alert.severity}
-            className="foam-alert"
-            sx={{ width: "100%" }}
-          >
-            {alert.message}
-          </Alert>
-        </Snackbar>
+        {/* <DebugJson data={{ productionData, chemicalNames, chemicalWeights, mixingData, cuttingData, prePressData, primaryPressData, secondaryPressData, foamCheckData }} /> */}
       </Container>
     </div>
   );

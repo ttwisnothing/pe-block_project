@@ -294,6 +294,7 @@ export const getRunStatus = async (req, res) => {
     }
 };
 
+// ข้อมูลพื้นฐาน
 export const upFirstStep = async (req, res) => {
     const { recordDate, productStatus, programNo, shiftTime, operatorName } = req.body;
     const { recordId } = req.params;
@@ -325,6 +326,289 @@ export const upFirstStep = async (req, res) => {
         return res.status(200).json({ message: "First step updated successfully." });
     } catch (error) {
         console.error("❌ Error in updating first step:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Chemical Weight and Name Step
+// Chemical Name Step
+export const upChemicalNameStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { chemicalNames } = req.body; // { chemical_name_1, chemical_name_2, ... }
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        for (let i = 1; i <= 15; i++) {
+            request.input(`chemical_name_${i}`, sql.NVarChar, chemicalNames[`chemical_name_${i}`] || "");
+        }
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_chemical_name_step
+            SET ${Array.from({ length: 15 }, (_, i) => `chemical_name_${i + 1} = @chemical_name_${i + 1}`).join(", ")}
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Chemical name step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Chemical Weight Step
+export const upChemicalWeightStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { chemicalWeights } = req.body; // { chemical_weight_1, chemical_weight_2, ... }
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        for (let i = 1; i <= 15; i++) {
+            request.input(`chemical_weight_${i}`, sql.Float, chemicalWeights[`chemical_weight_${i}`] || 0);
+        }
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_chemical_weight_step
+            SET ${Array.from({ length: 15 }, (_, i) => `chemical_weight_${i + 1} = @chemical_weight_${i + 1}`).join(", ")}
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Chemical weight step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Mixing Step
+export const upMixStep = async (req, res) => {
+    const { hopperWeight, actualStart, mixFinish, lip, 
+        casingA, casingB, tempHopper, longScrew, 
+        shortScrew, waterHeat, programHopper, 
+        programKneader, programExtruder } = req.body;
+    const { recordId } = req.params;
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('hopperWeight', sql.Int, hopperWeight);
+        request.input('actualStart', sql.NVarChar, actualStart);
+        request.input('mixFinish', sql.NVarChar, mixFinish);
+        request.input('lip', sql.Int, lip);
+        request.input('casingA', sql.Int, casingA);
+        request.input('casingB', sql.Int, casingB);
+        request.input('tempHopper', sql.Int, tempHopper);
+        request.input('longScrew', sql.Int, longScrew);
+        request.input('shortScrew', sql.Int, shortScrew);
+        request.input('waterHeat', sql.Int, waterHeat);
+        request.input('programHopper', sql.Int, programHopper);
+        request.input('programKneader', sql.Int, programKneader);
+        request.input('programExtruder', sql.Int, programExtruder);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_mixing_step
+            SET 
+                hopper_weight = @hopperWeight,
+                actual_start = @actualStart,
+                mix_finish = @mixFinish,
+                lip = @lip,
+                casing_a = @casingA,
+                casing_b = @casingB,
+                temp_hopper = @tempHopper,
+                long_screw = @longScrew,
+                short_screw = @shortScrew,
+                water_heat = @waterHeat,
+                program_hopper = @programHopper,
+                program_kneader = @programKneader,
+                program_extruder = @programExtruder
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Mix step updated successfully." });
+    } catch (err) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Cutting Step
+export const upCutStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { cuttingData } = req.body; // { weight_block_1, ..., weight_block_remain }
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        for (let i = 1; i <= 9; i++) {
+            request.input(`weight_block_${i}`, sql.Float, cuttingData[`weight_block_${i}`] || 0);
+        }
+        request.input('weight_block_remain', sql.Float, cuttingData.weight_block_remain || 0);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_cut_step
+            SET ${Array.from({ length: 9 }, (_, i) => `weight_block_${i + 1} = @weight_block_${i + 1}`).join(", ")},
+                weight_block_remain = @weight_block_remain
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Cut step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Pre Press Step
+export const upPrePressStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { tempPrePress, waterHeat1, waterHeat2, bakeTimePrePress } = req.body;
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('tempPrePress', sql.Int, tempPrePress);
+        request.input('waterHeat1', sql.Int, waterHeat1);
+        request.input('waterHeat2', sql.Int, waterHeat2);
+        request.input('bakeTimePrePress', sql.NVarChar, bakeTimePrePress);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_pre_press_step
+            SET 
+                temp_pre_press = @tempPrePress,
+                water_heat_1 = @waterHeat1,
+                water_heat_2 = @waterHeat2,
+                bake_time_pre_press = @bakeTimePrePress
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Pre press step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// // Primary Press Step
+export const upPrimaryPressStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { programNo, topTemp, tempBlock1, tempBlock2, tempBlock3, tempBlock4, tempBlock5, tempBlock6, empSpray, bakeTimePrimary } = req.body;
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('programNo', sql.Int, programNo);
+        request.input('topTemp', sql.Int, topTemp);
+        request.input('tempBlock1', sql.Int, tempBlock1);
+        request.input('tempBlock2', sql.Int, tempBlock2);
+        request.input('tempBlock3', sql.Int, tempBlock3);
+        request.input('tempBlock4', sql.Int, tempBlock4);
+        request.input('tempBlock5', sql.Int, tempBlock5);
+        request.input('tempBlock6', sql.Int, tempBlock6);
+        request.input('empSpray', sql.NVarChar, empSpray);
+        request.input('bakeTimePrimary', sql.NVarChar, bakeTimePrimary);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_primary_press_step
+            SET 
+                program_no = @programNo,
+                top_temp = @topTemp,
+                temp_block_1 = @tempBlock1,
+                temp_block_2 = @tempBlock2,
+                temp_block_3 = @tempBlock3,
+                temp_block_4 = @tempBlock4,
+                temp_block_5 = @tempBlock5,
+                temp_block_6 = @tempBlock6,
+                emp_spray = @empSpray,
+                bake_time_primary = @bakeTimePrimary
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Primary press step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Secondary Press Step
+export const upSecondaryPressStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { machineNo, programNo, steamInPress, widthFoam, lengthFoam, bakeSecondaryTime, injectEmp, tempCheck1, tempCheck2, tempOut } = req.body;
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('machineNo', sql.Int, machineNo);
+        request.input('programNo', sql.Int, programNo);
+        request.input('steamInPress', sql.NVarChar, steamInPress);
+        request.input('widthFoam', sql.Int, widthFoam);
+        request.input('lengthFoam', sql.Int, lengthFoam);
+        request.input('bakeSecondaryTime', sql.NVarChar, bakeSecondaryTime);
+        request.input('injectEmp', sql.NVarChar, injectEmp);
+        request.input('tempCheck1', sql.Int, tempCheck1);
+        request.input('tempCheck2', sql.Int, tempCheck2);
+        request.input('tempOut', sql.Int, tempOut);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_secondary_press_step
+            SET 
+                machine_no = @machineNo,
+                program_no = @programNo,
+                steam_in_press = @steamInPress,
+                width_foam = @widthFoam,
+                length_foam = @lengthFoam,
+                bake_secondary_time = @bakeSecondaryTime,
+                inject_emp = @injectEmp,
+                temp_check_1 = @tempCheck1,
+                temp_check_2 = @tempCheck2,
+                temp_out = @tempOut
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Secondary press step updated successfully." });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// Foam Check Step
+export const upFoamCheckStep = async (req, res) => {
+    const { recordId } = req.params;
+    const { runNo, foamBlock1, foamBlock2, foamBlock3, foamBlock4, foamBlock5, foamBlock6, employeeRecord, exitSecondaryPress } = req.body;
+    if (!recordId) return res.status(400).json({ message: "Missing recordId parameter." });
+    try {
+        const pool = await getPool();
+        const request = pool.request();
+        request.input('runNo', sql.Int, runNo);
+        request.input('foamBlock1', sql.NVarChar, foamBlock1);
+        request.input('foamBlock2', sql.NVarChar, foamBlock2);
+        request.input('foamBlock3', sql.NVarChar, foamBlock3);
+        request.input('foamBlock4', sql.NVarChar, foamBlock4);
+        request.input('foamBlock5', sql.NVarChar, foamBlock5);
+        request.input('foamBlock6', sql.NVarChar, foamBlock6);
+        request.input('employeeRecord', sql.NVarChar, employeeRecord);
+        request.input('exitSecondaryPress', sql.NVarChar, exitSecondaryPress);
+        request.input('recordId', sql.Int, recordId);
+
+        const query = `
+            UPDATE FM_foam_check_step
+            SET 
+                run_no = @runNo,
+                foam_block_1 = @foamBlock1,
+                foam_block_2 = @foamBlock2,
+                foam_block_3 = @foamBlock3,
+                foam_block_4 = @foamBlock4,
+                foam_block_5 = @foamBlock5,
+                foam_block_6 = @foamBlock6,
+                employee_record = @employeeRecord,
+                exit_secondary_press = @exitSecondaryPress
+            WHERE run_record_id = @recordId;
+        `;
+        await request.query(query);
+        return res.status(200).json({ message: "Foam check step updated successfully." });
+    } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
