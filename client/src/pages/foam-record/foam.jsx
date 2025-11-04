@@ -333,20 +333,9 @@ const FoamRecord = () => {
     try {
       switch (stepIndex) {
         case 0:
-          if (runId) {
-            await axios.put(`/api/put/production/update/record/${runId}`, {
-              runNo: productionData.runNo,
-              recordDate: productionData.recordDate,
-              productStatus: productionData.productStatus,
-              programNo: productionData.programNo,
-              productName: productionData.productName,
-              shiftTime: productionData.shiftTime,
-              operatorName: productionData.operatorName,
-            });
-          } else {
-            showAlert("ไม่พบ runId สำหรับอัพเดทข้อมูล", "error");
-            return;
-          }
+          await axios.put(`/api/put/production/update/record/${runId}`, {
+            ...productionData,
+          });
           break;
 
         case 1: {
@@ -356,10 +345,16 @@ const FoamRecord = () => {
             return val === "" ? " " : val;
           });
 
-          await axios.post(`/api/post/production/${runId}/chemical-name/add`, {
-            productionId: productionId,
-            chemistryName: chemistryNames,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/chemical-name/${runId}`, {
+              chemicalNames: chemistryNames,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/chemical-name/add`, {
+              productionId: productionId,
+              chemistryName: chemistryNames,
+            });
+          }
 
           // Chemical Weight
           const processedWeights = chemicalWeights.weights.map((w) => {
@@ -370,56 +365,98 @@ const FoamRecord = () => {
             return isNaN(numValue) ? 0.0 : numValue;
           });
 
-          await axios.post(
-            `/api/post/production/${runId}/chemical-weight/add`,
-            {
-              productionId: productionId,
-              chemistryWeight: processedWeights,
-            }
-          );
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/chemical-weight/${runId}`, {
+              chemicalWeights: processedWeights,
+            });
+          } else {
+            await axios.post(
+              `/api/post/production/${runId}/chemical-weight/add`,
+              {
+                productionId: productionId,
+                chemistryWeight: processedWeights,
+              }
+            );
+          }
           break;
         }
 
         case 2:
-          await axios.post(`/api/post/production/${runId}/mixing-step/add`, {
-            productionId: productionId,
-            ...mixingData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/mixing/${runId}`, {
+              ...mixingData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/mixing-step/add`, {
+              productionId: productionId,
+              ...mixingData,
+            });
+          }
           break;
 
         case 3:
-          await axios.post(`/api/post/production/${runId}/cutting-step/add`, {
-            productionId: productionId,
-            ...cuttingData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/cutting/${runId}`, {
+              ...cuttingData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/cutting-step/add`, {
+              productionId: productionId,
+              ...cuttingData,
+            });
+          }
           break;
 
         case 4:
-          await axios.post(`/api/post/production/${runId}/pre-press-step/add`, {
-            productionId: productionId,
-            ...prePressData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/prepress/${runId}`, {
+              ...prePressData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/pre-press-step/add`, {
+              productionId: productionId,
+              ...prePressData,
+            });
+          }
           break;
 
         case 5:
-          await axios.post(`/api/post/production/${runId}/primary-press/add`, {
-            productionId: productionId,
-            ...primaryPressData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/primarypress/${runId}`, {
+              ...primaryPressData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/primary-press/add`, {
+              productionId: productionId,
+              ...primaryPressData,
+            });
+          }
           break;
 
         case 6:
-          await axios.post(`/api/post/production/${runId}/second-press/add`, {
-            productionId: productionId,
-            ...secondaryPressData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/secondarypress/${runId}`, {
+              ...secondaryPressData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/second-press/add`, {
+              productionId: productionId,
+              ...secondaryPressData,
+            });
+          }
           break;
 
         case 7:
-          await axios.post(`/api/post/production/${runId}/foam-check/add`, {
-            productionId: productionId,
-            ...foamCheckData,
-          });
+          if (isEdit || isEditMode) {
+            await axios.put(`/api/put/production/update/foamcheck/${runId}`, {
+              ...foamCheckData,
+            });
+          } else {
+            await axios.post(`/api/post/production/${runId}/foam-check/add`, {
+              productionId: productionId,
+              ...foamCheckData,
+            });
+          }
           break;
       }
 
@@ -427,10 +464,9 @@ const FoamRecord = () => {
       if (stepIndex < steps.length - 1) {
         handleNext();
       } else {
-        // ถ้าเป็น step สุดท้าย (Foam Check) ให้ปิดแท็บ
         setTimeout(() => {
           window.close();
-        }, 800); // รอ 0.8 วิ ให้เห็น snackbar
+        }, 800);
       }
     } catch (error) {
       console.error("Error saving step:", error);
