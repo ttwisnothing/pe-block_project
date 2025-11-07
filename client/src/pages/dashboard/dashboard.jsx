@@ -14,7 +14,7 @@ const Dashboard = () => {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get("/api/get/oee/select-date");
+        const res = await axios.get("/api/get/oee/get/plantime");
         if (res.data && res.data.length > 0) {
           setPlantimeId(res.data[0].plantime_id);
         } else {
@@ -39,7 +39,7 @@ const Dashboard = () => {
       ) : error ? (
         <div className="dashboard-error">{error}</div>
       ) : (
-        <Outlet context={{ plantimeId }} />
+        <Outlet context={{ plantimeId, setPlantimeId }} />
       )}
     </div>
   );

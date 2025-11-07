@@ -17,18 +17,62 @@ export const AvailabilityQuery = async (req, res) => {
     const { plantimeId } = req.query;
 
     const query = `
-        SELECT 
-            FMPR.id AS FMPR_Id, FMPR.plantime_id AS PMPR_planId, FMPR.product_name AS FMPR_proName,
-            FMPR.start_time AS FMPR_startTime, FMPR.end_time AS FMPR_endTime, FMPR.total_block AS FMPR_totalBlock,
-            FMRR.id AS FMRR_Id,
-            FMFC.id AS FMFC_Id, FMFC.run_record_id AS FMFC_runId, FMFC.run_no AS FMFC_runNo,
-            FMFC.exit_secondary_press AS FMFC_exitSecondaryPress, PTPT.secondary_press_exit AS PTPT_secondaryPressExit
-        FROM FM_production_record AS FMPR
-        LEFT JOIN FM_run_record AS FMRR ON FMRR.production_record_id = FMPR.id
-        LEFT JOIN FM_foam_check_step AS FMFC ON FMRR.id = FMFC.run_record_id
-        LEFT JOIN PT_plan_time_mst AS PTPT ON FMRR.id = PTPT.run_no
-        WHERE PTPT.plantime_id = @plantime_id AND FMFC.exit_secondary_press IS NOT NULL
-        ORDER BY FMRR.id DESC
+        ;WITH Foam AS (
+            SELECT
+                FMPR.id               AS FMPR_Id,
+                FMPR.plantime_id      AS PMPR_planId,
+                FMPR.product_name     AS FMPR_proName,
+                FMPR.start_time       AS FMPR_startTime,
+                FMPR.end_time         AS FMPR_endTime,
+                FMPR.total_block      AS FMPR_totalBlock,
+                FMRR.id               AS FMRR_Id,
+                FMFC.id               AS FMFC_Id,
+                FMFC.run_record_id    AS FMFC_runId,
+                FMFC.run_no           AS FMFC_runNo,
+                FMFC.exit_secondary_press AS FMFC_exitSecondaryPress,
+                UPPER(LTRIM(RTRIM(v.status))) AS foam_status
+            FROM FM_production_record AS FMPR
+            LEFT JOIN FM_run_record AS FMRR        ON FMRR.production_record_id = FMPR.id
+            LEFT JOIN FM_foam_check_step AS FMFC   ON FMRR.id = FMFC.run_record_id
+            CROSS APPLY (VALUES
+                (FMFC.foam_block_1),
+                (FMFC.foam_block_2),
+                (FMFC.foam_block_3),
+                (FMFC.foam_block_4),
+                (FMFC.foam_block_5),
+                (FMFC.foam_block_6)
+            ) v(status)
+            WHERE FMPR.plantime_id = 'PTID20251010RP_300SGY'
+              AND FMFC.exit_secondary_press IS NOT NULL
+        ),
+        -- 1) สรุปนับผลต่อกลุ่ม (จบเรื่องนับซ้ำในโครงสร้างของ Foam เอง)
+        FoamAgg AS (
+            SELECT
+                FMPR_Id, PMPR_planId, FMPR_proName,
+                FMPR_startTime, FMPR_endTime, FMPR_totalBlock,
+                FMRR_Id, FMFC_Id, FMFC_runId, FMFC_runNo,
+                MAX(FMFC_exitSecondaryPress) AS FMFC_exitSecondaryPress
+            FROM Foam
+            GROUP BY
+                FMPR_Id, PMPR_planId, FMPR_proName,
+                FMPR_startTime, FMPR_endTime, FMPR_totalBlock,
+                FMRR_Id, FMFC_Id, FMFC_runId, FMFC_runNo
+        ),
+        -- 2) บีบ PTPT ให้เหลือ 1 แถวต่อ run_no ก่อนค่อย join
+        PTPTAgg AS (
+            SELECT
+                run_no,
+                MAX(secondary_press_exit) AS PTPT_secondaryPressExit
+            FROM PT_plan_time_mst
+            GROUP BY run_no
+        )
+        SELECT
+            f.*,
+            p.PTPT_secondaryPressExit
+        FROM FoamAgg f
+        LEFT JOIN PTPTAgg p
+            ON f.FMFC_runNo = p.run_no
+        ORDER BY f.FMRR_Id DESC;
     `;
 
     try {
@@ -56,7 +100,16 @@ export const AvailabilityQuery = async (req, res) => {
         let RunTime = 0;
         if (startTime && runTime) {
             const datePart = startTime.split(' ')[0];
-            const exitDateTimeStr = `${datePart} ${runTime}`;
+            const endDate = endTime.split(' ')[0];
+
+            const startTimeObj = new Date(startTime);
+            const runTimeObj = new Date(`${datePart} ${runTime}`);
+
+            const exitDateTimeStr =
+                runTimeObj < startTimeObj
+                    ? `${endDate} ${runTime}`
+                    : `${datePart} ${runTime}`;
+
             const start = new Date(startTime);
             const exit = new Date(exitDateTimeStr);
             RunTime = (exit - start) / (1000 * 60);
@@ -182,10 +235,17 @@ export const PerformanceQuery = async (req, res) => {
 
         let RunTime = 0;
         if (startTime && runTime) {
-            // ดึงวันที่จาก startTime
             const datePart = startTime.split(' ')[0];
-            // รวมกับ runTime
-            const exitDateTimeStr = `${datePart} ${runTime}`;
+            const endDate = endTime.split(' ')[0];
+
+            const startTimeObj = new Date(startTime);
+            const runTimeObj = new Date(`${datePart} ${runTime}`);
+
+            const exitDateTimeStr =
+                runTimeObj < startTimeObj
+                    ? `${endDate} ${runTime}`
+                    : `${datePart} ${runTime}`;
+
             const start = new Date(startTime);
             const exit = new Date(exitDateTimeStr);
             RunTime = (exit - start) / (1000 * 60);
@@ -365,6 +425,7 @@ export const OEEQuery = async (req, res) => {
                     run_no,
                     MAX(secondary_press_exit) AS PTPT_secondaryPressExit
                 FROM PT_plan_time_mst
+                WHERE plantime_id = @plantime_id
                 GROUP BY run_no
             )
             SELECT
@@ -399,7 +460,16 @@ export const OEEQuery = async (req, res) => {
         let RunTime = 0;
         if (startTime && runTimeStr) {
             const datePart = startTime.split(' ')[0];
-            const exitDateTimeStr = `${datePart} ${runTimeStr}`;
+            const endDate = endTime.split(' ')[0];
+
+            const startTimeObj = new Date(startTime);
+            const runTimeObj = new Date(`${datePart} ${runTimeStr}`);
+
+            const exitDateTimeStr =
+                runTimeObj < startTimeObj
+                    ? `${endDate} ${runTimeStr}`
+                    : `${datePart} ${runTimeStr}`;
+
             const start = new Date(startTime);
             const exit = new Date(exitDateTimeStr);
             RunTime = (exit - start) / (1000 * 60);
@@ -545,8 +615,8 @@ export const MachineOEEQuery = async (req, res) => {
         		UPPER(LTRIM(RTRIM(v.status))) AS foam_status 
         	FROM FM_production_record AS FMPR 
         	LEFT JOIN FM_run_record AS FMRR ON FMPR.id = FMRR.production_record_id 
-        	LEFT JOIN FM_secondary_press_step AS FMSS ON FMRR.run_no = FMSS.run_record_id 
-        	LEFT JOIN FM_foam_check_step AS FMFC ON FMRR.run_no = FMFC.run_record_id 
+        	LEFT JOIN FM_secondary_press_step AS FMSS ON FMRR.id = FMSS.run_record_id 
+        	LEFT JOIN FM_foam_check_step AS FMFC ON FMRR.id = FMFC.run_record_id 
         	CROSS APPLY (VALUES 
         		(FMFC.foam_block_1), (FMFC.foam_block_2), (FMFC.foam_block_3), 
         		(FMFC.foam_block_4), (FMFC.foam_block_5), (FMFC.foam_block_6) 
@@ -617,6 +687,7 @@ export const MachineOEEQuery = async (req, res) => {
 
         const row = result.recordset[0];
         const startTime = row.start_time;
+        const endTime = row.end_time;
         const runTimeStr = row.actual_secondary_press;
         const planExit = row.planned_secondary_press;
         const machineCount = row.machine_count;
@@ -634,7 +705,16 @@ export const MachineOEEQuery = async (req, res) => {
         let RunTime = 0;
         if (startTime && runTimeStr) {
             const datePart = startTime.split(' ')[0];
-            const exitDateTimeStr = `${datePart} ${runTimeStr}`;
+            const endDate = endTime.split(' ')[0];
+
+            const startTimeObj = new Date(startTime);
+            const runTimeObj = new Date(`${datePart} ${runTimeStr}`);
+
+            const exitDateTimeStr =
+                runTimeObj < startTimeObj
+                    ? `${endDate} ${runTimeStr}`
+                    : `${datePart} ${runTimeStr}`;
+
             const start = new Date(startTime);
             const exit = new Date(exitDateTimeStr);
             RunTime = (exit - start) / (1000 * 60);
@@ -671,14 +751,14 @@ export const MachineOEEQuery = async (req, res) => {
 
         const OEE = (Availability * Performance * Quality) / 10000;
 
-        res.json({ 
-            Availability: Availability.toFixed(2), 
-            Performance: Performance.toFixed(2), 
-            Quality: Quality.toFixed(2), 
-            OEE: OEE.toFixed(2), 
-            TotalBlock: totalBlock, 
-            okCount: okCount, 
-            ngCount: totalNg, 
+        res.json({
+            Availability: Availability.toFixed(2),
+            Performance: Performance.toFixed(2),
+            Quality: Quality.toFixed(2),
+            OEE: OEE.toFixed(2),
+            TotalBlock: totalBlock,
+            okCount: okCount,
+            ngCount: totalNg,
             rwCount: totalRw,
             planProductionTime: PlanProductionTime,
             runTime: RunTime,
@@ -717,21 +797,37 @@ export const selectDate = async (req, res) => {
     const { sDate } = req.query;
 
     const query = `
-        SELECT plantime_id, product_name, start_time, end_time
-        FROM PT_plan_time_mst
-        WHERE create_date = @sDate
+        SELECT plantime_id, product_name, start_time, end_time, create_date
+        FROM FM_production_record
+        WHERE CAST(create_date AS DATE) = @sDate
     `;
+
+    console.log("Received sDate:", sDate);
 
     try {
         const pool = await getPool();
         const request = pool.request();
 
-        request.input("sDate", sql.VarChar, sDate);
+        request.input("sDate", sql.Date, sDate);
 
         const result = await request.query(query);
-        res.json(result.recordset);
+        console.log("Query result:", result.recordset);
+
+        const row = result.recordset[0];
+
+        if (!row) {
+            return res.status(404).json({ error: "No plan found for this date." });
+        }
+
+        const plantimeId = row.plantime_id;
+        const productName = row.product_name;
+
+        res.json({
+            plantimeId: plantimeId,
+            productName: productName,
+        });
     } catch (error) {
         console.error("Error fetching plan IDs:", error);
-        res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: "Internal server error", detail: error.message });
     }
 }

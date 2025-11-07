@@ -55,6 +55,31 @@ const steps = [
   "Foam Check",
 ];
 
+// ฟังก์ชันแปลงเวลาเป็น HH:mm:ss
+function normalizeTimeInput(value) {
+  if (!value) return "";
+  value = value.trim();
+
+  if (/^\d{1,2}:\d{2}$/.test(value)) {
+    const [h, m] = value.split(":");
+    return `${h.padStart(2, "0")}:${m}:${"00"}`;
+  }
+
+  if (/^\d{1,2}:\d{2}:\d{2}$/.test(value)) {
+    const parts = value.split(":");
+    return parts
+      .map((p, i) => (i === 0 && p.length === 1 ? "0" + p : p))
+      .join(":");
+  }
+
+  if (/^\d{3,4}$/.test(value)) {
+    let h = value.length === 3 ? "0" + value[0] : value.slice(0, 2);
+    let m = value.length === 3 ? value.slice(1) : value.slice(2);
+    return `${h}:${m}:00`;
+  }
+  return value;
+}
+
 const FoamRecord = () => {
   // เพิ่ม state สำหรับควบคุมโหมดแก้ไข
   const [isEditMode, setIsEditMode] = useState(false);
@@ -176,9 +201,9 @@ const FoamRecord = () => {
   const [secondaryPressData, setSecondaryPressData] = useState({
     machineNo: "",
     programNo: "",
-    streamInPress: "",
-    foamWidth: "",
-    foamLength: "",
+    steamInPress: "",
+    widthFoam: "",
+    lengthFoam: "",
     bakeSecondaryTime: "",
     injectEmp: "",
     tempCheck1: "",
@@ -346,14 +371,20 @@ const FoamRecord = () => {
           });
 
           if (isEdit || isEditMode) {
-            await axios.put(`/api/put/production/update/chemical-name/${runId}`, {
-              chemicalNames: chemistryNames,
-            });
+            await axios.put(
+              `/api/put/production/update/chemical-name/${runId}`,
+              {
+                chemicalNames: chemistryNames,
+              }
+            );
           } else {
-            await axios.post(`/api/post/production/${runId}/chemical-name/add`, {
-              productionId: productionId,
-              chemistryName: chemistryNames,
-            });
+            await axios.post(
+              `/api/post/production/${runId}/chemical-name/add`,
+              {
+                productionId: productionId,
+                chemistryName: chemistryNames,
+              }
+            );
           }
 
           // Chemical Weight
@@ -366,9 +397,12 @@ const FoamRecord = () => {
           });
 
           if (isEdit || isEditMode) {
-            await axios.put(`/api/put/production/update/chemical-weight/${runId}`, {
-              chemicalWeights: processedWeights,
-            });
+            await axios.put(
+              `/api/put/production/update/chemical-weight/${runId}`,
+              {
+                chemicalWeights: processedWeights,
+              }
+            );
           } else {
             await axios.post(
               `/api/post/production/${runId}/chemical-weight/add`,
@@ -413,31 +447,43 @@ const FoamRecord = () => {
               ...prePressData,
             });
           } else {
-            await axios.post(`/api/post/production/${runId}/pre-press-step/add`, {
-              productionId: productionId,
-              ...prePressData,
-            });
+            await axios.post(
+              `/api/post/production/${runId}/pre-press-step/add`,
+              {
+                productionId: productionId,
+                ...prePressData,
+              }
+            );
           }
           break;
 
         case 5:
           if (isEdit || isEditMode) {
-            await axios.put(`/api/put/production/update/primarypress/${runId}`, {
-              ...primaryPressData,
-            });
+            await axios.put(
+              `/api/put/production/update/primarypress/${runId}`,
+              {
+                ...primaryPressData,
+              }
+            );
           } else {
-            await axios.post(`/api/post/production/${runId}/primary-press/add`, {
-              productionId: productionId,
-              ...primaryPressData,
-            });
+            await axios.post(
+              `/api/post/production/${runId}/primary-press/add`,
+              {
+                productionId: productionId,
+                ...primaryPressData,
+              }
+            );
           }
           break;
 
         case 6:
           if (isEdit || isEditMode) {
-            await axios.put(`/api/put/production/update/secondarypress/${runId}`, {
-              ...secondaryPressData,
-            });
+            await axios.put(
+              `/api/put/production/update/secondarypress/${runId}`,
+              {
+                ...secondaryPressData,
+              }
+            );
           } else {
             await axios.post(`/api/post/production/${runId}/second-press/add`, {
               productionId: productionId,
@@ -508,7 +554,7 @@ const FoamRecord = () => {
             />
           )}
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <Chip
             label={`Production ID: ${productionId}`}
             variant="outlined"
@@ -526,7 +572,7 @@ const FoamRecord = () => {
                   onClick={handleToggleEditMode}
                   sx={{
                     borderRadius: 2,
-                    textTransform: 'none',
+                    textTransform: "none",
                     fontWeight: 600,
                   }}
                 >
@@ -540,7 +586,7 @@ const FoamRecord = () => {
                   onClick={handleCancelEdit}
                   sx={{
                     borderRadius: 2,
-                    textTransform: 'none',
+                    textTransform: "none",
                     fontWeight: 600,
                   }}
                 >
@@ -558,7 +604,10 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<AccountIcon className="foam-step-icon" />, "ข้อมูลพื้นฐานการผลิต")}
+              {renderStepHeader(
+                <AccountIcon className="foam-step-icon" />,
+                "ข้อมูลพื้นฐานการผลิต"
+              )}
               <Grid container spacing={2} className="foam-form-grid">
                 {/* Run Number */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -622,20 +671,31 @@ const FoamRecord = () => {
                       <Typography sx={{ fontWeight: 500 }}>สถานะ</Typography>
                     </Grid>
                     <Grid size={{ xs: 8 }}>
-                      <TextField
+                      <FormControl
                         fullWidth
-                        label=""
-                        value={productionData.productStatus}
-                        onChange={(e) =>
-                          setProductionData({
-                            ...productionData,
-                            productStatus: e.target.value,
-                          })
-                        }
-                        className="foam-text-field foam-disabled-field"
-                        disabled
-                        required
-                      />
+                        className={`foam-text-field ${
+                          shouldDisable ? "foam-disabled-field" : ""
+                        }`}
+                      >
+                        <Select
+                          value={productionData.productStatus}
+                          onChange={(e) =>
+                            setProductionData({
+                              ...productionData,
+                              productStatus: e.target.value,
+                            })
+                          }
+                          disabled={shouldDisable}
+                          required
+                          displayEmpty
+                        >
+                          <MenuItem value="">
+                            <em>เลือกสถานะ</em>
+                          </MenuItem>
+                          <MenuItem value="Mass">Mass</MenuItem>
+                          <MenuItem value="Trial">Trial</MenuItem>
+                        </Select>
+                      </FormControl>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -643,9 +703,7 @@ const FoamRecord = () => {
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Grid container sx={{ alignItems: "center" }}>
                     <Grid size={{ xs: 4 }}>
-                      <Typography sx={{ fontWeight: 500 }}>
-                        โปรแกรม
-                      </Typography>
+                      <Typography sx={{ fontWeight: 500 }}>โปรแกรม</Typography>
                     </Grid>
                     <Grid size={{ xs: 8 }}>
                       <TextField
@@ -690,11 +748,13 @@ const FoamRecord = () => {
                           onChange={(date) => {
                             if (!shouldDisable && date) {
                               const year = date.getFullYear();
-                              const month = String(date.getMonth() + 1).padStart(
+                              const month = String(
+                                date.getMonth() + 1
+                              ).padStart(2, "0");
+                              const day = String(date.getDate()).padStart(
                                 2,
                                 "0"
                               );
-                              const day = String(date.getDate()).padStart(2, "0");
                               const formattedDate = `${year}-${month}-${day}`;
 
                               setProductionData({
@@ -792,16 +852,18 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<ScienceIcon className="foam-step-icon" />, "Chemical Names & Weights")}
-              
+              {renderStepHeader(
+                <ScienceIcon className="foam-step-icon" />,
+                "Chemical Names & Weights"
+              )}
+
               <Box sx={{ p: 2 }}>
                 {chemicalNames.map((item, index) => (
                   <Grid
                     container
                     spacing={2}
                     sx={{ alignItems: "center", mb: 1 }}
-                    key={index
-                    }
+                    key={index}
                   >
                     <Grid size={{ xs: 12, md: 3, lg: 2 }}>
                       <Typography sx={{ fontWeight: 500 }}>
@@ -889,7 +951,7 @@ const FoamRecord = () => {
           </Fade>
         );
 
-      case 2:
+      case 2: {
         const mixingKeys = Object.keys(mixingData);
         const mixingLeftKeys = mixingKeys.slice(0, 7);
         const mixingRightKeys = mixingKeys.slice(7);
@@ -897,8 +959,11 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<BlenderIcon className="foam-step-icon" />, "Mixing Step")}
-              
+              {renderStepHeader(
+                <BlenderIcon className="foam-step-icon" />,
+                "Mixing Step"
+              )}
+
               <Grid container spacing={2}>
                 {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -923,7 +988,11 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setMixingData({
                                 ...mixingData,
-                                [key]: e.target.value,
+                                [key]: ["actualStart", "mixFinish"].includes(
+                                  key
+                                )
+                                  ? normalizeTimeInput(e.target.value)
+                                  : e.target.value,
                               });
                             }
                           }}
@@ -960,7 +1029,11 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setMixingData({
                                 ...mixingData,
-                                [key]: e.target.value,
+                                [key]: ["actualStart", "mixFinish"].includes(
+                                  key
+                                )
+                                  ? normalizeTimeInput(e.target.value)
+                                  : e.target.value,
                               });
                             }
                           }}
@@ -978,8 +1051,8 @@ const FoamRecord = () => {
             </Paper>
           </Fade>
         );
-
-      case 3:
+      }
+      case 3: {
         const cuttingKeys = Object.keys(cuttingData);
         const cuttingLeftKeys = cuttingKeys.slice(0, 5);
         const cuttingRightKeys = cuttingKeys.slice(5);
@@ -987,8 +1060,11 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<CutIcon className="foam-step-icon" />, "Cutting Step")}
-              
+              {renderStepHeader(
+                <CutIcon className="foam-step-icon" />,
+                "Cutting Step"
+              )}
+
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   {cuttingLeftKeys.map((key) => (
@@ -1043,7 +1119,9 @@ const FoamRecord = () => {
                         <TextField
                           fullWidth
                           type={
-                            ["staffSave", "startPress", "mixFinish"].includes(key)
+                            ["staffSave", "startPress", "mixFinish"].includes(
+                              key
+                            )
                               ? "text"
                               : "number"
                           }
@@ -1052,7 +1130,9 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setCuttingData({
                                 ...cuttingData,
-                                [key]: e.target.value,
+                                [key]: ["startPress", "mixFinish"].includes(key)
+                                  ? normalizeTimeInput(e.target.value)
+                                  : e.target.value,
                               });
                             }
                           }}
@@ -1062,12 +1142,16 @@ const FoamRecord = () => {
                           disabled={shouldDisable}
                           sx={{ maxWidth: 250 }}
                           placeholder={
-                            ["staffSave", "startPress", "mixFinish"].includes(key)
+                            ["staffSave", "startPress", "mixFinish"].includes(
+                              key
+                            )
                               ? ""
                               : "0.00"
                           }
                           InputProps={
-                            !["staffSave", "startPress", "mixFinish"].includes(key)
+                            !["staffSave", "startPress", "mixFinish"].includes(
+                              key
+                            )
                               ? {
                                   inputProps: {
                                     min: 0,
@@ -1085,8 +1169,8 @@ const FoamRecord = () => {
             </Paper>
           </Fade>
         );
-
-      case 4:
+      }
+      case 4: {
         const prePressKeys = Object.keys(prePressData);
         const prePressLeftKeys = prePressKeys.slice(0, 2);
         const prePressRightKeys = prePressKeys.slice(2);
@@ -1094,8 +1178,11 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Pre Press Step")}
-              
+              {renderStepHeader(
+                <CompressIcon className="foam-step-icon" />,
+                "Pre Press Step"
+              )}
+
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   {prePressLeftKeys.map((key) => (
@@ -1123,7 +1210,10 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setPrePressData({
                                 ...prePressData,
-                                [key]: e.target.value,
+                                [key]:
+                                  key === "bakeTimePrePress"
+                                    ? normalizeTimeInput(e.target.value)
+                                    : e.target.value,
                               });
                             }
                           }}
@@ -1154,16 +1244,17 @@ const FoamRecord = () => {
                         <TextField
                           fullWidth
                           type={
-                            ["waterHeat2"].includes(key)
-                              ? "number"
-                              : "text"
+                            ["waterHeat2"].includes(key) ? "number" : "text"
                           }
                           value={prePressData[key]}
                           onChange={(e) => {
                             if (!shouldDisable) {
                               setPrePressData({
                                 ...prePressData,
-                                [key]: e.target.value,
+                                [key]:
+                                  key === "bakeTimePrePress"
+                                    ? normalizeTimeInput(e.target.value)
+                                    : e.target.value,
                               });
                             }
                           }}
@@ -1181,8 +1272,8 @@ const FoamRecord = () => {
             </Paper>
           </Fade>
         );
-
-      case 5:
+      }
+      case 5: {
         const primaryKeys = Object.keys(primaryPressData);
         const primaryLeftKeys = primaryKeys.slice(0, 5);
         const primaryRightKeys = primaryKeys.slice(5);
@@ -1190,8 +1281,11 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Primary Press Step")}
-              
+              {renderStepHeader(
+                <CompressIcon className="foam-step-icon" />,
+                "Primary Press Step"
+              )}
+
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   {primaryLeftKeys.map((key) => (
@@ -1225,7 +1319,10 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setPrimaryPressData({
                                 ...primaryPressData,
-                                [key]: e.target.value,
+                                [key]:
+                                  key === "bakeTimePrimary"
+                                    ? normalizeTimeInput(e.target.value)
+                                    : e.target.value,
                               });
                             }
                           }}
@@ -1256,11 +1353,9 @@ const FoamRecord = () => {
                         <TextField
                           fullWidth
                           type={
-                            [
-                              "tempBlock4",
-                              "tempBlock5",
-                              "tempBlock6",
-                            ].includes(key)
+                            ["tempBlock4", "tempBlock5", "tempBlock6"].includes(
+                              key
+                            )
                               ? "number"
                               : "text"
                           }
@@ -1269,7 +1364,10 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setPrimaryPressData({
                                 ...primaryPressData,
-                                [key]: e.target.value,
+                                [key]:
+                                  key === "bakeTimePrimary"
+                                    ? normalizeTimeInput(e.target.value)
+                                    : e.target.value,
                               });
                             }
                           }}
@@ -1287,8 +1385,8 @@ const FoamRecord = () => {
             </Paper>
           </Fade>
         );
-
-      case 6:
+      }
+      case 6: {
         const secondaryKeys = Object.keys(secondaryPressData);
         const leftKeys = secondaryKeys.slice(0, 5);
         const rightKeys = secondaryKeys.slice(5);
@@ -1296,8 +1394,11 @@ const FoamRecord = () => {
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<CompressIcon className="foam-step-icon" />, "Secondary Press Step")}
-              
+              {renderStepHeader(
+                <CompressIcon className="foam-step-icon" />,
+                "Secondary Press Step"
+              )}
+
               <Grid container spacing={2}>
                 {/* ฝั่งซ้าย */}
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -1320,8 +1421,8 @@ const FoamRecord = () => {
                             [
                               "machineNo",
                               "programNo",
-                              "foamWidth",
-                              "foamLength",
+                              "widthFoam",
+                              "lengthFoam",
                             ].includes(key)
                               ? "number"
                               : "text"
@@ -1331,7 +1432,12 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setSecondaryPressData({
                                 ...secondaryPressData,
-                                [key]: e.target.value,
+                                [key]: [
+                                  "steamInPress",
+                                  "bakeSecondaryTime",
+                                ].includes(key)
+                                  ? normalizeTimeInput(e.target.value)
+                                  : e.target.value,
                               });
                             }
                           }}
@@ -1374,7 +1480,12 @@ const FoamRecord = () => {
                             if (!shouldDisable) {
                               setSecondaryPressData({
                                 ...secondaryPressData,
-                                [key]: e.target.value,
+                                [key]: [
+                                  "steamInPress",
+                                  "bakeSecondaryTime",
+                                ].includes(key)
+                                  ? normalizeTimeInput(e.target.value)
+                                  : e.target.value,
                               });
                             }
                           }}
@@ -1392,18 +1503,28 @@ const FoamRecord = () => {
             </Paper>
           </Fade>
         );
-
+      }
       case 7:
         return (
           <Fade in timeout={500}>
             <Paper className="foam-step-content">
-              {renderStepHeader(<VerifiedIcon className="foam-step-icon" />, "Foam Check Step")}
+              {renderStepHeader(
+                <VerifiedIcon className="foam-step-icon" />,
+                "Foam Check Step"
+              )}
 
-              <Grid container spacing={3} className="foam-form-grid" sx={{ mb: 2 }}>
+              <Grid
+                container
+                spacing={3}
+                className="foam-form-grid"
+                sx={{ mb: 2 }}
+              >
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 5 }}>
-                      <Typography sx={{ fontWeight: 500 }}>Run Number</Typography>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        Run Number
+                      </Typography>
                     </Grid>
                     <Grid size={{ xs: 7 }}>
                       <TextField
@@ -1419,7 +1540,9 @@ const FoamRecord = () => {
                             });
                           }
                         }}
-                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        className={`foam-text-field ${
+                          shouldDisable ? "foam-disabled-field" : ""
+                        }`}
                         disabled={shouldDisable}
                         required
                       />
@@ -1429,7 +1552,9 @@ const FoamRecord = () => {
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 6 }}>
-                      <Typography sx={{ fontWeight: 500 }}>พนักงานตรวจสอบโฟม</Typography>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        พนักงานตรวจสอบโฟม
+                      </Typography>
                     </Grid>
                     <Grid size={{ xs: 6 }}>
                       <TextField
@@ -1444,7 +1569,9 @@ const FoamRecord = () => {
                             });
                           }
                         }}
-                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        className={`foam-text-field ${
+                          shouldDisable ? "foam-disabled-field" : ""
+                        }`}
                         disabled={shouldDisable}
                       />
                     </Grid>
@@ -1453,7 +1580,9 @@ const FoamRecord = () => {
                 <Grid size={{ xs: 12, md: 4 }}>
                   <Grid container sx={{ alignItems: "center" }} spacing={1}>
                     <Grid size={{ xs: 7 }}>
-                      <Typography sx={{ fontWeight: 500 }}>เวลาออกจากเซคเค็นดารีเพรส</Typography>
+                      <Typography sx={{ fontWeight: 500 }}>
+                        เวลาออกจากเซคเค็นดารีเพรส
+                      </Typography>
                     </Grid>
                     <Grid size={{ xs: 5 }}>
                       <TextField
@@ -1464,11 +1593,15 @@ const FoamRecord = () => {
                           if (!shouldDisable) {
                             setFoamCheckData({
                               ...foamCheckData,
-                              exitSecondaryPress: e.target.value,
+                              exitSecondaryPress: normalizeTimeInput(
+                                e.target.value
+                              ),
                             });
                           }
                         }}
-                        className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                        className={`foam-text-field ${
+                          shouldDisable ? "foam-disabled-field" : ""
+                        }`}
                         disabled={shouldDisable}
                       />
                     </Grid>
@@ -1488,7 +1621,7 @@ const FoamRecord = () => {
                 </Grid>
               </Grid>
 
-              { [
+              {[
                 "foamBlock1",
                 "foamBlock2",
                 "foamBlock3",
@@ -1515,7 +1648,9 @@ const FoamRecord = () => {
                   <Grid size={{ xs: 12, md: 8, lg: 6 }}>
                     <FormControl
                       fullWidth
-                      className={`foam-text-field ${shouldDisable ? "foam-disabled-field" : ""}`}
+                      className={`foam-text-field ${
+                        shouldDisable ? "foam-disabled-field" : ""
+                      }`}
                     >
                       <Select
                         value={foamCheckData[key]}
@@ -1660,9 +1795,9 @@ const FoamRecord = () => {
         setSecondaryPressData({
           machineNo: data.FMSP_machineNo || "",
           programNo: data.FMSP_programNo || "",
-          streamInPress: data.FMSP_steamInPress || "",
-          foamWidth: data.FMSP_widthFoam || "",
-          foamLength: data.FMSP_lengthFoam || "",
+          steamInPress: data.FMSP_steamInPress || "",
+          widthFoam: data.FMSP_widthFoam || "",
+          lengthFoam: data.FMSP_lengthFoam || "",
           bakeSecondaryTime: data.FMSP_bakeSecondaryTime || "",
           injectEmp: data.FMSP_injectEmp || "",
           tempCheck1: data.FMSP_tempCheck_1 || "",
@@ -1689,10 +1824,9 @@ const FoamRecord = () => {
     [toISODate]
   );
 
-  // เพิ่มฟังก์ชันเช็คว่า step ไหนยังไม่บันทึก
   const checkStepCompletion = useCallback((stepIndex, data) => {
     switch (stepIndex) {
-      case 0: // ข้อมูลพื้นฐาน
+      case 0:
         return !!(
           data.FMBR_operator &&
           data.FMBR_shift &&
@@ -1702,7 +1836,8 @@ const FoamRecord = () => {
           data.FMBR_productStatus &&
           data.FMPR_productName
         );
-      case 1: // Chemical Name & Weight
+      case 1: {
+        // Chemical Name & Weight
         let hasChemName = false,
           hasChemWeight = false;
         for (let i = 1; i <= 15; i++) {
@@ -1723,6 +1858,7 @@ const FoamRecord = () => {
           }
         }
         return hasChemName && hasChemWeight;
+      }
       case 2: // Mixing Step
         return !!(
           data.FMMX_programHopper ||
@@ -1885,9 +2021,9 @@ const FoamRecord = () => {
   const secondaryPressLabels = {
     machineNo: "เครื่องจักรที่",
     programNo: "โปรแกรม No.",
-    streamInPress: "เวลากดปุ่ม Stream In",
-    foamWidth: "ความกว้างโฟม (mm.)",
-    foamLength: "ความยาวโฟม (mm.)",
+    steamInPress: "เวลากดปุ่ม Steam In",
+    widthFoam: "ความกว้างโฟม (mm.)",
+    lengthFoam: "ความยาวโฟม (mm.)",
     bakeSecondaryTime: "เวลาที่เริ่มอบ",
     injectEmp: "ผู้ฉีดสเปรย์",
     tempCheck1: "เช็คอุณหภูมิครั้งที่ 1",
@@ -1897,7 +2033,7 @@ const FoamRecord = () => {
 
   const cuttingLabels = {
     wb1: "น้ำหนักบล็อคที่ 1",
-    wb2: "น้ำหนักบล็อคที่ 2", 
+    wb2: "น้ำหนักบล็อคที่ 2",
     wb3: "น้ำหนักบล็อคที่ 3",
     wb4: "น้ำหนักบล็อคที่ 4",
     wb5: "น้ำหนักบล็อคที่ 5",
@@ -2046,8 +2182,6 @@ const FoamRecord = () => {
             </Snackbar>
           </Paper>
         </Fade>
-
-        {/* <DebugJson data={{ productionData, chemicalNames, chemicalWeights, mixingData, cuttingData, prePressData, primaryPressData, secondaryPressData, foamCheckData }} /> */}
       </Container>
     </div>
   );

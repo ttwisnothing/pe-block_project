@@ -5,7 +5,7 @@ import { getChemicals, getProducts, getProductsName } from './../controllers/pro
 import { getProduction, getRunRecord, getRunRecordData, getRunStatus } from '../controllers/productionController.js';
 import { addPlantime } from '../models/plantimeModel.js';
 import { updateNewStartTime } from '../models/tempplanModel.js';
-import { AvailabilityQuery, MachineOEEQuery, MachineQuery, OEEQuery, PerformanceQuery, QualityQuery, selectPlanId } from '../models/oeeModel.js';
+import { AvailabilityQuery, MachineOEEQuery, MachineQuery, OEEQuery, PerformanceQuery, QualityQuery, selectDate, selectPlanId } from '../models/oeeModel.js';
 
 const router = express.Router();
 
@@ -26,7 +26,8 @@ router.get('/oee/quality/', QualityQuery);
 router.get('/oee/', OEEQuery);
 router.get('/oee/machine/block-total', MachineQuery);
 router.get('/oee/machine/oee/', MachineOEEQuery);
-router.get('/oee/select-date', selectPlanId);
+router.get('/oee/get/plantime', selectPlanId);
+router.get('/oee/get/select-date/', selectDate);
 
 // test route for plantime
 router.get('/test-plantime/:product_name', addPlantime);

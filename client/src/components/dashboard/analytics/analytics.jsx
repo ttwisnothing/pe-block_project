@@ -16,7 +16,7 @@ const navRoutes = {
 };
 
 const Analytics = () => {
-  const { plantimeId } = useOutletContext();
+  const { plantimeId, setPlantimeId } = useOutletContext(); // ต้องแน่ใจว่า setPlantimeId ถูกส่งมาจาก parent
   const [currentDate, setCurrentDate] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedShift, setSelectedShift] = useState("");
@@ -143,13 +143,27 @@ const Analytics = () => {
     }
   };
 
-  const handleApply = () => {
-    if (selectedDate && selectedShift) {
-      console.log(`Applied: Date ${selectedDate}, Shift ${selectedShift}`);
-      // ใส่ logic สำหรับการ apply ข้อมูลที่เลือก
+  const handleApply = async () => {
+    if (selectedDate) {
+      try {
+        const res = await axios.get("/api/get/oee/get/select-date", {
+          params: { sDate: selectedDate },
+        });
+        console.log("select-date response:", res.data);
+        if (res.data && res.data.plantimeId) {
+          setPlantimeId(res.data.plantimeId);
+        } else {
+          alert("ไม่พบข้อมูล PlanTime สำหรับวันที่นี้");
+        }
+      } catch (err) {
+        console.error("select-date error:", err.response ? err.response.data : err);
+        alert("เกิดข้อผิดพลาดในการค้นหา PlanTime");
+      }
     } else {
-      alert("Please select both date and shift");
+      alert("Please select a date");
     }
+
+    console.log(selectedDate);
   };
 
   // useEffect สำหรับการสร้างกราฟ
@@ -292,21 +306,8 @@ const Analytics = () => {
                 className="analytics-date-picker"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                placeholder="Choose a date*"
+                placeholder="เลือกวันที่*"
               />
-              <select
-                name="shift-select"
-                id="shift-select"
-                className="analytics-shift-select"
-                value={selectedShift}
-                onChange={(e) => setSelectedShift(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a Shift*
-                </option>
-                <option value="1">Shift 1</option>
-                <option value="2">Shift 2</option>
-              </select>
               <button
                 className="analytics-set-datetime-btn"
                 onClick={handleApply}
